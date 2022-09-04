@@ -31,8 +31,7 @@ describe("Admin actions", function () {
             .end((error, res) => {
                 expect(error).to.be.null;
                 expect(res).to.have.status(200);
-                expect(res).to.have.header("auth-token");
-                authToken = res.header["auth-token"];
+                authToken = res.body.authToken;
                 return done();
             });
     });

@@ -37,9 +37,7 @@ module.exports = {
 
             // create JWT and send it:
             const token = jwt.sign({ _id: user._id, privilege: user.privilege }, process.env.JWT_TOKEN_SECRET);
-            res.header("auth-token", token);
-            res.header("front-end-privilege", user.privilege);
-            res.status(200).send("logged in and got token");
+            res.status(200).send({ authToken: token, frontEndPrivilege: user.privilege });
 
             // MAKE SURE TO CATCH the auth-token HEADER AND SAVE IN LOCAL STORAGE
         } catch (error) {
@@ -58,8 +56,6 @@ module.exports = {
 
             // perform logout and change password
             await User.findOneAndUpdate({ _id: req.userInfo._id }, { password: hashedPassword });
-            // clear JWT token:
-            res.header("auth-token", "");
 
             res.status(200).send("Successfully changed password! Please log in again.");
         } catch (error) {
