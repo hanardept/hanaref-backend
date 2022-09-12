@@ -33,10 +33,10 @@ module.exports = {
 
             // check password:
             const validPassword = await bcrypt.compare(req.body.password, user.password);
-            if (!validPassword) return res.status(400).send("Email or password wrong!");
+            if (!validPassword) return res.status(400).send("username or password wrong!");
 
             // create JWT and send it:
-            const token = jwt.sign({ _id: user._id, privilege: user.privilege }, process.env.JWT_TOKEN_SECRET);
+            const token = jwt.sign({ _id: user._id, privilege: user.privilege }, process.env.JWT_TOKEN_SECRET, { expiresIn: "1h" });
             res.status(200).send({ authToken: token, frontEndPrivilege: user.privilege });
 
             // MAKE SURE TO CATCH the auth-token HEADER AND SAVE IN LOCAL STORAGE
@@ -54,12 +54,11 @@ module.exports = {
             const salty = await bcrypt.genSalt(10);
             const hashedPassword = await bcrypt.hash(req.body.password, salty);
 
-            // perform logout and change password
-            await User.findOneAndUpdate({ _id: req.userInfo._id }, { password: hashedPassword });
+            await User.findOneAndUpdate({ _id: req.userId }, { password: hashedPassword });
 
             res.status(200).send("Successfully changed password! Please log in again.");
         } catch (error) {
-            res.status(400).sned("Error changing password: ", error);
+            res.status(400).send("Error changing password: ", error);
         }
     },
 };
