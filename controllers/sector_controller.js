@@ -1,10 +1,12 @@
 const Sector = require("../models/Sector");
-const { disallowedSectors } = require("../rules/privileges");
 
 module.exports = {
     async getFullSectors(req, res) {
+        let sectorsFilter = {};
+        if (req.userPrivilege === "public") sectorsFilter = { visibleToPublic: true };
+
         try {
-            const sectors = await Sector.find({ sectorName: { $nin: disallowedSectors[req.userPrivilege] } });
+            const sectors = await Sector.find(sectorsFilter);
             res.status(200).send(sectors);
         } catch (error) {
             res.status(400).send(`Error fetching sectors: ${error}`);
@@ -23,6 +25,7 @@ module.exports = {
             const newSector = new Sector({
                 sectorName: req.body.sectorName,
                 departments: req.body.departments,
+                visibleToPublic: req.body.visibleToPublic,
             });
             await newSector.save();
             res.status(200).send("Sector added successfully!");
@@ -30,17 +33,21 @@ module.exports = {
             res.status(400).send(`Error adding sector: ${error}`);
         }
     },
-    async editSectorName(req, res) {
-        // PUT route: /sectors/שגרה
+    async editSectorDetails(req, res) {
+        // PUT route: /sectors/%D7%91%D7%99%D7%95
         const hebrewSectorName = decodeURI(req.params.sectorname);
 
         if (req.body.sectorName.length === 0) return res.status(400).send("Please enter a valid sector name");
 
+        let detailsToUpdate = {};
+        if (req.body.sectorName) detailsToUpdate.sectorName = req.body.sectorName;
+        if (req.body.visibleToPublic) detailsToUpdate.visibleToPublic = req.body.visibleToPublic;
+
         try {
-            await Sector.findOneAndUpdate({ sectorName: hebrewSectorName }, { sectorName: req.body.sectorName });
-            res.status(200).send(`Sector name successfully updated to ${req.body.sectorName}`);
+            await Sector.findOneAndUpdate({ sectorName: hebrewSectorName }, detailsToUpdate);
+            res.status(200).send(`Sector details successfully updated`);
         } catch (error) {
-            res.status(400).send(`Error editing sector name of ${hebrewSectorName} to ${req.body.sectorName}: ${error}`);
+            res.status(400).send(`Error editing sector ${hebrewSectorName}: ${error}`);
         }
     },
     async deleteSector(req, res) {

@@ -28,17 +28,20 @@ module.exports = {
     async authenticateUser(req, res) {
         try {
             // check if email registered:
+            //console.log("333333");
             const user = await User.findOne({ username: req.body.username });
+            //console.log("AAAA");
             if (!user) return res.status(400).send("username or password wrong!");
 
             // check password:
             const validPassword = await bcrypt.compare(req.body.password, user.password);
+            //console.log("BBBB");
             if (!validPassword) return res.status(400).send("username or password wrong!");
 
             // create JWT and send it:
             const token = jwt.sign({ _id: user._id, privilege: user.privilege }, process.env.JWT_TOKEN_SECRET, { expiresIn: "1h" });
+            //console.log("CCCC");
             res.status(200).send({ authToken: token, frontEndPrivilege: user.privilege });
-
             // MAKE SURE TO CATCH the auth-token HEADER AND SAVE IN LOCAL STORAGE
         } catch (error) {
             res.status(400).send("MongoDB error - Unable to find user even though password is correct: ", error);

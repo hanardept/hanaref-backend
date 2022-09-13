@@ -3,7 +3,7 @@ const { chai, expect, adminUname, adminPwd } = require("./resources/test_resourc
 const fakeItem = {
     name: "מנשם",
     cat: "000000000",
-    sector: "פיתוח",
+    sector: "בחינה",
     department: "מנשמים",
     catType: "מקט רגיל",
     description: "מנשם לדוגמה",
@@ -17,6 +17,7 @@ const fakeItem = {
 const fakeSector = {
     sectorName: "מדור1",
     departments: [{ departmentName: "תחום1" }, { departmentName: "תחום2" }, { departmentName: "תחום3" }],
+    visibleToPublic: true,
 };
 
 describe("Admin actions", function () {

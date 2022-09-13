@@ -14,6 +14,7 @@ const SectorSchema = new Schema({
         required: true,
     },
     departments: [DepartmentSchema],
+    visibleToPublic: Boolean,
 });
 
 module.exports = mongoose.model("Sector", SectorSchema);

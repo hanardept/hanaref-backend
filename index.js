@@ -1,5 +1,5 @@
-const app = require('./app');
-const { connectMongoose } = require('./mongoose');
+const app = require("./app");
+const { connectMongoose } = require("./mongoose");
 
 connectMongoose();
 

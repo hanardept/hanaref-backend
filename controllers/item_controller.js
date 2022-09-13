@@ -1,19 +1,26 @@
 const Item = require("../models/Item");
-const { itemPrivileges } = require("../rules/privileges");
+const { decodeItems } = require("../functions/helpers");
+const Sector = require("../models/Sector");
 
 module.exports = {
     async getItems(req, res) {
         // GET path: /items?search=jjo&sector=sj&department=wji&page=0
         // called via DEBOUNCE while entering Search word / choosing sector/dept
         const { search, sector, department, page = 0 } = req.query;
-
-        // privilege stored in req.userPrivilege
-        // privilege "admin" and "hanar" can view everything
-        // privilege "public" can view everything but b7ina & bimal
+        const [decodedSearch, decodedSector, decodedDepartment] = decodeItems(search, sector, department);
+        // privilege stored in req.userPrivilege ("public"/"hanar"/"admin")
+        // currently we work in a binary fashion - "public" can see only public items, other privileges can see ALL items
         try {
+            let sectorsVisibleForPublic = null;
+            if (req.userPrivilege === "public") {
+                // find only the sectors visible to public
+                rawSectorObjects = await Sector.find({ visibleToPublic: true }, { sectorName: 1 });
+                sectorsVisibleForPublic = rawSectorObjects.map((s) => s.sectorName);
+            }
+
             const items = await Item.aggregate([
                 {
-                    $match: { sector: { $in: itemPrivileges[req.userPrivilege] } },
+                    $match: sectorsVisibleForPublic ? { sector: { $in: sectorsVisibleForPublic } } : {},
                 },
                 {
                     $unwind: { path: "$models", preserveNullAndEmptyArrays: true },
@@ -22,19 +29,19 @@ module.exports = {
                     $match: search
                         ? {
                               $or: [
-                                  { name: { $regex: search, $options: "i" } },
-                                  { cat: { $regex: search } },
-                                  { "models.name": { $regex: search, $options: "i" } },
-                                  { "models.cat": { $regex: search, $options: "i" } },
+                                  { name: { $regex: decodedSearch, $options: "i" } },
+                                  { cat: { $regex: decodedSearch } },
+                                  { "models.name": { $regex: decodedSearch, $options: "i" } },
+                                  { "models.cat": { $regex: decodedSearch, $options: "i" } },
                               ],
                           }
                         : {},
                 },
                 {
-                    $match: sector ? { sector: sector } : {},
+                    $match: sector ? { sector: decodedSector } : {},
                 },
                 {
-                    $match: department ? { department: department } : {},
+                    $match: department ? { department: decodedDepartment } : {},
                 },
             ])
                 .sort("name")
@@ -49,10 +56,17 @@ module.exports = {
         // GET path: /items/962054832
 
         try {
+            let sectorsVisibleForPublic = null;
+            if (req.userPrivilege === "public") {
+                // find only the sectors visible to public
+                rawSectorObjects = await Sector.find({ visibleToPublic: true }, { sectorName: 1 });
+                sectorsVisibleForPublic = rawSectorObjects.map((s) => s.sectorName);
+            }
+
             const item = await Item.findOne({ cat: req.params.cat });
 
             if (item) {
-                if (!itemPrivileges[req.userPrivilege].includes(item.sector)) {
+                if (req.userPrivilege === "public" && !sectorsVisibleForPublic.includes(item.sector)) {
                     return res.status(401).send("You are not authorized to view this item.");
                 }
 
