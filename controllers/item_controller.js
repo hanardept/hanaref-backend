@@ -23,9 +23,6 @@ module.exports = {
                     $match: sectorsVisibleForPublic ? { sector: { $in: sectorsVisibleForPublic } } : {},
                 },
                 {
-                    $unwind: { path: "$models", preserveNullAndEmptyArrays: true },
-                },
-                {
                     $match: search
                         ? {
                               $or: [
@@ -42,6 +39,9 @@ module.exports = {
                 },
                 {
                     $match: department ? { department: decodedDepartment } : {},
+                },
+                {
+                    $project: { name: 1, cat: 1, _id: 1 },
                 },
             ])
                 .sort("name")

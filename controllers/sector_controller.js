@@ -42,6 +42,7 @@ module.exports = {
         let detailsToUpdate = {};
         if (req.body.sectorName) detailsToUpdate.sectorName = req.body.sectorName;
         if (req.body.visibleToPublic) detailsToUpdate.visibleToPublic = req.body.visibleToPublic;
+        if (req.body.departments.length > 0) detailsToUpdate.departments = req.body.departments;
 
         try {
             await Sector.findOneAndUpdate({ sectorName: hebrewSectorName }, detailsToUpdate);

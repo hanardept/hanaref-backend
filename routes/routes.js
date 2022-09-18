@@ -24,8 +24,10 @@ module.exports = (app) => {
 
     // sector-CRD routes:
     app.post("/sectors", [whoIsTheUser, adminAccessOnly], SectorController.addSector);
-    app.post("/sectors/:sectorname", [whoIsTheUser, adminAccessOnly], SectorController.addDepartmentToSector);
     app.put("/sectors/:sectorname", [whoIsTheUser, adminAccessOnly], SectorController.editSectorDetails);
     app.delete("/sectors", [whoIsTheUser, adminAccessOnly], SectorController.deleteSector);
-    app.delete("/sectors/:sectorname", [whoIsTheUser, adminAccessOnly], SectorController.deleteDepartmentFromSector);
+
+    // unused routes:
+    app.post("/sectors/:sectorname", [whoIsTheUser, adminAccessOnly], SectorController.addDepartmentToSector); // not used
+    app.delete("/sectors/:sectorname", [whoIsTheUser, adminAccessOnly], SectorController.deleteDepartmentFromSector); // not used
 };

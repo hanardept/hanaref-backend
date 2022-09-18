@@ -2,6 +2,8 @@ const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
+const AUTO_LOGOUT_TIME = 8; // in hours
+
 module.exports = {
     // public routes:
     async createUser(req, res) {
@@ -39,9 +41,9 @@ module.exports = {
             if (!validPassword) return res.status(400).send("username or password wrong!");
 
             // create JWT and send it:
-            const token = jwt.sign({ _id: user._id, privilege: user.privilege }, process.env.JWT_TOKEN_SECRET, { expiresIn: "1h" });
-            //console.log("CCCC");
-            res.status(200).send({ authToken: token, frontEndPrivilege: user.privilege });
+            const token = jwt.sign({ _id: user._id, privilege: user.privilege }, process.env.JWT_TOKEN_SECRET, { expiresIn: `${AUTO_LOGOUT_TIME}h` });
+
+            res.status(200).send({ authToken: token, frontEndPrivilege: user.privilege, autoLogoutTime: AUTO_LOGOUT_TIME });
             // MAKE SURE TO CATCH the auth-token HEADER AND SAVE IN LOCAL STORAGE
         } catch (error) {
             res.status(400).send("MongoDB error - Unable to find user even though password is correct: ", error);
