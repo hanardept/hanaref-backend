@@ -41,9 +41,10 @@ module.exports = {
             if (!validPassword) return res.status(400).send("username or password wrong!");
 
             // create JWT and send it:
+            const jwtExpiryDate = new Date().getTime() + AUTO_LOGOUT_TIME * 60 * 60 * 1000;
             const token = jwt.sign({ _id: user._id, privilege: user.privilege }, process.env.JWT_TOKEN_SECRET, { expiresIn: `${AUTO_LOGOUT_TIME}h` });
 
-            res.status(200).send({ authToken: token, frontEndPrivilege: user.privilege, autoLogoutTime: AUTO_LOGOUT_TIME });
+            res.status(200).send({ authToken: token, frontEndPrivilege: user.privilege, jwtExpiryDate: jwtExpiryDate });
             // MAKE SURE TO CATCH the auth-token HEADER AND SAVE IN LOCAL STORAGE
         } catch (error) {
             res.status(400).send("MongoDB error - Unable to find user even though password is correct: ", error);
