@@ -2,6 +2,10 @@ const Item = require("../models/Item");
 const { decodeItems } = require("../functions/helpers");
 const Sector = require("../models/Sector");
 
+function preliminaryItem(item, sector, department) {
+    return { name: item.name, cat: item.cat, sector: sector, department: department, imageLink: "" };
+}
+
 module.exports = {
     async getItems(req, res) {
         // GET path: /items?search=jjo&sector=sj&department=wji&page=0
@@ -41,7 +45,7 @@ module.exports = {
                     $match: department ? { department: decodedDepartment } : {},
                 },
                 {
-                    $project: { name: 1, cat: 1, _id: 1 },
+                    $project: { name: 1, cat: 1, _id: 1, imageLink: 1 },
                 },
             ])
                 .sort("name")
@@ -118,9 +122,42 @@ module.exports = {
 
         try {
             const catAlreadyExists = await Item.findOne({ cat: cat });
-            if (catAlreadyExists) return res.status(400).send("This catalog number is already in the database.");
+            if (catAlreadyExists) return res.status(400).send({ errorMsg: "This catalog number is already in the database." });
 
-            await newItem.save();
+            const mongoInsertPromises = [newItem.save()];
+
+            if (accessories && accessories.length > 0)
+                accessories.forEach((a) =>
+                    mongoInsertPromises.push(
+                        Item.updateOne({ cat: a.cat }, { $setOnInsert: preliminaryItem(a, sector, department) }, { upsert: true })
+                    )
+                );
+            if (consumables && consumables.length > 0)
+                consumables.forEach((c) =>
+                    mongoInsertPromises.push(
+                        Item.updateOne({ cat: c.cat }, { $setOnInsert: preliminaryItem(c, sector, department) }, { upsert: true })
+                    )
+                );
+            if (belongsToKits && belongsToKits.length > 0)
+                belongsToKits.forEach((b) =>
+                    mongoInsertPromises.push(
+                        Item.updateOne({ cat: b.cat }, { $setOnInsert: preliminaryItem(b, sector, department) }, { upsert: true })
+                    )
+                );
+            if (similarItems && similarItems.length > 0)
+                similarItems.forEach((s) =>
+                    mongoInsertPromises.push(
+                        Item.updateOne({ cat: s.cat }, { $setOnInsert: preliminaryItem(s, sector, department) }, { upsert: true })
+                    )
+                );
+            if (kitItem && kitItem.length > 0)
+                kitItem.forEach((i) =>
+                    mongoInsertPromises.push(
+                        Item.updateOne({ cat: i.cat }, { $setOnInsert: preliminaryItem(i, sector, department) }, { upsert: true })
+                    )
+                );
+
+            await Promise.all(mongoInsertPromises);
             res.status(200).send("Item saved successfully!");
         } catch (error) {
             res.status(400).send("Failure saving item: ", error);
@@ -146,7 +183,7 @@ module.exports = {
         } = req.body;
 
         try {
-            await Item.findOneAndUpdate(
+            const updateOwnItem = Item.findOneAndUpdate(
                 { cat: req.params.cat },
                 {
                     name: name,
@@ -165,6 +202,41 @@ module.exports = {
                     kitItem: kitItem,
                 }
             );
+
+            const mongoInsertPromises = [updateOwnItem];
+
+            if (accessories && accessories.length > 0)
+                accessories.forEach((a) =>
+                    mongoInsertPromises.push(
+                        Item.updateOne({ cat: a.cat }, { $setOnInsert: preliminaryItem(a, sector, department) }, { upsert: true })
+                    )
+                );
+            if (consumables && consumables.length > 0)
+                consumables.forEach((c) =>
+                    mongoInsertPromises.push(
+                        Item.updateOne({ cat: c.cat }, { $setOnInsert: preliminaryItem(c, sector, department) }, { upsert: true })
+                    )
+                );
+            if (belongsToKits && belongsToKits.length > 0)
+                belongsToKits.forEach((b) =>
+                    mongoInsertPromises.push(
+                        Item.updateOne({ cat: b.cat }, { $setOnInsert: preliminaryItem(b, sector, department) }, { upsert: true })
+                    )
+                );
+            if (similarItems && similarItems.length > 0)
+                similarItems.forEach((s) =>
+                    mongoInsertPromises.push(
+                        Item.updateOne({ cat: s.cat }, { $setOnInsert: preliminaryItem(s, sector, department) }, { upsert: true })
+                    )
+                );
+            if (kitItem && kitItem.length > 0)
+                kitItem.forEach((i) =>
+                    mongoInsertPromises.push(
+                        Item.updateOne({ cat: i.cat }, { $setOnInsert: preliminaryItem(i, sector, department) }, { upsert: true })
+                    )
+                );
+
+            await Promise.all(mongoInsertPromises);
             res.status(200).send("Item updated successfully!");
         } catch (error) {
             res.status(400).send("Failure updating item: ", error);
