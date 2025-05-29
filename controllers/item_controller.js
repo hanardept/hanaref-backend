@@ -67,7 +67,96 @@ module.exports = {
                 sectorsVisibleForPublic = rawSectorObjects.map((s) => s.sectorName);
             }
 
-            const item = await Item.findOne({ cat: req.params.cat });
+            const item = (await Item.aggregate([
+            {
+                $match: {
+                    cat: req.params.cat
+                }
+            }, {
+                $unwind: {
+                    path: '$accessories', 
+                    preserveNullAndEmptyArrays: true
+                }
+            }, {
+                $lookup: {
+                    from: 'items', 
+                    localField: 'accessories.cat', 
+                    foreignField: 'cat', 
+                    as: 'accessories_image', 
+                    pipeline: [
+                        {
+                            $project: {
+                                imageLink: 1
+                            }
+                        }
+                    ]
+                }
+            }, {
+                $unwind: {
+                    path: '$accessories_image',
+                    preserveNullAndEmptyArrays: true
+                }
+            }, {
+                $set: {
+                    "accessories.imageLink": {
+                        $cond: {
+                            if: { $ne: [ { $type: "$accessories_image" }, "missing" ] },
+                            then: "$accessories_image.imageLink",
+                            else: "$$REMOVE"
+                        }
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: '$_id', 
+                    accessories: {
+                        $push: {
+                            _id: '$accessories._id', 
+                            cat: '$accessories.cat', 
+                            imageLink: '$accessories.imageLink', 
+                            name: '$accessories.name'
+                        }
+                    }, 
+                    _root: {
+                        $first: '$$ROOT'
+                    }
+                }
+            }, 
+            {
+                $set: {
+                    accessories: {
+                        $filter: {
+                            input: "$accessories",
+                            as: "accessory",
+                            cond: { 
+                                $and: [
+                                    { $ne: [ "$$accessory.imageLink",  null ]},
+                                    { $ne: [ { $type: "$$accessory.imageLink" }, "missing" ] }
+                                ]
+                            }
+                        }
+                    }
+                }
+            }, 
+            {
+                $replaceRoot: {
+                    newRoot: { 
+                        $mergeObjects: [
+                            '$_root', {
+                                "_id": '$_id', 
+                                "accessories": '$accessories'
+                            }
+                        ]
+                    }
+                }
+            },
+            {
+                $project: {
+                    accessories_image: 0
+                }
+            }
+            ]))?.[0];
 
             if (item) {
                 if (req.userPrivilege === "public" && !sectorsVisibleForPublic.includes(item.sector)) {
