@@ -26,7 +26,6 @@ env:
 #          projectId: hanardept-backend
 #          channelId: live
 
-
 jobs:
   deploy_live_website:
     runs-on: ubuntu-latest
