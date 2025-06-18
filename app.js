@@ -10,22 +10,28 @@ const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-/* ---------- NEW CORS SECTION ---------- */
+/* ---------- CORS SECTION ---------- */
 const whitelist = [
- "http://localhost:3000",                       // local dev server
-  "/^https:\/\/hanaref-fd006--.*\.web\.app$/"      // Firebase preview channel
-  ];
+  'http://localhost:3000',                          // local dev
+  /^https:\/\/hanaref-fd006--.*\.web\.app$/,        // any Firebase preview
+  'https://hanaref-fd006.web.app'                   // live site
+  // add your Cloud Run URL if the UI calls it directly:
+  // /^https:\/\/.*\.run\.app$/
+];
 
 const corsOptions = {
   origin: (origin, cb) => {
-    // allow Postman / server-to-server calls with no Origin header
-    if (!origin || whitelist.includes(origin)) return cb(null, true);
-    return cb(new Error("Not allowed by CORS"));
+    if (!origin) return cb(null, true);             // Postman & cron jobs
+    const ok = whitelist.some(rule =>
+      rule instanceof RegExp ? rule.test(origin) : rule === origin
+    );
+    return ok ? cb(null, true) : cb(new Error('Not allowed by CORS'));
   },
-  credentials: true                              // keep if you use cookies / auth headers
+  methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
+  credentials: true
 };
 
-app.use(cors(corsOptions));
+app.use(cors(corsOptions));                          // keep this **before** routes
 /* ---------- END CORS SECTION ---------- */
 
 routes(app);
