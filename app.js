@@ -10,28 +10,38 @@ const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-/* ---------- CORS SECTION ---------- */
+/* ---------- CORRECTED CORS SECTION ---------- */
 const whitelist = [
-  'http://localhost:3000',                          // local dev
-  /^https:\/\/hanaref-fd006--.*\.web\.app$/,        // any Firebase preview
-  'https://hanaref-fd006.web.app'                   // live site
-  // add your Cloud Run URL if the UI calls it directly:
-  // /^https:\/\/.*\.run\.app$/
+  'http://localhost:3000',                          // For local development
+  /^https:\/\/hanaref-fd006--.*\.web\.app$/,        // Matches ALL Firebase preview channels
+  'https://hanaref-fd006.web.app',                   // For your live production site
+  /^https:\/\/.*\.cloudfunctions\.net$/             // Allows requests from the function environment itself
 ];
 
 const corsOptions = {
   origin: (origin, cb) => {
-    if (!origin) return cb(null, true);             // Postman & cron jobs
-    const ok = whitelist.some(rule =>
+    // Allow requests with no origin like mobile apps or curl requests
+    if (!origin) return cb(null, true);
+
+    const isWhitelisted = whitelist.some(rule =>
+      // Test if the origin is an exact string match or passes the regular expression test
       rule instanceof RegExp ? rule.test(origin) : rule === origin
     );
-    return ok ? cb(null, true) : cb(new Error('Not allowed by CORS'));
+
+    if (isWhitelisted) {
+      cb(null, true);
+    } else {
+      cb(new Error('Not allowed by CORS'));
+    }
   },
   methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
   credentials: true
 };
 
-app.use(cors(corsOptions));                          // keep this **before** routes
+// This handles the preflight 'OPTIONS' requests for all routes
+app.options('*', cors(corsOptions));
+
+app.use(cors(corsOptions));
 /* ---------- END CORS SECTION ---------- */
 
 routes(app);
