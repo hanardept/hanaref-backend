@@ -12,8 +12,8 @@ app.use(bodyParser.json());
 
 /* ---------- NEW CORS SECTION ---------- */
 const whitelist = [
-// "http://localhost:3000",                       // local dev server
-  "https://hanaref-fd006--pr1-deploy-to-preview-bgerzcgi.web.app"      // Firebase preview channel
+ "http://localhost:3000",                       // local dev server
+  "/^https:\/\/hanaref-fd006--.*\.web\.app$/"      // Firebase preview channel
   ];
 
 const corsOptions = {
