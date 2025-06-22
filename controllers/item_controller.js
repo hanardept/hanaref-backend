@@ -56,10 +56,8 @@ module.exports = {
             res.status(400).send(`Error fetching items: ${error}`);
         }
     },
-
     async getItemInfo(req, res) {
         // GET path: /items/962054832
-        // THIS IS THE ONLY FUNCTION THAT HAS BEEN MODIFIED
 
         try {
             let sectorsVisibleForPublic = null;
@@ -70,72 +68,94 @@ module.exports = {
             }
 
             const item = (await Item.aggregate([
-                {
-                    $match: {
-                        cat: req.params.cat
-                    }
-                },
-                // --- Accessories Logic ---
-                { $unwind: { path: '$accessories', preserveNullAndEmptyArrays: true } },
-                { $lookup: { from: 'items', localField: 'accessories.cat', foreignField: 'cat', as: 'accessories_image', pipeline: [{ $project: { imageLink: 1 } }] } },
-                { $unwind: { path: '$accessories_image', preserveNullAndEmptyArrays: true } },
-                { $set: { "accessories.imageLink": { $cond: { if: { $ne: [{ $type: "$accessories_image" }, "missing"] }, then: "$accessories_image.imageLink", else: "$$REMOVE" } } } },
-                
-                // --- Models Logic ---
-                { $unwind: { path: '$models', preserveNullAndEmptyArrays: true } },
-                { $lookup: { from: 'items', localField: 'models.cat', foreignField: 'cat', as: 'models_image', pipeline: [{ $project: { imageLink: 1 } }] } },
-                { $unwind: { path: '$models_image', preserveNullAndEmptyArrays: true } },
-                { $set: { "models.imageLink": { $cond: { if: { $ne: [{ $type: "$models_image" }, "missing"] }, then: "$models_image.imageLink", else: "$$REMOVE" } } } },
-                
-                // --- Consumables Logic ---
-                { $unwind: { path: '$consumables', preserveNullAndEmptyArrays: true } },
-                { $lookup: { from: 'items', localField: 'consumables.cat', foreignField: 'cat', as: 'consumables_image', pipeline: [{ $project: { imageLink: 1 } }] } },
-                { $unwind: { path: '$consumables_image', preserveNullAndEmptyArrays: true } },
-                { $set: { "consumables.imageLink": { $cond: { if: { $ne: [{ $type: "$consumables_image" }, "missing"] }, then: "$consumables_image.imageLink", else: "$$REMOVE" } } } },
-                
-                // --- KitItem Logic ---
-                { $unwind: { path: '$kitItem', preserveNullAndEmptyArrays: true } },
-                { $lookup: { from: 'items', localField: 'kitItem.cat', foreignField: 'cat', as: 'kitItem_image', pipeline: [{ $project: { imageLink: 1 } }] } },
-                { $unwind: { path: '$kitItem_image', preserveNullAndEmptyArrays: true } },
-                { $set: { "kitItem.imageLink": { $cond: { if: { $ne: [{ $type: "$kitItem_image" }, "missing"] }, then: "$kitItem_image.imageLink", else: "$$REMOVE" } } } },
-                
-                // --- Grouping and Cleaning up ---
-                {
-                    $group: {
-                        _id: '$_id',
-                        accessories: { $push: '$accessories' },
-                        models: { $push: '$models' },
-                        consumables: { $push: '$consumables' },
-                        kitItem: { $push: '$kitItem' },
-                        _root: { $first: '$$ROOT' }
-                    }
-                },
-                {
-                    $set: {
-                        accessories: { $filter: { input: "$accessories", as: "item", cond: { $and: [ { $ne: ["$$item.name", null] }, { $ne: [{ $type: "$$item.name" }, "missing"] } ] } } },
-                        models: { $filter: { input: "$models", as: "item", cond: { $and: [ { $ne: ["$$item.name", null] }, { $ne: [{ $type: "$$item.name" }, "missing"] } ] } } },
-                        consumables: { $filter: { input: "$consumables", as: "item", cond: { $and: [ { $ne: ["$$item.name", null] }, { $ne: [{ $type: "$$item.name" }, "missing"] } ] } } },
-                        kitItem: { $filter: { input: "$kitItem", as: "item", cond: { $and: [ { $ne: ["$$item.name", null] }, { $ne: [{ $type: "$$item.name" }, "missing"] } ] } } }
-                    }
-                },
-                {
-                    $replaceRoot: {
-                        newRoot: {
-                            $mergeObjects: [
-                                '$_root',
-                                { "_id": '$_id', "accessories": '$accessories', "models": '$models', "consumables": '$consumables', "kitItem": '$kitItem' }
-                            ]
+            {
+                $match: {
+                    cat: req.params.cat
+                }
+            }, {
+                $unwind: {
+                    path: '$accessories', 
+                    preserveNullAndEmptyArrays: true
+                }
+            }, {
+                $lookup: {
+                    from: 'items', 
+                    localField: 'accessories.cat', 
+                    foreignField: 'cat', 
+                    as: 'accessories_image', 
+                    pipeline: [
+                        {
+                            $project: {
+                                imageLink: 1
+                            }
+                        }
+                    ]
+                }
+            }, {
+                $unwind: {
+                    path: '$accessories_image',
+                    preserveNullAndEmptyArrays: true
+                }
+            }, {
+                $set: {
+                    "accessories.imageLink": {
+                        $cond: {
+                            if: { $ne: [ { $type: "$accessories_image" }, "missing" ] },
+                            then: "$accessories_image.imageLink",
+                            else: "$$REMOVE"
                         }
                     }
-                },
-                {
-                    $project: {
-                        accessories_image: 0,
-                        models_image: 0,
-                        consumables_image: 0,
-                        kitItem_image: 0
+                }
+            },
+            {
+                $group: {
+                    _id: '$_id', 
+                    accessories: {
+                        $push: {
+                            _id: '$accessories._id', 
+                            cat: '$accessories.cat', 
+                            imageLink: '$accessories.imageLink', 
+                            name: '$accessories.name'
+                        }
+                    }, 
+                    _root: {
+                        $first: '$$ROOT'
                     }
                 }
+            }, 
+            {
+                $set: {
+                    accessories: {
+                        $filter: {
+                            input: "$accessories",
+                            as: "accessory",
+                            cond: { 
+                                $and: [
+                                    { $ne: [ "$$accessory.imageLink",  null ]},
+                                    { $ne: [ { $type: "$$accessory.imageLink" }, "missing" ] }
+                                ]
+                            }
+                        }
+                    }
+                }
+            }, 
+            {
+                $replaceRoot: {
+                    newRoot: { 
+                        $mergeObjects: [
+                            '$_root', {
+                                "_id": '$_id', 
+                                "accessories": '$accessories'
+                            }
+                        ]
+                    }
+                }
+            },
+            {
+                $project: {
+                    accessories_image: 0
+                }
+            }
             ]))?.[0];
 
             if (item) {
@@ -156,11 +176,37 @@ module.exports = {
     async addItem(req, res) {
         // POST path: /items
         const {
-            name, cat, sector, department, catType, description, imageLink, qaStandardLink, models, accessories, consumables, belongsToKits, similarItems, kitItem,
+            name,
+            cat,
+            sector,
+            department,
+            catType,
+            description,
+            imageLink,
+            qaStandardLink,
+            models,
+            accessories,
+            consumables,
+            belongsToKits,
+            similarItems,
+            kitItem,
         } = req.body;
 
         const newItem = new Item({
-            name, cat, sector, department, catType, description, imageLink, qaStandardLink, models, accessories, consumables, belongsToKits, similarItems, kitItem,
+            name: name,
+            cat: cat,
+            sector: sector,
+            department: department,
+            catType: catType,
+            description: description,
+            imageLink: imageLink,
+            qaStandardLink: qaStandardLink,
+            models: models,
+            accessories: accessories,
+            consumables: consumables,
+            belongsToKits: belongsToKits,
+            similarItems: similarItems,
+            kitItem: kitItem,
         });
 
         try {
@@ -196,7 +242,7 @@ module.exports = {
             if (kitItem && kitItem.length > 0)
                 kitItem.forEach((i) =>
                     mongoInsertPromises.push(
-                        Item.updateOne({ cat: i.cat }, { $setOnInsert: preliminaryItem(i, sector, department) }, { upsert: aptrue })
+                        Item.updateOne({ cat: i.cat }, { $setOnInsert: preliminaryItem(i, sector, department) }, { upsert: true })
                     )
                 );
 
@@ -206,21 +252,48 @@ module.exports = {
             res.status(400).send("Failure saving item: ", error);
         }
     },
-
     async editItem(req, res) {
         // PUT path: /items/962780438
         const {
-            name, cat, sector, department, catType, description, imageLink, qaStandardLink, models, accessories, consumables, belongsToKits, similarItems, kitItem,
+            name,
+            cat,
+            sector,
+            department,
+            catType,
+            description,
+            imageLink,
+            qaStandardLink,
+            models,
+            accessories,
+            consumables,
+            belongsToKits,
+            similarItems,
+            kitItem,
         } = req.body;
 
         try {
             const updateOwnItem = Item.findOneAndUpdate(
                 { cat: req.params.cat },
-                { name, cat, sector, department, catType, description, imageLink, qaStandardLink, models, accessories, consumables, belongsToKits, similarItems, kitItem, }
+                {
+                    name: name,
+                    cat: cat,
+                    sector: sector,
+                    department: department,
+                    catType: catType,
+                    description: description,
+                    imageLink: imageLink,
+                    qaStandardLink: qaStandardLink,
+                    models: models,
+                    accessories: accessories,
+                    consumables: consumables,
+                    belongsToKits: belongsToKits,
+                    similarItems: similarItems,
+                    kitItem: kitItem,
+                }
             );
 
             const mongoInsertPromises = [updateOwnItem];
-            
+
             if (accessories && accessories.length > 0)
                 accessories.forEach((a) =>
                     mongoInsertPromises.push(
@@ -258,7 +331,6 @@ module.exports = {
             res.status(400).send("Failure updating item: ", error);
         }
     },
-    
     async deleteItem(req, res) {
         // DELETE path: /items/962780438
         try {
