@@ -8,20 +8,54 @@ function preliminaryItem(item, sector, department) {
 
 module.exports = {
     async getItems(req, res) {
-        // GET path: /items
-
+        // GET path: /items?search=jjo&sector=sj&department=wji&page=0
+        // called via DEBOUNCE while entering Search word / choosing sector/dept
+        const { search, sector, department, page = 0 } = req.query;
+        const [decodedSearch, decodedSector, decodedDepartment] = decodeItems(search, sector, department);
+        // privilege stored in req.userPrivilege ("public"/"hanar"/"admin")
+        // currently we work in a binary fashion - "public" can see only public items, other privileges can see ALL items
         try {
-            // the function below returns either an array of item objects,
-            // or an array of sector names, each including an array of department names,
-            // each including an array of preliminary items.
-            // the type of return value depends on the user's privilege.
-            const items = await decodeItems(req.userPrivilege);
+            let sectorsVisibleForPublic = null;
+            if (req.userPrivilege === "public") {
+                // find only the sectors visible to public
+                rawSectorObjects = await Sector.find({ visibleToPublic: true }, { sectorName: 1 });
+                sectorsVisibleForPublic = rawSectorObjects.map((s) => s.sectorName);
+            }
+
+            const items = await Item.aggregate([
+                {
+                    $match: sectorsVisibleForPublic ? { sector: { $in: sectorsVisibleForPublic } } : {},
+                },
+                {
+                    $match: search
+                        ? {
+                              $or: [
+                                  { name: { $regex: decodedSearch, $options: "i" } },
+                                  { cat: { $regex: decodedSearch } },
+                                  { "models.name": { $regex: decodedSearch, $options: "i" } },
+                                  { "models.cat": { $regex: decodedSearch, $options: "i" } },
+                              ],
+                          }
+                        : {},
+                },
+                {
+                    $match: sector ? { sector: decodedSector } : {},
+                },
+                {
+                    $match: department ? { department: decodedDepartment } : {},
+                },
+                {
+                    $project: { name: 1, cat: 1, _id: 1, imageLink: 1 },
+                },
+            ])
+                .sort("name")
+                .skip(page * 20)
+                .limit(20);
             res.status(200).send(items);
         } catch (error) {
-            res.status(400).send("item fetch error: " + error);
+            res.status(400).send(`Error fetching items: ${error}`);
         }
     },
-
     async getItemInfo(req, res) {
         // GET path: /items/962054832
 
@@ -34,198 +68,94 @@ module.exports = {
             }
 
             const item = (await Item.aggregate([
-                {
-                    $match: {
-                        cat: req.params.cat
-                    }
-                },
-                // --- Accessories Logic ---
-                {
-                    $unwind: {
-                        path: '$accessories',
-                        preserveNullAndEmptyArrays: true
-                    }
-                }, {
-                    $lookup: {
-                        from: 'items',
-                        localField: 'accessories.cat',
-                        foreignField: 'cat',
-                        as: 'accessories_image',
-                        pipeline: [
-                            { $project: { imageLink: 1 } }
-                        ]
-                    }
-                }, {
-                    $unwind: {
-                        path: '$accessories_image',
-                        preserveNullAndEmptyArrays: true
-                    }
-                }, {
-                    $set: {
-                        "accessories.imageLink": {
-                            $cond: {
-                                if: { $ne: [{ $type: "$accessories_image" }, "missing"] },
-                                then: "$accessories_image.imageLink",
-                                else: "$$REMOVE"
+            {
+                $match: {
+                    cat: req.params.cat
+                }
+            }, {
+                $unwind: {
+                    path: '$accessories', 
+                    preserveNullAndEmptyArrays: true
+                }
+            }, {
+                $lookup: {
+                    from: 'items', 
+                    localField: 'accessories.cat', 
+                    foreignField: 'cat', 
+                    as: 'accessories_image', 
+                    pipeline: [
+                        {
+                            $project: {
+                                imageLink: 1
                             }
                         }
-                    }
-                },
-                // --- Models Logic ---
-                {
-                    $unwind: {
-                        path: '$models',
-                        preserveNullAndEmptyArrays: true
-                    }
-                }, {
-                    $lookup: {
-                        from: 'items',
-                        localField: 'models.cat',
-                        foreignField: 'cat',
-                        as: 'models_image',
-                        pipeline: [
-                            { $project: { imageLink: 1 } }
-                        ]
-                    }
-                }, {
-                    $unwind: {
-                        path: '$models_image',
-                        preserveNullAndEmptyArrays: true
-                    }
-                }, {
-                    $set: {
-                        "models.imageLink": {
-                            $cond: {
-                                if: { $ne: [{ $type: "$models_image" }, "missing"] },
-                                then: "$models_image.imageLink",
-                                else: "$$REMOVE"
-                            }
+                    ]
+                }
+            }, {
+                $unwind: {
+                    path: '$accessories_image',
+                    preserveNullAndEmptyArrays: true
+                }
+            }, {
+                $set: {
+                    "accessories.imageLink": {
+                        $cond: {
+                            if: { $ne: [ { $type: "$accessories_image" }, "missing" ] },
+                            then: "$accessories_image.imageLink",
+                            else: "$$REMOVE"
                         }
-                    }
-                },
-                // --- Consumables Logic ---
-                {
-                    $unwind: {
-                        path: '$consumables',
-                        preserveNullAndEmptyArrays: true
-                    }
-                }, {
-                    $lookup: {
-                        from: 'items',
-                        localField: 'consumables.cat',
-                        foreignField: 'cat',
-                        as: 'consumables_image',
-                        pipeline: [
-                            { $project: { imageLink: 1 } }
-                        ]
-                    }
-                }, {
-                    $unwind: {
-                        path: '$consumables_image',
-                        preserveNullAndEmptyArrays: true
-                    }
-                }, {
-                    $set: {
-                        "consumables.imageLink": {
-                            $cond: {
-                                if: { $ne: [{ $type: "$consumables_image" }, "missing"] },
-                                then: "$consumables_image.imageLink",
-                                else: "$$REMOVE"
-                            }
-                        }
-                    }
-                },
-                // --- KitItem Logic (NEWLY ADDED) ---
-                {
-                    $unwind: {
-                        path: '$kitItem',
-                        preserveNullAndEmptyArrays: true
-                    }
-                }, {
-                    $lookup: {
-                        from: 'items',
-                        localField: 'kitItem.cat',
-                        foreignField: 'cat',
-                        as: 'kitItem_image',
-                        pipeline: [
-                            { $project: { imageLink: 1 } }
-                        ]
-                    }
-                }, {
-                    $unwind: {
-                        path: '$kitItem_image',
-                        preserveNullAndEmptyArrays: true
-                    }
-                }, {
-                    $set: {
-                        "kitItem.imageLink": {
-                            $cond: {
-                                if: { $ne: [{ $type: "$kitItem_image" }, "missing"] },
-                                then: "$kitItem_image.imageLink",
-                                else: "$$REMOVE"
-                            }
-                        }
-                    }
-                },
-                // --- Grouping and Cleaning up ---
-                {
-                    $group: {
-                        _id: '$_id',
-                        accessories: { $push: '$accessories' },
-                        models: { $push: '$models' },
-                        consumables: { $push: '$consumables' },
-                        kitItem: { $push: '$kitItem' }, // Add kitItem to group
-                        _root: { $first: '$$ROOT' }
-                    }
-                },
-                {
-                    $set: {
-                        accessories: {
-                            $filter: {
-                                input: "$accessories", as: "item", cond: { $and: [ { $ne: ["$$item.imageLink", null] }, { $ne: [{ $type: "$$item.imageLink" }, "missing"] } ] }
-                            }
-                        },
-                        models: {
-                            $filter: {
-                                input: "$models", as: "item", cond: { $and: [ { $ne: ["$$item.imageLink", null] }, { $ne: [{ $type: "$$item.imageLink" }, "missing"] } ] }
-                            }
-                        },
-                        consumables: {
-                            $filter: {
-                                input: "$consumables", as: "item", cond: { $and: [ { $ne: ["$$item.imageLink", null] }, { $ne: [{ $type: "$$item.imageLink" }, "missing"] } ] }
-                            }
-                        },
-                        kitItem: { // Filter for kitItem
-                            $filter: {
-                                input: "$kitItem", as: "item", cond: { $and: [ { $ne: ["$$item.imageLink", null] }, { $ne: [{ $type: "$$item.imageLink" }, "missing"] } ] }
-                            }
-                        }
-                    }
-                },
-                {
-                    $replaceRoot: {
-                        newRoot: {
-                            $mergeObjects: [
-                                '$_root',
-                                {
-                                    "_id": '$_id',
-                                    "accessories": '$accessories',
-                                    "models": '$models',
-                                    "consumables": '$consumables',
-                                    "kitItem": '$kitItem' // Add kitItem to root
-                                }
-                            ]
-                        }
-                    }
-                },
-                {
-                    $project: {
-                        accessories_image: 0,
-                        models_image: 0,
-                        consumables_image: 0,
-                        kitItem_image: 0 // Remove temporary field
                     }
                 }
+            },
+            {
+                $group: {
+                    _id: '$_id', 
+                    accessories: {
+                        $push: {
+                            _id: '$accessories._id', 
+                            cat: '$accessories.cat', 
+                            imageLink: '$accessories.imageLink', 
+                            name: '$accessories.name'
+                        }
+                    }, 
+                    _root: {
+                        $first: '$$ROOT'
+                    }
+                }
+            }, 
+            {
+                $set: {
+                    accessories: {
+                        $filter: {
+                            input: "$accessories",
+                            as: "accessory",
+                            cond: { 
+                                $and: [
+                                    { $ne: [ "$$accessory.imageLink",  null ]},
+                                    { $ne: [ { $type: "$$accessory.imageLink" }, "missing" ] }
+                                ]
+                            }
+                        }
+                    }
+                }
+            }, 
+            {
+                $replaceRoot: {
+                    newRoot: { 
+                        $mergeObjects: [
+                            '$_root', {
+                                "_id": '$_id', 
+                                "accessories": '$accessories'
+                            }
+                        ]
+                    }
+                }
+            },
+            {
+                $project: {
+                    accessories_image: 0
+                }
+            }
             ]))?.[0];
 
             if (item) {
@@ -238,104 +168,174 @@ module.exports = {
                 res.status(404).send("Item could not be found in database");
             }
         } catch (error) {
-            console.error("Item fetch error: ", error);
-            res.status(400).send("Item fetch error: " + error.message);
+            res.status(400).send("Item fetch error: ", error);
         }
     },
 
+    // admin-only controllers:
     async addItem(req, res) {
         // POST path: /items
+        const {
+            name,
+            cat,
+            sector,
+            department,
+            catType,
+            description,
+            imageLink,
+            qaStandardLink,
+            models,
+            accessories,
+            consumables,
+            belongsToKits,
+            similarItems,
+            kitItem,
+        } = req.body;
 
-        const { name, cat, sector, department, description, imageLink, qaStandardLink, catType, models, accessories, consumables, belongsToKits, similarItems, kitItem } = req.body;
+        const newItem = new Item({
+            name: name,
+            cat: cat,
+            sector: sector,
+            department: department,
+            catType: catType,
+            description: description,
+            imageLink: imageLink,
+            qaStandardLink: qaStandardLink,
+            models: models,
+            accessories: accessories,
+            consumables: consumables,
+            belongsToKits: belongsToKits,
+            similarItems: similarItems,
+            kitItem: kitItem,
+        });
 
         try {
-            const newItem = await new Item({ name, cat, sector, department, description, imageLink, qaStandardLink, catType, models, accessories, consumables, belongsToKits, similarItems, kitItem }).save();
+            const catAlreadyExists = await Item.findOne({ cat: cat });
+            if (catAlreadyExists) return res.status(400).send({ errorMsg: "This catalog number is already in the database." });
 
-            // for each item in the "models" array, we need to add a reference to the new item in the "belongsToKits" array
-            if (models && models.length > 0) {
-                for (const model of models) {
-                    await Item.findOneAndUpdate({ cat: model.cat }, { $push: { belongsToKits: { name: newItem.name, cat: newItem.cat } } });
-                }
-            }
-            if (accessories && accessories.length > 0) {
-                for (const accessory of accessories) {
-                    await Item.findOneAndUpdate({ cat: accessory.cat }, { $push: { belongsToKits: { name: newItem.name, cat: newItem.cat } } });
-                }
-            }
-            if (consumables && consumables.length > 0) {
-                for (const consumable of consumables) {
-                    await Item.findOneAndUpdate({ cat: consumable.cat }, { $push: { belongsToKits: { name: newItem.name, cat: newItem.cat } } });
-                }
-            }
+            const mongoInsertPromises = [newItem.save()];
 
-            res.status(201).send(newItem);
+            if (accessories && accessories.length > 0)
+                accessories.forEach((a) =>
+                    mongoInsertPromises.push(
+                        Item.updateOne({ cat: a.cat }, { $setOnInsert: preliminaryItem(a, sector, department) }, { upsert: true })
+                    )
+                );
+            if (consumables && consumables.length > 0)
+                consumables.forEach((c) =>
+                    mongoInsertPromises.push(
+                        Item.updateOne({ cat: c.cat }, { $setOnInsert: preliminaryItem(c, sector, department) }, { upsert: true })
+                    )
+                );
+            if (belongsToKits && belongsToKits.length > 0)
+                belongsToKits.forEach((b) =>
+                    mongoInsertPromises.push(
+                        Item.updateOne({ cat: b.cat }, { $setOnInsert: preliminaryItem(b, sector, department) }, { upsert: true })
+                    )
+                );
+            if (similarItems && similarItems.length > 0)
+                similarItems.forEach((s) =>
+                    mongoInsertPromises.push(
+                        Item.updateOne({ cat: s.cat }, { $setOnInsert: preliminaryItem(s, sector, department) }, { upsert: true })
+                    )
+                );
+            if (kitItem && kitItem.length > 0)
+                kitItem.forEach((i) =>
+                    mongoInsertPromises.push(
+                        Item.updateOne({ cat: i.cat }, { $setOnInsert: preliminaryItem(i, sector, department) }, { upsert: true })
+                    )
+                );
+
+            await Promise.all(mongoInsertPromises);
+            res.status(200).send("Item saved successfully!");
         } catch (error) {
-            if (error.code === 11000) {
-                // duplicate key
-                res.status(400).send("item creation error: " + `cat ${cat} already exists`);
-            } else {
-                res.status(400).send("item creation error: " + error);
-            }
+            res.status(400).send("Failure saving item: ", error);
         }
     },
-
     async editItem(req, res) {
-        // PUT path: /items/962054832
+        // PUT path: /items/962780438
+        const {
+            name,
+            cat,
+            sector,
+            department,
+            catType,
+            description,
+            imageLink,
+            qaStandardLink,
+            models,
+            accessories,
+            consumables,
+            belongsToKits,
+            similarItems,
+            kitItem,
+        } = req.body;
 
         try {
-            const oldItem = await Item.findOne({ cat: req.params.cat });
-            const newItem = await Item.findOneAndUpdate({ cat: req.params.cat }, req.body, { new: true });
+            const updateOwnItem = Item.findOneAndUpdate(
+                { cat: req.params.cat },
+                {
+                    name: name,
+                    cat: cat,
+                    sector: sector,
+                    department: department,
+                    catType: catType,
+                    description: description,
+                    imageLink: imageLink,
+                    qaStandardLink: qaStandardLink,
+                    models: models,
+                    accessories: accessories,
+                    consumables: consumables,
+                    belongsToKits: belongsToKits,
+                    similarItems: similarItems,
+                    kitItem: kitItem,
+                }
+            );
 
-            // compare oldItem.models and newItem.models and update belongsToKits accordingly
-            const oldModels = oldItem.models.map(model => model.cat);
-            const newModels = newItem.models.map(model => model.cat);
-            const addedModels = newModels.filter(model => !oldModels.includes(model));
-            const removedModels = oldModels.filter(model => !newModels.includes(model));
-            for (const model of addedModels) {
-                await Item.findOneAndUpdate({ cat: model }, { $push: { belongsToKits: { name: newItem.name, cat: newItem.cat } } });
-            }
-            for (const model of removedModels) {
-                await Item.findOneAndUpdate({ cat: model }, { $pull: { belongsToKits: { cat: newItem.cat } } });
-            }
+            const mongoInsertPromises = [updateOwnItem];
 
-            // same for accessories
-            const oldAccessories = oldItem.accessories.map(accessory => accessory.cat);
-            const newAccessories = newItem.accessories.map(accessory => accessory.cat);
-            const addedAccessories = newAccessories.filter(accessory => !oldAccessories.includes(accessory));
-            const removedAccessories = oldAccessories.filter(accessory => !newAccessories.includes(accessory));
-            for (const accessory of addedAccessories) {
-                await Item.findOneAndUpdate({ cat: accessory }, { $push: { belongsToKits: { name: newItem.name, cat: newItem.cat } } });
-            }
-            for (const accessory of removedAccessories) {
-                await Item.findOneAndUpdate({ cat: accessory }, { $pull: { belongsToKits: { cat: newItem.cat } } });
-            }
+            if (accessories && accessories.length > 0)
+                accessories.forEach((a) =>
+                    mongoInsertPromises.push(
+                        Item.updateOne({ cat: a.cat }, { $setOnInsert: preliminaryItem(a, sector, department) }, { upsert: true })
+                    )
+                );
+            if (consumables && consumables.length > 0)
+                consumables.forEach((c) =>
+                    mongoInsertPromises.push(
+                        Item.updateOne({ cat: c.cat }, { $setOnInsert: preliminaryItem(c, sector, department) }, { upsert: true })
+                    )
+                );
+            if (belongsToKits && belongsToKits.length > 0)
+                belongsToKits.forEach((b) =>
+                    mongoInsertPromises.push(
+                        Item.updateOne({ cat: b.cat }, { $setOnInsert: preliminaryItem(b, sector, department) }, { upsert: true })
+                    )
+                );
+            if (similarItems && similarItems.length > 0)
+                similarItems.forEach((s) =>
+                    mongoInsertPromises.push(
+                        Item.updateOne({ cat: s.cat }, { $setOnInsert: preliminaryItem(s, sector, department) }, { upsert: true })
+                    )
+                );
+            if (kitItem && kitItem.length > 0)
+                kitItem.forEach((i) =>
+                    mongoInsertPromises.push(
+                        Item.updateOne({ cat: i.cat }, { $setOnInsert: preliminaryItem(i, sector, department) }, { upsert: true })
+                    )
+                );
 
-            // same for consumables
-            const oldConsumables = oldItem.consumables.map(consumable => consumable.cat);
-            const newConsumables = newItem.consumables.map(consumable => consumable.cat);
-            const addedConsumables = newConsumables.filter(consumable => !oldConsumables.includes(consumable));
-            const removedConsumables = oldConsumables.filter(consumable => !newConsumables.includes(consumable));
-            for (const consumable of addedConsumables) {
-                await Item.findOneAndUpdate({ cat: consumable }, { $push: { belongsToKits: { name: newItem.name, cat: newItem.cat } } });
-            }
-            for (const consumable of removedConsumables) {
-                await Item.findOneAndUpdate({ cat: consumable }, { $pull: { belongsToKits: { cat: newItem.cat } } });
-            }
-
-            res.status(200).send(newItem);
+            await Promise.all(mongoInsertPromises);
+            res.status(200).send("Item updated successfully!");
         } catch (error) {
-            res.status(400).send("item edit error: " + error);
+            res.status(400).send("Failure updating item: ", error);
         }
     },
-
     async deleteItem(req, res) {
-        // DELETE path: /items/962054832
-
+        // DELETE path: /items/962780438
         try {
-            const deletedItem = await Item.findOneAndDelete({ cat: req.params.cat });
-            res.status(200).send(deletedItem);
-        } catch (error) {
-            res.status(400).send("item deletion error: " + error);
-        }
+            await Item.findOneAndRemove({ cat: req.params.cat });
+            res.status(200).send("Item removed successfully!");
+        } catch (error) {}
     },
 };
