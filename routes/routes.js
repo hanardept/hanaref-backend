@@ -19,6 +19,10 @@ module.exports = (app) => {
     app.put("/items/:cat", [whoIsTheUser, adminAccessOnly], ItemController.editItem);
     app.delete("/items/:cat", [whoIsTheUser, adminAccessOnly], ItemController.deleteItem);
 
+    // --- THIS IS THE NEW ROUTE WE ADDED ---
+    app.post("/items/:cat/toggle-archive", [whoIsTheUser], ItemController.toggleArchive);
+    // --------------------------------------
+
     // sector-viewing routes:
     app.get("/sectors", whoIsTheUser, SectorController.getFullSectors);
 
