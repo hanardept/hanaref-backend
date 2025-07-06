@@ -28,6 +28,10 @@ const itemSchema = new Schema({
         type: String,
         default: "מקט רגיל",
     },
+     archived: {
+      type: Boolean,
+      default: false,
+    },
     description: String,
     imageLink: String,
     qaStandardLink: String,
