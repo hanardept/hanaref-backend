@@ -1,17 +1,13 @@
 // File: hanaref-backend/routes/archive.js
 
 const router = require('express').Router();
-const Item = require('../models/item'); // Uses the correct path to your model
+const Item = require('../models/item');
+const { verifyToken } = require('../verifyToken'); // We will use your existing auth check
 
-// This endpoint will handle toggling the 'archived' status of an item.
+// This endpoint will handle toggling the 'archived' status.
 // It will be accessed via: POST /api/items/:id/toggle-archive
-router.post('/:id/toggle-archive', async (req, res) => {
-  // NOTE: This assumes your authentication middleware adds a 'user' object
-  // to the request for logged-in users. If not, we can adjust.
-  if (!req.user) {
-    return res.status(401).send('Authentication is required for this action.');
-  }
-
+router.post('/:id/toggle-archive', verifyToken, async (req, res) => {
+  // Because of `verifyToken`, we know `req.user` exists if we reach this point.
   try {
     const item = await Item.findById(req.params.id);
 
@@ -23,11 +19,11 @@ router.post('/:id/toggle-archive', async (req, res) => {
     item.archived = !item.archived;
     await item.save();
 
-    // We send the updated item back to the frontend.
+    // Send the updated item back to the frontend to confirm the change.
     res.status(200).json(item);
 
   } catch (error) {
-    console.error('Error toggling archive status for item:', req.params.id, error);
+    console.error(`Error toggling archive for item ${req.params.id}:`, error);
     res.status(500).send('A server error occurred.');
   }
 });
