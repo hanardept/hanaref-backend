@@ -45,7 +45,7 @@ module.exports = {
                     $match: department ? { department: decodedDepartment } : {},
                 },
                 {
-                    $match: status !== 'all' ? { archived: false } : {},
+                    $match: status !== 'all' ? { archived: {$ne: true} } : {},
                 },
                 {
                     $project: { name: 1, cat: 1, _id: 1, imageLink: 1 },
