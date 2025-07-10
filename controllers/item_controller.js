@@ -61,9 +61,7 @@ module.exports = {
     },
 
     async getItemInfo(req, res) {
-        // GET path: /items/962054832
-        // THIS IS THE ONLY FUNCTION THAT HAS BEEN MODIFIED
-
+        // THIS FUNCTION HAS BEEN CORRECTED TO FIX THE DUPLICATION ISSUE
         try {
             let sectorsVisibleForPublic = null;
             if (req.userPrivilege === "public") {
@@ -73,46 +71,55 @@ module.exports = {
             }
 
             const item = (await Item.aggregate([
-                {
-                    $match: {
-                        cat: req.params.cat
-                    }
-                },
-                // --- Accessories Logic ---
+                { $match: { cat: req.params.cat } },
                 { $unwind: { path: '$accessories', preserveNullAndEmptyArrays: true } },
                 { $lookup: { from: 'items', localField: 'accessories.cat', foreignField: 'cat', as: 'accessories_image', pipeline: [{ $project: { imageLink: 1 } }] } },
                 { $unwind: { path: '$accessories_image', preserveNullAndEmptyArrays: true } },
                 { $set: { "accessories.imageLink": { $cond: { if: { $ne: [{ $type: "$accessories_image" }, "missing"] }, then: "$accessories_image.imageLink", else: "$$REMOVE" } } } },
-                
-                // --- Models Logic ---
+                {
+                    $group: {
+                        _id: '$_id',
+                        accessories: { $addToSet: '$accessories' },
+                        root: { $first: '$$ROOT' }
+                    }
+                },
+                { $replaceRoot: { newRoot: { $mergeObjects: ["$root", { accessories: "$accessories" }] } } },
                 { $unwind: { path: '$models', preserveNullAndEmptyArrays: true } },
                 { $lookup: { from: 'items', localField: 'models.cat', foreignField: 'cat', as: 'models_image', pipeline: [{ $project: { imageLink: 1 } }] } },
                 { $unwind: { path: '$models_image', preserveNullAndEmptyArrays: true } },
                 { $set: { "models.imageLink": { $cond: { if: { $ne: [{ $type: "$models_image" }, "missing"] }, then: "$models_image.imageLink", else: "$$REMOVE" } } } },
-                
-                // --- Consumables Logic ---
+                {
+                    $group: {
+                        _id: '$_id',
+                        models: { $addToSet: '$models' },
+                        root: { $first: '$$ROOT' }
+                    }
+                },
+                { $replaceRoot: { newRoot: { $mergeObjects: ["$root", { models: "$models" }] } } },
                 { $unwind: { path: '$consumables', preserveNullAndEmptyArrays: true } },
                 { $lookup: { from: 'items', localField: 'consumables.cat', foreignField: 'cat', as: 'consumables_image', pipeline: [{ $project: { imageLink: 1 } }] } },
                 { $unwind: { path: '$consumables_image', preserveNullAndEmptyArrays: true } },
                 { $set: { "consumables.imageLink": { $cond: { if: { $ne: [{ $type: "$consumables_image" }, "missing"] }, then: "$consumables_image.imageLink", else: "$$REMOVE" } } } },
-                
-                // --- KitItem Logic ---
+                {
+                    $group: {
+                        _id: '$_id',
+                        consumables: { $addToSet: '$consumables' },
+                        root: { $first: '$$ROOT' }
+                    }
+                },
+                { $replaceRoot: { newRoot: { $mergeObjects: ["$root", { consumables: "$consumables" }] } } },
                 { $unwind: { path: '$kitItem', preserveNullAndEmptyArrays: true } },
                 { $lookup: { from: 'items', localField: 'kitItem.cat', foreignField: 'cat', as: 'kitItem_image', pipeline: [{ $project: { imageLink: 1 } }] } },
                 { $unwind: { path: '$kitItem_image', preserveNullAndEmptyArrays: true } },
                 { $set: { "kitItem.imageLink": { $cond: { if: { $ne: [{ $type: "$kitItem_image" }, "missing"] }, then: "$kitItem_image.imageLink", else: "$$REMOVE" } } } },
-                
-                // --- Grouping and Cleaning up ---
                 {
                     $group: {
                         _id: '$_id',
-                        accessories: { $push: '$accessories' },
-                        models: { $push: '$models' },
-                        consumables: { $push: '$consumables' },
-                        kitItem: { $push: '$kitItem' },
-                        _root: { $first: '$$ROOT' }
+                        kitItem: { $addToSet: '$kitItem' },
+                        root: { $first: '$$ROOT' }
                     }
                 },
+                { $replaceRoot: { newRoot: { $mergeObjects: ["$root", { kitItem: "$kitItem" }] } } },
                 {
                     $set: {
                         accessories: { $filter: { input: "$accessories", as: "item", cond: { $and: [ { $ne: ["$$item.name", null] }, { $ne: [{ $type: "$$item.name" }, "missing"] } ] } } },
@@ -122,17 +129,8 @@ module.exports = {
                     }
                 },
                 {
-                    $replaceRoot: {
-                        newRoot: {
-                            $mergeObjects: [
-                                '$_root',
-                                { "_id": '$_id', "accessories": '$accessories', "models": '$models', "consumables": '$consumables', "kitItem": '$kitItem' }
-                            ]
-                        }
-                    }
-                },
-                {
                     $project: {
+                        root: 0,
                         accessories_image: 0,
                         models_image: 0,
                         consumables_image: 0,
