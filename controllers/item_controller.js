@@ -10,7 +10,7 @@ module.exports = {
     async getItems(req, res) {
         // GET path: /items?search=jjo&sector=sj&department=wji&page=0
         // called via DEBOUNCE while entering Search word / choosing sector/dept
-        const { search, sector, department, page = 0 } = req.query;
+        const { search, sector, department, status, page = 0 } = req.query;
         const [decodedSearch, decodedSector, decodedDepartment] = decodeItems(search, sector, department);
         // privilege stored in req.userPrivilege ("public"/"hanar"/"admin")
         // currently we work in a binary fashion - "public" can see only public items, other privileges can see ALL items
@@ -45,7 +45,10 @@ module.exports = {
                     $match: department ? { department: decodedDepartment } : {},
                 },
                 {
-                    $project: { name: 1, cat: 1, _id: 1, imageLink: 1 },
+                    $match: status !== 'all' ? { archived: {$ne: true} } : {},
+                },
+                {
+                    $project: { name: 1, cat: 1, _id: 1, imageLink: 1, archived: 1  },
                 },
             ])
                 .sort("name")
@@ -150,6 +153,7 @@ module.exports = {
         }
     },
 
+    // admin-only controllers:
     async addItem(req, res) {
         // POST path: /items
         const {
@@ -263,4 +267,26 @@ module.exports = {
             res.status(200).send("Item removed successfully!");
         } catch (error) {}
     },
+
+    toggleArchive: async (req, res) => {
+        try {
+            // We use req.params.cat to find the item, following your app's convention.
+            const item = await Item.findOne({ cat: req.params.cat });
+
+            if (!item) {
+                return res.status(404).send('Item not found.');
+            }
+
+            // This is the core logic: it flips the boolean value.
+            item.archived = !item.archived;
+            await item.save();
+
+            // Send the updated item back to the frontend.
+            res.status(200).json(item);
+
+        } catch (error) {
+            console.error(`Error toggling archive for item ${req.params.cat}:`, error);
+            res.status(500).send('A server error occurred.');
+        }
+    },    
 };
