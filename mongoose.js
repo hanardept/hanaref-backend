@@ -1,7 +1,7 @@
 const dotenv = require('dotenv');
 dotenv.config();
 
-const mongoUrl = `mongodb+srv://hanardept:${process.env.MONGO_PWD}@hanarcluster.qu3ygbk.mongodb.net/?retryWrites=true&w=majority`
+const mongoUrl = `mongodb+srv://hanardept:${process.env.MONGO_PWD}@${process.env.MONGO_HOST}/?retryWrites=true&w=majority`
 
 const connectMongoose = async (mongoose = require("mongoose")) => {
     try {
