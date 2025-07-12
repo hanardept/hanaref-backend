@@ -31,6 +31,7 @@ jobs:
           docker cp hanaref-api-tests:/app/results/test-report.html ./test-report.html
 
       - name: Upload test report artifact
+        id: upload_test_report
         uses: actions/upload-artifact@v4
         with:
           name: api-test-report
@@ -42,7 +43,7 @@ jobs:
           script: |
             core.summary.addRaw(
               `<h3>API Test Report</h3>
-              <a href="${{ steps.upload-artifact.outputs.artifact-url }}">Download HTML Report</a>`
+              <a href="${{ steps.upload_test_report.outputs.artifact-url }}">Download HTML Report</a>`
             ).write()        
 
       - uses: 'google-github-actions/auth@v2'
