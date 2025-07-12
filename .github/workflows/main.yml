@@ -23,7 +23,7 @@ jobs:
 
       - name: Run docker-compose and API tests
         run: |
-          docker-compose up --build --abort-on-container-exit --exit-code-from api-tests
+          docker compose up --build --abort-on-container-exit --exit-code-from api-tests
         working-directory: ${{ github.workspace }}
 
       - uses: 'google-github-actions/auth@v2'
