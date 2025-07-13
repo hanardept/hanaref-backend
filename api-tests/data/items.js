@@ -1,4 +1,4 @@
-exports.data = [
+export const data = [
   {
     "name": "מיקרופון בודק עם אוזניה",
     "cat": "962007350",
@@ -8,6 +8,7 @@ exports.data = [
     "description": "מיקרופון עבור המטפל בבדיקת אודיומטריה",
     "imageLink": "https://hanaref-image-url.com/eivXKpuoJB.jpg",
     "qaStandardLink": "",
+    "archived": true,
     "models": [
       {
         "name": "Interacoustics: Monitor Headset with boom PC-131 stereo headset",
@@ -1219,4 +1220,4 @@ exports.data = [
     "similarItems": [],
     "qaStandardLink": "https://hanaref-document-url.com/HKEjlPKATE.pdf"
   }
-]
+];

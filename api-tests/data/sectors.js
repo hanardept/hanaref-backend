@@ -1,4 +1,4 @@
-exports.data = [
+export const data = [
   {
     "sectorName": "בחינה",
     "departments": [

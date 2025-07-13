@@ -2,16 +2,16 @@ import { MongoClient } from "mongodb";
 import { data as sectorsData } from "./data/sectors.js";
 import { data as itemsData } from "./data/items.js";
 
-const client = new MongoClient(process.env.MONGO_URI);
-const db = client.db('test');
+const client = new MongoClient(process.env.MONGO_URL);
+const database = client.db('test');
 
-exports.init = () => {
-    db.collection('items').drop();
-    db.collection('sectors').drop();
+export const init = async () => {
+    await database.collection('items').drop();
+    await database.collection('sectors').drop();
     
-    db.collection('items').insertMany(itemsData);
-    db.collection('sectors').insertMany(sectorsData);
+    await database.collection('items').insertMany(itemsData);
+    await database.collection('sectors').insertMany(sectorsData);
     console.log("Database initialized with test data.");
 }
 
-exports.db = db;
+export const db = database;
