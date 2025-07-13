@@ -171,23 +171,47 @@ module.exports = {
             const mongoInsertPromises = [newItem.save()];
 
             if (accessories && accessories.length > 0)
-                accessories.forEach((a) =>
+                accessories.forEach((a) => {
                     mongoInsertPromises.push(
                         Item.updateOne({ cat: a.cat }, { $setOnInsert: preliminaryItem(a, sector, department) }, { upsert: true })
-                    )
-                );
+                    );
+                    mongoInsertPromises.push(
+                        Item.updateOne({ cat: a.cat }, { $addToSet: { belongsToKits: { name, cat } } })
+                    );
+                });
             if (consumables && consumables.length > 0)
-                consumables.forEach((c) =>
+                consumables.forEach((c) => {
                     mongoInsertPromises.push(
                         Item.updateOne({ cat: c.cat }, { $setOnInsert: preliminaryItem(c, sector, department) }, { upsert: true })
-                    )
-                );
+                    );
+                    mongoInsertPromises.push(
+                        Item.updateOne({ cat: c.cat }, { $addToSet: { belongsToKits: { name, cat } } })
+                    );
+                });
             if (belongsToKits && belongsToKits.length > 0)
-                belongsToKits.forEach((b) =>
+                belongsToKits.forEach((b) => {
+                    const { catType } = req.body;
+                    let listType;
+
+                    switch (catType) {
+                        case "אביזר":
+                            listType = "accessories";
+                            break;
+                        case "מתכלה":
+                            listType = "consumables";
+                            break;
+                        default:
+                            listType = "kitItem";
+                            break;
+                    }
+
                     mongoInsertPromises.push(
                         Item.updateOne({ cat: b.cat }, { $setOnInsert: preliminaryItem(b, sector, department) }, { upsert: true })
-                    )
-                );
+                    );
+                    mongoInsertPromises.push(
+                        Item.updateOne({ cat: b.cat }, { $addToSet: { [listType]: { name, cat } } })
+                    );
+                });
             if (similarItems && similarItems.length > 0)
                 similarItems.forEach((s) =>
                     mongoInsertPromises.push(
@@ -195,11 +219,14 @@ module.exports = {
                     )
                 );
             if (kitItem && kitItem.length > 0)
-                kitItem.forEach((i) =>
+                kitItem.forEach((i) => {
                     mongoInsertPromises.push(
-                        Item.updateOne({ cat: i.cat }, { $setOnInsert: preliminaryItem(i, sector, department) }, { upsert: aptrue })
+                        Item.updateOne({ cat: i.cat }, { $setOnInsert: preliminaryItem(i, sector, department) }, { upsert: true })
                     )
-                );
+                    mongoInsertPromises.push(
+                        Item.updateOne({ cat: i.cat }, { $addToSet: { belongsToKits: { name, cat } } })
+                    );
+                });
 
             await Promise.all(mongoInsertPromises);
             res.status(200).send("Item saved successfully!");
@@ -223,23 +250,46 @@ module.exports = {
             const mongoInsertPromises = [updateOwnItem];
             
             if (accessories && accessories.length > 0)
-                accessories.forEach((a) =>
+                accessories.forEach((a) => {
                     mongoInsertPromises.push(
                         Item.updateOne({ cat: a.cat }, { $setOnInsert: preliminaryItem(a, sector, department) }, { upsert: true })
-                    )
-                );
+                    );
+                    mongoInsertPromises.push(
+                        Item.updateOne({ cat: a.cat }, { $addToSet: { belongsToKits: { name: req.body.name, cat: req.body.cat } } })
+                    );
+                });
             if (consumables && consumables.length > 0)
-                consumables.forEach((c) =>
+                consumables.forEach((c) => {
                     mongoInsertPromises.push(
                         Item.updateOne({ cat: c.cat }, { $setOnInsert: preliminaryItem(c, sector, department) }, { upsert: true })
-                    )
-                );
+                    );
+                    mongoInsertPromises.push(
+                        Item.updateOne({ cat: c.cat }, { $addToSet: { belongsToKits: { name: req.body.name, cat: req.body.cat } } })
+                    );
+                });
             if (belongsToKits && belongsToKits.length > 0)
-                belongsToKits.forEach((b) =>
+                belongsToKits.forEach((b) => {
+                    const { catType } = req.body;
+                    let listType;
+
+                    switch (catType) {
+                        case "אביזר":
+                            listType = "accessories";
+                            break;
+                        case "מתכלה":
+                            listType = "consumables";
+                            break;
+                        default:
+                            listType = "kitItem";
+                            break;
+                    }
                     mongoInsertPromises.push(
                         Item.updateOne({ cat: b.cat }, { $setOnInsert: preliminaryItem(b, sector, department) }, { upsert: true })
-                    )
-                );
+                    );
+                    mongoInsertPromises.push(
+                        Item.updateOne({ cat: b.cat }, { $addToSet: { [listType]: { name: req.body.name, cat: req.body.cat } } })
+                    );
+                });
             if (similarItems && similarItems.length > 0)
                 similarItems.forEach((s) =>
                     mongoInsertPromises.push(
@@ -247,11 +297,14 @@ module.exports = {
                     )
                 );
             if (kitItem && kitItem.length > 0)
-                kitItem.forEach((i) =>
+                kitItem.forEach((i) => {
                     mongoInsertPromises.push(
                         Item.updateOne({ cat: i.cat }, { $setOnInsert: preliminaryItem(i, sector, department) }, { upsert: true })
-                    )
-                );
+                    );
+                    mongoInsertPromises.push(
+                        Item.updateOne({ cat: i.cat }, { $addToSet: { belongsToKits: { name: req.body.name, cat: req.body.cat } } })
+                    );
+                });
 
             await Promise.all(mongoInsertPromises);
             res.status(200).send("Item updated successfully!");
