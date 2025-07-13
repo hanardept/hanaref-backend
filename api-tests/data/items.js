@@ -1,4 +1,4 @@
-[
+exports.data = [
   {
     "name": "מיקרופון בודק עם אוזניה",
     "cat": "962007350",
@@ -6,7 +6,7 @@
     "department": "אודיולוגיה",
     "catType": "מקט רגיל",
     "description": "מיקרופון עבור המטפל בבדיקת אודיומטריה",
-    "imageLink": "https://hanaref-bucket.s3.amazonaws.com/hanaref-images/%D7%AA%D7%9E%D7%95%D7%A0%D7%95%D7%AA+-+%D7%90%D7%95%D7%93%D7%99%D7%95%D7%9C%D7%95%D7%92%D7%99%D7%94/%D7%90%D7%95%D7%93%D7%99%D7%90%D7%95%D7%9C%D7%95%D7%92%D7%99%D7%94/962007350+-+%D7%9E%D7%99%D7%A7%D7%A8%D7%95%D7%A4%D7%95%D7%9F+%D7%91%D7%95%D7%93%D7%A7+%D7%A2%D7%9D+%D7%90%D7%95%D7%96%D7%A0%D7%99%D7%94.jpeg",
+    "imageLink": "https://hanaref-image-url.com/eivXKpuoJB.jpg",
     "qaStandardLink": "",
     "models": [
       {
@@ -19,14 +19,15 @@
     "belongsToKits": [],
     "similarItems": [],
     "kitItem": []
-  },{
+  },
+  {
     "name": "משחת ניקוי לבדיקת ABR",
     "cat": "962006167",
     "sector": "ביו-הנדסה (מכשור רפואת שגרה)",
     "department": "אודיולוגיה",
     "catType": "מקט רגיל",
     "description": "משחה לניקוי מכשיר ABR",
-    "imageLink": "https://hanaref-bucket.s3.amazonaws.com/hanaref-images/%D7%AA%D7%9E%D7%95%D7%A0%D7%95%D7%AA+-+%D7%90%D7%95%D7%93%D7%99%D7%95%D7%9C%D7%95%D7%92%D7%99%D7%94/%D7%90%D7%95%D7%93%D7%99%D7%90%D7%95%D7%9C%D7%95%D7%92%D7%99%D7%94/962006167+-+%D7%9E%D7%A9%D7%97%D7%AA+%D7%A0%D7%99%D7%A7%D7%95%D7%99+%D7%9C%D7%91%D7%93%D7%99%D7%A7%D7%AA+ABR.JPG",
+    "imageLink": "https://hanaref-image-url.com/jWWLGahPGi.jpg",
     "qaStandardLink": "",
     "models": [
       {
@@ -43,14 +44,15 @@
     "belongsToKits": [],
     "similarItems": [],
     "kitItem": []
-  },{
+  },
+  {
     "name": "אודיומטר - אוזניות עם מגן אקוסטי",
     "cat": "962006361",
     "sector": "ביו-הנדסה (מכשור רפואת שגרה)",
     "department": "אודיולוגיה",
     "catType": "מקט רגיל",
     "description": "אוזניות לבדיקת אודיומטריה",
-    "imageLink": "https://hanaref-bucket.s3.amazonaws.com/Hanaref/%D7%9E%D7%93%D7%95%D7%A8+%D7%91%D7%99%D7%95-%D7%94%D7%A0%D7%93%D7%A1%D7%94/%D7%90%D7%95%D7%93%D7%99%D7%95%D7%9C%D7%95%D7%92%D7%99%D7%94/962006361+-+%D7%90%D7%95%D7%93%D7%99%D7%95%D7%9E%D7%98%D7%A8+-+%D7%90%D7%95%D7%96%D7%A0%D7%99%D7%95%D7%AA+%D7%A2%D7%9D+%D7%9E%D7%92%D7%9F+%D7%90%D7%A7%D7%95%D7%A1%D7%98%D7%99/962006361+-+%D7%90%D7%95%D7%93%D7%99%D7%95%D7%9E%D7%98%D7%A8+-+%D7%90%D7%95%D7%96%D7%A0%D7%99%D7%95%D7%AA+%D7%A2%D7%9D+%D7%9E%D7%92%D7%9F+%D7%90%D7%A7%D7%95%D7%A1%D7%98%D7%99.JPG",
+    "imageLink": "https://hanaref-image-url.com/ZCFeidHRNV.jpg",
     "qaStandardLink": "",
     "models": [
       {
@@ -63,14 +65,15 @@
     "belongsToKits": [],
     "similarItems": [],
     "kitItem": []
-  },{
+  },
+  {
     "name": "לחצן נבדק לאודיומטר",
     "cat": "962007368",
     "sector": "ביו-הנדסה (מכשור רפואת שגרה)",
     "department": "אודיולוגיה",
     "catType": "מקט רגיל",
     "description": "לחץ עבור הנבדק בבדיקת אודיולוגיה",
-    "imageLink": "https://hanaref-image-url.com/image1.JPG",
+    "imageLink": "https://hanaref-image-url.com/bEsepFCmsf.jpg",
     "qaStandardLink": "",
     "models": [
       {
@@ -99,8 +102,8 @@
     "department": "דימות",
     "catType": "מקט רגיל",
     "description": "מכשיר אולטרסאונד נייד",
-    "imageLink": "https://hanaref-bucket.s3.amazonaws.com/Hanaref/%D7%9E%D7%93%D7%95%D7%A8+%D7%91%D7%99%D7%95-%D7%94%D7%A0%D7%93%D7%A1%D7%94/%D7%93%D7%99%D7%9E%D7%95%D7%AA/965306005+-+%D7%90%D7%95%D7%9C%D7%98%D7%A8%D7%94+%D7%A1%D7%90%D7%95%D7%A0%D7%93+sonosite+/Sonosite-180Plus.jpeg",
-    "qaStandardLink": "https://hanaref-bucket.s3.amazonaws.com/hanaref-technical-manuals/%D7%91%D7%99%D7%95+%D7%94%D7%A0%D7%93%D7%A1%D7%94+-+%D7%97%D7%95%D7%9E%D7%A8+%D7%98%D7%9B%D7%A0%D7%99/%D7%93%D7%99%D7%9E%D7%95%D7%AA+%D7%97%D7%95%D7%9E%D7%A8+%D7%98%D7%92%D7%A0%D7%99+/%D7%90%D7%95%D7%9C%D7%98%D7%A8%D7%A1%D7%90%D7%95%D7%A0%D7%93+%D7%A0%D7%99%D7%99%D7%93+/18643_Sonosite_180plus_Ultrasound_System_User_Manual_Discount_Cardiology.pdf",
+    "imageLink": "https://hanaref-image-url.com/PtbQnJnMFW.jpg",
+    "qaStandardLink": "https://hanaref-document-url.com/aykJTKEEhl.pdf",
     "models": [
       {
         "name": "Sonosite 180 plus",
@@ -112,14 +115,15 @@
     "belongsToKits": [],
     "similarItems": [],
     "kitItem": []
-  },{
+  },
+  {
     "name": "חצאית עופרת",
     "cat": "965302018",
     "sector": "ביו-הנדסה (מכשור רפואת שגרה)",
     "department": "דימות",
     "catType": "מקט רגיל",
     "description": "חצאית אשר משמשת להגנת המטופל מקרינה מייננת",
-    "imageLink": "https://hanaref-bucket.s3.amazonaws.com/Hanaref/%D7%9E%D7%93%D7%95%D7%A8+%D7%91%D7%99%D7%95-%D7%94%D7%A0%D7%93%D7%A1%D7%94/%D7%93%D7%99%D7%9E%D7%95%D7%AA/%D7%97%D7%A6%D7%90%D7%99%D7%AA+%D7%A2%D7%95%D7%A4%D7%A8%D7%AA+-+965302018/%D7%97%D7%A6%D7%90%D7%99%D7%AA+%D7%92%D7%95%D7%9E%D7%99+%D7%A2%D7%95%D7%A4%D7%A8%D7%AA.JPG",
+    "imageLink": "https://hanaref-image-url.com/svZvaOxKTH.jpg",
     "qaStandardLink": "",
     "models": [
       {
@@ -132,15 +136,16 @@
     "belongsToKits": [],
     "similarItems": [],
     "kitItem": []
-  },{
+  },
+  {
     "name": "מחמם ג'ל פרקר",
     "cat": "962145400",
     "sector": "ביו-הנדסה (מכשור רפואת שגרה)",
     "department": "דימות",
     "catType": "מקט רגיל",
     "description": "מחמם ג׳ל פרקר",
-    "imageLink": "https://hanaref-bucket.s3.amazonaws.com/Hanaref/%D7%9E%D7%93%D7%95%D7%A8+%D7%91%D7%99%D7%95-%D7%94%D7%A0%D7%93%D7%A1%D7%94/%D7%93%D7%99%D7%9E%D7%95%D7%AA/962145400+-+%D7%9E%D7%97%D7%9E%D7%9D+%D7%92'%D7%9C+%D7%A4%D7%A8%D7%A7%D7%A8/+962145400-%D7%9E%D7%97%D7%9E%D7%9D+%D7%92%D7%9C+/%D7%9E%D7%97%D7%9E%D7%9D+%D7%92'%D7%9C.pdf",
-    "qaStandardLink": "https://hanaref-bucket.s3.amazonaws.com/Hanaref/%D7%9E%D7%93%D7%95%D7%A8+%D7%91%D7%99%D7%95-%D7%94%D7%A0%D7%93%D7%A1%D7%94/%D7%93%D7%99%D7%9E%D7%95%D7%AA/962145400+-+%D7%9E%D7%97%D7%9E%D7%9D+%D7%92'%D7%9C+%D7%A4%D7%A8%D7%A7%D7%A8/+962145400-%D7%9E%D7%97%D7%9E%D7%9D+%D7%92%D7%9C+/%D7%9E%D7%97%D7%9E%D7%9D+%D7%92'%D7%9C.pdf",
+    "imageLink": "https://hanaref-image-url.com/zJMUwmlJzx.jpg",
+    "qaStandardLink": "https://hanaref-document-url.com/jwJaHtUoar.pdf",
     "models": [
       {
         "name": "Thermasonic gel warmer ",
@@ -152,14 +157,15 @@
     "belongsToKits": [],
     "similarItems": [],
     "kitItem": []
-  },{
+  },
+  {
     "name": "סינר גומי עופרת",
     "cat": "965300163",
     "sector": "ביו-הנדסה (מכשור רפואת שגרה)",
     "department": "דימות",
     "catType": "מקט רגיל",
     "description": "סינר גומי עופרת",
-    "imageLink": "https://hanaref-bucket.s3.amazonaws.com/Hanaref/%D7%9E%D7%93%D7%95%D7%A8+%D7%91%D7%99%D7%95-%D7%94%D7%A0%D7%93%D7%A1%D7%94/%D7%93%D7%99%D7%9E%D7%95%D7%AA/965300163+-+%D7%A1%D7%99%D7%A0%D7%A8+%D7%92%D7%95%D7%9E%D7%99+%D7%A2%D7%95%D7%A4%D7%A8%D7%AA/WhatsApp+Image+2022-11-27+at+09.40.52.jpeg",
+    "imageLink": "https://hanaref-image-url.com/DsaWiTzFrn.jpg",
     "qaStandardLink": "",
     "models": [],
     "accessories": [],
@@ -167,7 +173,8 @@
     "belongsToKits": [],
     "similarItems": [],
     "kitItem": []
-  },{
+  },
+  {
     "name": "אותיות עופרת",
     "cat": "965302050",
     "sector": "ביו-הנדסה (מכשור רפואת שגרה)",
@@ -195,7 +202,7 @@
     "department": "כירורגיה",
     "catType": "מקט רגיל",
     "description": "תרסיס המשמן כלים כירורגיים",
-    "imageLink": "https://hanaref-bucket.s3.amazonaws.com/hanaref-images/%D7%AA%D7%9E%D7%95%D7%A0%D7%95%D7%AA+-+%D7%9B%D7%99%D7%A8%D7%95%D7%A8%D7%92%D7%99%D7%94/962148522+-+%D7%AA%D7%A8%D7%A1%D7%99%D7%A1+%D7%9C%D7%A9%D7%99%D7%9E%D7%95%D7%9F+%D7%9B%D7%9C%D7%99%D7%9D+%D7%9B%D7%99%D7%A8%D7%95%D7%A8%D7%92%D7%99%D7%99%D7%9D/WhatsApp+Image+2022-11-27+at+09.40.58.jpeg",
+    "imageLink": "https://hanaref-image-url.com/wMgdQRpzie.jpg",
     "qaStandardLink": "",
     "models": [
       {
@@ -208,14 +215,15 @@
     "belongsToKits": [],
     "similarItems": [],
     "kitItem": []
-  },{
+  },
+  {
     "name": "מסנני עשן ללייזר CO2",
     "cat": "966136480",
     "sector": "ביו-הנדסה (מכשור רפואת שגרה)",
     "department": "כירורגיה",
     "catType": "מקט רגיל",
     "description": "מסנני עשן ללייזר",
-    "imageLink": "https://hanaref-bucket.s3.amazonaws.com/hanaref-images/%D7%AA%D7%9E%D7%95%D7%A0%D7%95%D7%AA+-+%D7%9B%D7%99%D7%A8%D7%95%D7%A8%D7%92%D7%99%D7%94/966136480+-+%D7%9E%D7%A1%D7%A0%D7%A0%D7%99+%D7%A2%D7%A9%D7%9F+%D7%9C%D7%9C%D7%99%D7%99%D7%96%D7%A8+CO2/WhatsApp+Image+2022-11-27+at+09.40.59.jpeg",
+    "imageLink": "https://hanaref-image-url.com/DHSzTxnctb.jpg",
     "qaStandardLink": "",
     "models": [
       {
@@ -228,7 +236,8 @@
     "belongsToKits": [],
     "similarItems": [],
     "kitItem": []
-  },{
+  },
+  {
     "name": "כירופוד",
     "cat": "964000379",
     "sector": "ביו-הנדסה (מכשור רפואת שגרה)",
@@ -248,14 +257,15 @@
     "belongsToKits": [],
     "similarItems": [],
     "kitItem": []
-  },{
+  },
+  {
     "name": "מיטת חדר ניתוח ",
     "cat": "איןמק״ט",
     "sector": "ביו-הנדסה (מכשור רפואת שגרה)",
     "department": "כירורגיה",
     "catType": "מקט רגיל",
     "description": "מיטה לחדר ניתוח כירורגיה",
-    "imageLink": "https://hanaref-bucket.s3.amazonaws.com/Hanaref/%D7%9E%D7%93%D7%95%D7%A8+%D7%91%D7%99%D7%95-%D7%94%D7%A0%D7%93%D7%A1%D7%94/%D7%9B%D7%99%D7%A8%D7%95%D7%A8%D7%92%D7%99%D7%94/%D7%9E%D7%99%D7%98%D7%AA+%D7%97%D7%93%D7%A8+%D7%A0%D7%99%D7%AA%D7%95%D7%97+/IMG_9720.jpeg",
+    "imageLink": "https://hanaref-image-url.com/epNeFnFOBg.jpg",
     "qaStandardLink": "",
     "models": [
       {
@@ -268,15 +278,16 @@
     "belongsToKits": [],
     "similarItems": [],
     "kitItem": []
-  },{
+  },
+  {
     "name": "מנורה כירוגית",
     "cat": "962128270",
     "sector": "ביו-הנדסה (מכשור רפואת שגרה)",
     "department": "כירורגיה",
     "catType": "מקט רגיל",
     "description": "מנורה לחדר ניתוח",
-    "imageLink": "https://hanaref-bucket.s3.amazonaws.com/hanaref-images/%D7%AA%D7%9E%D7%95%D7%A0%D7%95%D7%AA+-+%D7%9B%D7%99%D7%A8%D7%95%D7%A8%D7%92%D7%99%D7%94/%D7%9E%D7%A0%D7%95%D7%A8%D7%94+%D7%9B%D7%99%D7%A8%D7%95%D7%92%D7%99%D7%AA-962128270/D171A234-1869-47FB-ABB5-E11E3564C91B.jpeg",
-    "qaStandardLink": "https://hanaref-bucket.s3.amazonaws.com/hanaref-technical-manuals/%D7%91%D7%99%D7%95+%D7%94%D7%A0%D7%93%D7%A1%D7%94+-+%D7%97%D7%95%D7%9E%D7%A8+%D7%98%D7%9B%D7%A0%D7%99/%D7%9B%D7%99%D7%A8%D7%95%D7%A8%D7%92%D7%99%D7%94+-+%D7%97%D7%95%D7%9E%D7%A8+%D7%98%D7%9B%D7%A0%D7%99/%D7%9E%D7%A0%D7%95%D7%A8%D7%94+%D7%9B%D7%99%D7%A8%D7%95%D7%A8%D7%92%D7%99%D7%AA+/GS-900-Ceiling-Mount-Assembly-Instructions-w-parts-2015-01-29.pdf",
+    "imageLink": "https://hanaref-image-url.com/bFAEHIAUoe.jpg",
+    "qaStandardLink": "https://hanaref-document-url.com/ZuMjEFanAl.pdf",
     "models": [
       {
         "name": "Gs900",
@@ -296,8 +307,8 @@
     "department": "מעבדות",
     "catType": "מקט רגיל",
     "description": "",
-    "imageLink": "https://hanaref-bucket.s3.amazonaws.com/Hanaref/%D7%9E%D7%93%D7%95%D7%A8+%D7%91%D7%99%D7%95-%D7%94%D7%A0%D7%93%D7%A1%D7%94/%D7%9E%D7%A2%D7%91%D7%93%D7%95%D7%AA/%D7%9E%D7%A0%D7%93%D7%A3+%D7%91%D7%99%D7%95%D7%9C%D7%95%D7%92%D7%99+%D7%A0%D7%99%D7%99%D7%93+-+962688004/%D7%9E%D7%A0%D7%93%D7%9A+%D7%91%D7%99%D7%95%D7%9C%D7%95%D7%92%D7%99+%D7%A0%D7%99%D7%99%D7%93.jpg",
-    "qaStandardLink": "https://hanaref-bucket.s3.amazonaws.com/hanaref-technical-manuals/%D7%91%D7%99%D7%95+%D7%94%D7%A0%D7%93%D7%A1%D7%94+-+%D7%97%D7%95%D7%9E%D7%A8+%D7%98%D7%9B%D7%A0%D7%99/%D7%9E%D7%A2%D7%91%D7%93%D7%95%D7%AA+-+%D7%97%D7%95%D7%9E%D7%A8+%D7%98%D7%9B%D7%A0%D7%99/%D7%9E%D7%A0%D7%93%D7%A3+%D7%91%D7%99%D7%95%D7%9C%D7%95%D7%92%D7%99+%D7%A0%D7%99%D7%99%D7%93+-+962688004/BSC-15IIA2-X_OPR.pdf",
+    "imageLink": "https://hanaref-image-url.com/iJPgYpmAlu.jpg",
+    "qaStandardLink": "https://hanaref-document-url.com/SIMtXbhGcf.pdf",
     "models": [
       {
         "name": "TOPAIR",
@@ -334,15 +345,16 @@
     "belongsToKits": [],
     "similarItems": [],
     "kitItem": []
-  },{
+  },
+  {
     "name": "מכשיר ביוכימיה יבשה ",
     "cat": "962602665",
     "sector": "ביו-הנדסה (מכשור רפואת שגרה)",
     "department": "מעבדות",
     "catType": "מקט רגיל",
     "description": "מכשיר ביוכימיה יבשה",
-    "imageLink": "https://hanaref-bucket.s3.amazonaws.com/Hanaref/%D7%9E%D7%93%D7%95%D7%A8+%D7%91%D7%99%D7%95-%D7%94%D7%A0%D7%93%D7%A1%D7%94/%D7%9E%D7%A2%D7%91%D7%93%D7%95%D7%AA/%D7%9E%D7%9B%D7%A9%D7%99%D7%A8+%D7%91%D7%99%D7%95%D7%9B%D7%99%D7%9E%D7%99%D7%94+%D7%99%D7%91%D7%A9%D7%94+-+962602665/%D7%9E%D7%9B%D7%A9%D7%99%D7%A8+%D7%91%D7%99%D7%95%D7%9B%D7%99%D7%9E%D7%99%D7%94+%D7%99%D7%91%D7%A9%D7%94.jpg",
-    "qaStandardLink": "https://hanaref-bucket.s3.amazonaws.com/hanaref-technical-manuals/%D7%91%D7%99%D7%95+%D7%94%D7%A0%D7%93%D7%A1%D7%94+-+%D7%97%D7%95%D7%9E%D7%A8+%D7%98%D7%9B%D7%A0%D7%99/%D7%9E%D7%9B%D7%A9%D7%99%D7%A8%D7%99%D7%9D+%D7%9B%D7%9C%D7%9C%D7%99+%D7%95%D7%9E%D7%A8%D7%A4%D7%90%D7%95%D7%AA+-+%D7%97%D7%95%D7%9E%D7%A8+%D7%98%D7%9B%D7%A0%D7%99/%D7%9E%D7%9B%D7%A9%D7%99%D7%A8+%D7%91%D7%99%D7%95%D7%9B%D7%99%D7%9E%D7%99%D7%94+%D7%99%D7%91%D7%A9%D7%94+-+962602665/1100-7108-1+Rev.+E+JenII+Piccolo+Xpress+User+Operator's+Manual+-+Multilingual.docx+.pdf",
+    "imageLink": "https://hanaref-image-url.com/uqpdbcHOfN.jpg",
+    "qaStandardLink": "https://hanaref-document-url.com/oAsLKFRSbZ.pdf",
     "models": [
       {
         "name": "Samsung",
@@ -363,15 +375,16 @@
     "belongsToKits": [],
     "similarItems": [],
     "kitItem": []
-  },{
+  },
+  {
     "name": "מכשיר זעיר לבדיקת גזים",
     "cat": "962706460",
     "sector": "ביו-הנדסה (מכשור רפואת שגרה)",
     "department": "מעבדות",
     "catType": "מקט רגיל",
     "description": "",
-    "imageLink": "https://hanaref-bucket.s3.amazonaws.com/Hanaref/%D7%9E%D7%93%D7%95%D7%A8+%D7%91%D7%99%D7%95-%D7%94%D7%A0%D7%93%D7%A1%D7%94/%D7%9E%D7%A2%D7%91%D7%93%D7%95%D7%AA/%D7%9E%D7%9B%D7%A9%D7%99%D7%A8+%D7%96%D7%A2%D7%99%D7%A8+%D7%9C%D7%91%D7%93%D7%99%D7%A7%D7%AA+%D7%92%D7%96%D7%99%D7%9D+-+962706460/istat.jpg",
-    "qaStandardLink": "https://hanaref-bucket.s3.amazonaws.com/hanaref-technical-manuals/%D7%91%D7%99%D7%95+%D7%94%D7%A0%D7%93%D7%A1%D7%94+-+%D7%97%D7%95%D7%9E%D7%A8+%D7%98%D7%9B%D7%A0%D7%99/%D7%9E%D7%9B%D7%A9%D7%99%D7%A8%D7%99%D7%9D+%D7%9B%D7%9C%D7%9C%D7%99+%D7%95%D7%9E%D7%A8%D7%A4%D7%90%D7%95%D7%AA+-+%D7%97%D7%95%D7%9E%D7%A8+%D7%98%D7%9B%D7%A0%D7%99/%D7%9E%D7%9B%D7%A9%D7%99%D7%A8+%D7%96%D7%A2%D7%99%D7%A8+%D7%9C%D7%91%D7%93%D7%99%D7%A7%D7%AA+%D7%92%D7%96%D7%99%D7%9D+-+962706460/SOP_Abbot_iSTAT_user_guide.pdf",
+    "imageLink": "https://hanaref-image-url.com/SubAKrGulB.jpg",
+    "qaStandardLink": "https://hanaref-document-url.com/SDddwNtqYr.pdf",
     "models": [
       {
         "name": "Abbott",
@@ -396,15 +409,16 @@
     "belongsToKits": [],
     "similarItems": [],
     "kitItem": []
-  },{
+  },
+  {
     "name": "מכשיר לצביעת משטחים",
     "cat": "962612733",
     "sector": "ביו-הנדסה (מכשור רפואת שגרה)",
     "department": "מעבדות",
     "catType": "מקט רגיל",
     "description": "",
-    "imageLink": "https://hanaref-bucket.s3.amazonaws.com/Hanaref/%D7%9E%D7%93%D7%95%D7%A8+%D7%91%D7%99%D7%95-%D7%94%D7%A0%D7%93%D7%A1%D7%94/%D7%9E%D7%A2%D7%91%D7%93%D7%95%D7%AA/%D7%9E%D7%9B%D7%A9%D7%99%D7%A8+%D7%9C%D7%A6%D7%91%D7%99%D7%A2%D7%AA+%D7%9E%D7%A9%D7%98%D7%97%D7%99%D7%9D+-+962612733/%D7%9E%D7%9B%D7%A9%D7%99%D7%A8+%D7%9C%D7%A6%D7%91%D7%99%D7%A2%D7%AA+%D7%9E%D7%A9%D7%98%D7%97%D7%99%D7%9D.jpg",
-    "qaStandardLink": "https://hanaref-bucket.s3.amazonaws.com/hanaref-technical-manuals/%D7%91%D7%99%D7%95+%D7%94%D7%A0%D7%93%D7%A1%D7%94+-+%D7%97%D7%95%D7%9E%D7%A8+%D7%98%D7%9B%D7%A0%D7%99/%D7%9E%D7%A2%D7%91%D7%93%D7%95%D7%AA+-+%D7%97%D7%95%D7%9E%D7%A8+%D7%98%D7%9B%D7%A0%D7%99/%D7%9E%D7%9B%D7%A9%D7%99%D7%A8+%D7%9C%D7%A6%D7%91%D7%99%D7%A2%D7%AA+%D7%9E%D7%A9%D7%98%D7%97%D7%99%D7%9D+-+962612733/hema-tek-2000-slide-stainer.pdf",
+    "imageLink": "https://hanaref-image-url.com/hnyeKxefZS.jpg",
+    "qaStandardLink": "https://hanaref-document-url.com/wtYPkfzVtR.pdf",
     "models": [
       {
         "name": "BAYER",
@@ -416,15 +430,16 @@
     "belongsToKits": [],
     "similarItems": [],
     "kitItem": []
-  },{
+  },
+  {
     "name": "מנענע מבחנות",
     "cat": "962727255",
     "sector": "ביו-הנדסה (מכשור רפואת שגרה)",
     "department": "מעבדות",
     "catType": "מקט רגיל",
     "description": "",
-    "imageLink": "https://hanaref-bucket.s3.amazonaws.com/Hanaref/%D7%9E%D7%93%D7%95%D7%A8+%D7%91%D7%99%D7%95-%D7%94%D7%A0%D7%93%D7%A1%D7%94/%D7%9E%D7%A2%D7%91%D7%93%D7%95%D7%AA/%D7%9E%D7%A0%D7%A2%D7%A0%D7%A2+%D7%9E%D7%91%D7%97%D7%A0%D7%95%D7%AA+-+962727255/%D7%9E%D7%A0%D7%A2%D7%A0%D7%A2+%D7%9E%D7%91%D7%97%D7%A0%D7%95%D7%AA.jpg",
-    "qaStandardLink": "https://hanaref-bucket.s3.amazonaws.com/hanaref-technical-manuals/%D7%91%D7%99%D7%95+%D7%94%D7%A0%D7%93%D7%A1%D7%94+-+%D7%97%D7%95%D7%9E%D7%A8+%D7%98%D7%9B%D7%A0%D7%99/%D7%9E%D7%A2%D7%91%D7%93%D7%95%D7%AA+-+%D7%97%D7%95%D7%9E%D7%A8+%D7%98%D7%9B%D7%A0%D7%99/%D7%9E%D7%A0%D7%A2%D7%A0%D7%A2+%D7%9E%D7%91%D7%97%D7%A0%D7%95%D7%AA+-962727255/Manual+Usuario+(Ingles)+-+Agitador+Vortex+LSE+(6776).pdf",
+    "imageLink": "https://hanaref-image-url.com/BOrAKRWegQ.jpg",
+    "qaStandardLink": "https://hanaref-document-url.com/DibtKOYXIu.pdf",
     "models": [
       {
         "name": "CORNING",
@@ -444,8 +459,8 @@
     "department": "עיניים - אופתלמולוגיה",
     "catType": "מקט רגיל",
     "description": "מכשיר העוזר לרופא העיניים לבצע בדיקה של הרשתית והקשתית של המטופל",
-    "imageLink": "https://hanaref-bucket.s3.amazonaws.com/hanaref-images/%D7%AA%D7%9E%D7%95%D7%A0%D7%95%D7%AA+-+%D7%A2%D7%99%D7%A0%D7%99%D7%99%D7%9D/962147712+-+%D7%90%D7%95%D7%A4%D7%98%D7%9C%D7%9E%D7%95%D7%A1%D7%A7%D7%95%D7%A4+%D7%90%D7%99%D7%A0%D7%93%D7%99%D7%99%D7%A8%D7%A7%D7%98/962147712+-+%D7%90%D7%95%D7%A4%D7%98%D7%9C%D7%9E%D7%95%D7%A1%D7%A7%D7%95%D7%A4+%D7%90%D7%99%D7%A0%D7%93%D7%99%D7%99%D7%A8%D7%A7%D7%98.jpeg",
-    "qaStandardLink": "https://hanaref-bucket.s3.amazonaws.com/hanaref-technical-manuals/%D7%91%D7%99%D7%95+%D7%94%D7%A0%D7%93%D7%A1%D7%94+-+%D7%97%D7%95%D7%9E%D7%A8+%D7%98%D7%9B%D7%A0%D7%99/%D7%A2%D7%99%D7%A0%D7%99%D7%99%D7%9D-%D7%90%D7%95%D7%A4%D7%AA%D7%9C%D7%9E%D7%95%D7%9C%D7%95%D7%92%D7%99%D7%94+-+%D7%97%D7%95%D7%9E%D7%A8+%D7%98%D7%9B%D7%A0%D7%99/%D7%90%D7%95%D7%A4%D7%98%D7%9C%D7%9E%D7%95%D7%A1%D7%A7%D7%95%D7%A4+%D7%90%D7%99%D7%A0%D7%93%D7%99%D7%99%D7%A8%D7%A7%D7%98/kms_6.pdf",
+    "imageLink": "https://hanaref-image-url.com/IjyCkIqRCC.jpg",
+    "qaStandardLink": "https://hanaref-document-url.com/BbxvCPmWgd.pdf",
     "models": [
       {
         "name": "Appasamy associates - AAIO Wireless",
@@ -474,15 +489,16 @@
     "belongsToKits": [],
     "similarItems": [],
     "kitItem": []
-  },{
+  },
+  {
     "name": "צ׳ארט פרוג׳קטור- מכשיר לבדיקת ראייה",
     "cat": "962213502",
     "sector": "ביו-הנדסה (מכשור רפואת שגרה)",
     "department": "עיניים - אופתלמולוגיה",
     "catType": "מקט רגיל",
     "description": "מכשיר המשמש לבדיקת ראייה",
-    "imageLink": "https://hanaref-bucket.s3.amazonaws.com/hanaref-images/%D7%AA%D7%9E%D7%95%D7%A0%D7%95%D7%AA+-+%D7%A2%D7%99%D7%A0%D7%99%D7%99%D7%9D/%D7%A6%D7%B3%D7%90%D7%A8%D7%98+%D7%A4%D7%A8%D7%95%D7%92%D7%B3%D7%A7%D7%98%D7%95%D7%A8+-%D7%9E%D7%9B%D7%A9%D7%99%D7%A8+%D7%9C%D7%91%D7%93%D7%99%D7%A7%D7%AA+%D7%A8%D7%90%D7%99%D7%99%D7%94+/IMG_8409.jpeg",
-    "qaStandardLink": "https://hanaref-bucket.s3.amazonaws.com/hanaref-technical-manuals/%D7%91%D7%99%D7%95+%D7%94%D7%A0%D7%93%D7%A1%D7%94+-+%D7%97%D7%95%D7%9E%D7%A8+%D7%98%D7%9B%D7%A0%D7%99/%D7%A2%D7%99%D7%A0%D7%99%D7%99%D7%9D-%D7%90%D7%95%D7%A4%D7%AA%D7%9C%D7%9E%D7%95%D7%9C%D7%95%D7%92%D7%99%D7%94+-+%D7%97%D7%95%D7%9E%D7%A8+%D7%98%D7%9B%D7%A0%D7%99/%D7%9E%D7%90%D7%A7%D7%98+%D7%A4%D7%A8%D7%95%D7%92'%D7%A7%D7%98%D7%95%D7%A8+/ccp3100.pdf",
+    "imageLink": "https://hanaref-image-url.com/FFnogJudmL.jpg",
+    "qaStandardLink": "https://hanaref-document-url.com/iiPuXDWjth.pdf",
     "models": [
       {
         "name": "CCP-3100",
@@ -494,15 +510,16 @@
     "belongsToKits": [],
     "similarItems": [],
     "kitItem": []
-  },{
+  },
+  {
     "name": "אוטורפרקטומטר",
     "cat": "962212816",
     "sector": "ביו-הנדסה (מכשור רפואת שגרה)",
     "department": "עיניים - אופתלמולוגיה",
     "catType": "מקט רגיל",
     "description": "",
-    "imageLink": "https://hanaref-bucket.s3.amazonaws.com/hanaref-images/%D7%AA%D7%9E%D7%95%D7%A0%D7%95%D7%AA+-+%D7%A2%D7%99%D7%A0%D7%99%D7%99%D7%9D/%D7%90%D7%95%D7%98%D7%95%D7%A8%D7%A4%D7%A8%D7%A7%D7%98%D7%95%D7%9E%D7%98%D7%A8/IMG_8410.jpeg",
-    "qaStandardLink": "https://hanaref-bucket.s3.amazonaws.com/hanaref-technical-manuals/%D7%91%D7%99%D7%95+%D7%94%D7%A0%D7%93%D7%A1%D7%94+-+%D7%97%D7%95%D7%9E%D7%A8+%D7%98%D7%9B%D7%A0%D7%99/%D7%A2%D7%99%D7%A0%D7%99%D7%99%D7%9D-%D7%90%D7%95%D7%A4%D7%AA%D7%9C%D7%9E%D7%95%D7%9C%D7%95%D7%92%D7%99%D7%94+-+%D7%97%D7%95%D7%9E%D7%A8+%D7%98%D7%9B%D7%A0%D7%99/%D7%90%D7%95%D7%98%D7%95%D7%A8%D7%A4%D7%A8%D7%A7%D7%98%D7%95%D7%9E%D7%98%D7%A8+/upload_00030537_1655193358986.pdf",
+    "imageLink": "https://hanaref-image-url.com/xCJPfUXjdf.jpg",
+    "qaStandardLink": "https://hanaref-document-url.com/rvDINvQpEe.pdf",
     "models": [
       {
         "name": "RT-7000",
@@ -527,14 +544,15 @@
     "belongsToKits": [],
     "similarItems": [],
     "kitItem": []
-  },{
+  },
+  {
     "name": "אופטלמוסקופ",
     "cat": "962147704",
     "sector": "ביו-הנדסה (מכשור רפואת שגרה)",
     "department": "עיניים - אופתלמולוגיה",
     "catType": "מקט רגיל",
     "description": "",
-    "imageLink": "https://hanaref-bucket.s3.amazonaws.com/hanaref-images/%D7%AA%D7%9E%D7%95%D7%A0%D7%95%D7%AA+-+%D7%A2%D7%99%D7%A0%D7%99%D7%99%D7%9D/%D7%90%D7%95%D7%A4%D7%98%D7%9C%D7%9E%D7%95%D7%A1%D7%A7%D7%95%D7%A4/IMG_8412.png",
+    "imageLink": "https://hanaref-image-url.com/mdjdBIJSPv.jpg",
     "qaStandardLink": "",
     "models": [
       {
@@ -560,15 +578,16 @@
     "belongsToKits": [],
     "similarItems": [],
     "kitItem": []
-  },{
+  },
+  {
     "name": "אקזופטלמומטר",
     "cat": "962057403",
     "sector": "ביו-הנדסה (מכשור רפואת שגרה)",
     "department": "עיניים - אופתלמולוגיה",
     "catType": "מקט רגיל",
     "description": "",
-    "imageLink": "https://hanaref-bucket.s3.amazonaws.com/hanaref-images/%D7%AA%D7%9E%D7%95%D7%A0%D7%95%D7%AA+-+%D7%A2%D7%99%D7%A0%D7%99%D7%99%D7%9D/%D7%90%D7%A7%D7%96%D7%95%D7%A4%D7%98%D7%9C%D7%9E%D7%95%D7%9E%D7%98%D7%A8/IMG_8413.jpeg",
-    "qaStandardLink": "https://hanaref-bucket.s3.amazonaws.com/hanaref-technical-manuals/%D7%91%D7%99%D7%95+%D7%94%D7%A0%D7%93%D7%A1%D7%94+-+%D7%97%D7%95%D7%9E%D7%A8+%D7%98%D7%9B%D7%A0%D7%99/%D7%A2%D7%99%D7%A0%D7%99%D7%99%D7%9D-%D7%90%D7%95%D7%A4%D7%AA%D7%9C%D7%9E%D7%95%D7%9C%D7%95%D7%92%D7%99%D7%94+-+%D7%97%D7%95%D7%9E%D7%A8+%D7%98%D7%9B%D7%A0%D7%99/%D7%90%D7%A7%D7%96%D7%95%D7%A4%D7%98%D7%9C%D7%9E%D7%95%D7%9E%D7%98%D7%A8/L-0161-manual.pdf",
+    "imageLink": "https://hanaref-image-url.com/ojFBdxUGgL.jpg",
+    "qaStandardLink": "https://hanaref-document-url.com/jIeNkQIDfI.pdf",
     "models": [
       {
         "name": "Hertel Exophthalmometer",
@@ -588,8 +607,8 @@
     "department": "דפיברילטורים",
     "catType": "מקט רגיל",
     "description": "מכשיר דפיברילציה אוטומטי נייד",
-    "imageLink": "https://hanaref-bucket.s3.amazonaws.com/Hanaref/%D7%9E%D7%93%D7%95%D7%A8+%D7%A4%D7%99%D7%AA%D7%95%D7%97/%D7%93%D7%A4%D7%99%D7%91%D7%A8%D7%99%D7%9C%D7%98%D7%95%D7%A8%D7%99%D7%9D/962040601+-+%D7%93%D7%A4%D7%99%D7%91%D7%A8%D7%99%D7%9C%D7%98%D7%95%D7%A8+HeartSine/IMG_8942.jpeg",
-    "qaStandardLink": "https://hanaref-bucket.s3.amazonaws.com/hanaref-technical-manuals/%D7%A4%D7%99%D7%AA%D7%95%D7%97+-+%D7%97%D7%95%D7%9E%D7%A8+%D7%98%D7%9B%D7%A0%D7%99/%D7%93%D7%A4%D7%99%D7%91%D7%A8%D7%99%D7%9C%D7%98%D7%95%D7%A8%D7%99%D7%9D+-+%D7%97%D7%95%D7%9E%D7%A8+%D7%98%D7%9B%D7%A0%D7%99/%D7%93%D7%A4%D7%99%D7%91%D7%A8%D7%99%D7%9C%D7%98%D7%95%D7%A8+%D7%97%D7%A6%D7%99+%D7%90%D7%95%D7%98%D7%95%D7%9E%D7%98%D7%99+-+Heartsine++962040601/350-owners.pdf",
+    "imageLink": "https://hanaref-image-url.com/OdLbQvaPTl.jpg",
+    "qaStandardLink": "https://hanaref-document-url.com/qtNrvcuslS.pdf",
     "models": [
       {
         "name": " Heartsine - Sam350P",
@@ -610,15 +629,16 @@
     "belongsToKits": [],
     "similarItems": [],
     "kitItem": []
-  },{
+  },
+  {
     "name": "דפיברילטור זעיר Schiller",
     "cat": "962040608",
     "sector": "פיתוח (מכשור רפואת חירום)",
     "department": "דפיברילטורים",
     "catType": "מקט רגיל",
     "description": "מכשיר דפיברילטור נייח",
-    "imageLink": "https://hanaref-bucket.s3.amazonaws.com/Hanaref/%D7%9E%D7%93%D7%95%D7%A8+%D7%A4%D7%99%D7%AA%D7%95%D7%97/%D7%93%D7%A4%D7%99%D7%91%D7%A8%D7%99%D7%9C%D7%98%D7%95%D7%A8%D7%99%D7%9D/%D7%93%D7%A4%D7%99%D7%91%D7%A8%D7%99%D7%9C%D7%98%D7%95%D7%A8+%D7%96%D7%A2%D7%99%D7%A8+Schiller+-+962040608/IMG_8941.jpeg",
-    "qaStandardLink": "https://hanaref-bucket.s3.amazonaws.com/Hanaref/%D7%9E%D7%93%D7%95%D7%A8+%D7%A4%D7%99%D7%AA%D7%95%D7%97/%D7%93%D7%A4%D7%99%D7%91%D7%A8%D7%99%D7%9C%D7%98%D7%95%D7%A8%D7%99%D7%9D/%D7%93%D7%A4%D7%99%D7%91%D7%A8%D7%99%D7%9C%D7%98%D7%95%D7%A8+%D7%96%D7%A2%D7%99%D7%A8+Schiller+-+962040608/Schiller+Fred+Easyport+AED+-+User+manual.pdf",
+    "imageLink": "https://hanaref-image-url.com/FdlCUNpUMZ.jpg",
+    "qaStandardLink": "https://hanaref-document-url.com/hjKIgPySih.pdf",
     "models": [
       {
         "name": "Fred Easyport - Schiller",
@@ -643,14 +663,15 @@
     "belongsToKits": [],
     "similarItems": [],
     "kitItem": []
-  },{
+  },
+  {
     "name": "מתאם חיצוני לדפיברילטור תרגול",
     "cat": "962040675",
     "sector": "פיתוח (מכשור רפואת חירום)",
     "department": "דפיברילטורים",
     "catType": "מקט רגיל",
     "description": "מתאם חיצוני לדפיברילטור תרגול",
-    "imageLink": "https://hanaref-bucket.s3.amazonaws.com/Hanaref/%D7%9E%D7%93%D7%95%D7%A8+%D7%A4%D7%99%D7%AA%D7%95%D7%97/%D7%93%D7%A4%D7%99%D7%91%D7%A8%D7%99%D7%9C%D7%98%D7%95%D7%A8%D7%99%D7%9D/%D7%9E%D7%AA%D7%90%D7%9D+%D7%97%D7%99%D7%A6%D7%95%D7%A0%D7%99+%D7%9C%D7%93%D7%A4%D7%99%D7%91%D7%A8%D7%99%D7%9C%D7%98%D7%95%D7%A8+%D7%AA%D7%A8%D7%92%D7%95%D7%9C/IMG_3721.jpeg",
+    "imageLink": "https://hanaref-image-url.com/KZsoPLnwUr.jpg",
     "qaStandardLink": "",
     "models": [
       {
@@ -676,15 +697,16 @@
     "belongsToKits": [],
     "similarItems": [],
     "kitItem": []
-  },{
+  },
+  {
     "name": "דפברילטור חצי אוטומטי למקומות ציבוריים",
     "cat": "962054773",
     "sector": "פיתוח (מכשור רפואת חירום)",
     "department": "דפיברילטורים",
     "catType": "מקט רגיל",
     "description": "דפברילטור חצי אוטומטי למקומות ציבוריים",
-    "imageLink": "https://hanaref-bucket.s3.amazonaws.com/Hanaref/%D7%9E%D7%93%D7%95%D7%A8+%D7%A4%D7%99%D7%AA%D7%95%D7%97/%D7%93%D7%A4%D7%99%D7%91%D7%A8%D7%99%D7%9C%D7%98%D7%95%D7%A8%D7%99%D7%9D/%D7%93%D7%A4%D7%99%D7%91%D7%A8%D7%99%D7%9C%D7%98%D7%95%D7%A8+%D7%97%D7%A6%D7%99+%D7%90%D7%95%D7%98%D7%95%D7%9E%D7%98%D7%99+%D7%9C%D7%9E%D7%A7%D7%95%D7%9E%D7%95%D7%AA+%D7%A6%D7%99%D7%91%D7%95%D7%A8%D7%99%D7%99%D7%9D/IMG_3722.jpeg",
-    "qaStandardLink": "https://hanaref-bucket.s3.amazonaws.com/Hanaref/%D7%9E%D7%93%D7%95%D7%A8+%D7%A4%D7%99%D7%AA%D7%95%D7%97/%D7%93%D7%A4%D7%99%D7%91%D7%A8%D7%99%D7%9C%D7%98%D7%95%D7%A8%D7%99%D7%9D/%D7%93%D7%A4%D7%99%D7%91%D7%A8%D7%99%D7%9C%D7%98%D7%95%D7%A8+%D7%97%D7%A6%D7%99+%D7%90%D7%95%D7%98%D7%95%D7%9E%D7%98%D7%99+%D7%9C%D7%9E%D7%A7%D7%95%D7%9E%D7%95%D7%AA+%D7%A6%D7%99%D7%91%D7%95%D7%A8%D7%99%D7%99%D7%9D/%D7%93%D7%A4%D7%91%D7%A8%D7%99%D7%9C%D7%98%D7%95%D7%A8+%D7%97%D7%A6%D7%99+%D7%90%D7%95%D7%98%D7%95%D7%9E%D7%98%D7%99+%D7%9C%D7%9E%D7%A7%D7%95%D7%9E%D7%95%D7%AA+%D7%A6%D7%99%D7%91%D7%95%D7%A8%D7%99%D7%99%D7%9D++962054773/defibtech-lifeline-manual.pdf",
+    "imageLink": "https://hanaref-image-url.com/FfnycaFRXs.jpg",
+    "qaStandardLink": "https://hanaref-document-url.com/vJampqoDit.pdf",
     "models": [
       {
         "name": "lifeline Defibtech",
@@ -721,15 +743,16 @@
     "belongsToKits": [],
     "similarItems": [],
     "kitItem": []
-  },{
+  },
+  {
     "name": "דפיברילטור חצי אוטומטי רגיל - Philips",
     "cat": "962040594",
     "sector": "פיתוח (מכשור רפואת חירום)",
     "department": "דפיברילטורים",
     "catType": "מקט רגיל",
     "description": "דפיברילטור חצי אוטומטי רגיל",
-    "imageLink": "https://hanaref-bucket.s3.amazonaws.com/Hanaref/%D7%9E%D7%93%D7%95%D7%A8+%D7%A4%D7%99%D7%AA%D7%95%D7%97/%D7%93%D7%A4%D7%99%D7%91%D7%A8%D7%99%D7%9C%D7%98%D7%95%D7%A8%D7%99%D7%9D/%D7%93%D7%A4%D7%99%D7%91%D7%A8%D7%99%D7%9C%D7%98%D7%95%D7%A8+%D7%97%D7%A6%D7%99+%D7%90%D7%95%D7%98%D7%95%D7%9E%D7%98%D7%99+%D7%A8%D7%92%D7%99%D7%9C+-+Philips/IMG_3723.jpeg",
-    "qaStandardLink": "https://hanaref-bucket.s3.amazonaws.com/hanaref-technical-manuals/%D7%A4%D7%99%D7%AA%D7%95%D7%97+-+%D7%97%D7%95%D7%9E%D7%A8+%D7%98%D7%9B%D7%A0%D7%99/%D7%93%D7%A4%D7%99%D7%91%D7%A8%D7%99%D7%9C%D7%98%D7%95%D7%A8%D7%99%D7%9D+-+%D7%97%D7%95%D7%9E%D7%A8+%D7%98%D7%9B%D7%A0%D7%99/%D7%93%D7%A4%D7%99%D7%91%D7%A8%D7%99%D7%9C%D7%98%D7%95%D7%A8+%D7%97%D7%A6%D7%99+%D7%90%D7%95%D7%98%D7%95%D7%9E%D7%98%D7%99+%D7%A8%D7%92%D7%99%D7%9C+-+Philips++962040594/onesite-manual.pdf",
+    "imageLink": "https://hanaref-image-url.com/NxukFHwgip.jpg",
+    "qaStandardLink": "https://hanaref-document-url.com/ycsYzPqDZu.pdf",
     "models": [
       {
         "name": "HeartStart Philips",
@@ -762,7 +785,7 @@
     "belongsToKits": [],
     "similarItems": [],
     "kitItem": []
-  },  
+  },
   {
     "name": "משאבת Devilbiss",
     "cat": "962180094",
@@ -770,8 +793,8 @@
     "department": "משאבות",
     "catType": "מקט רגיל",
     "description": "המכשיר נועד לסילוק הפרשות וגופים זרים מדרכי הנשימה.\nלמכשיר יש מיכל רב פעמי לאיסוף הנוזלים/הפרשות.\nהמכשיר יכול לעבוד ממגוון מתחים או באמצעות הסוללה הפנימית המסופקת יחד עם המכשיר.",
-    "imageLink": "https://hanaref-bucket.s3.amazonaws.com/Hanaref/%D7%9E%D7%93%D7%95%D7%A8+%D7%A4%D7%99%D7%AA%D7%95%D7%97/%D7%9E%D7%A9%D7%90%D7%91%D7%95%D7%AA/Devilbiss+-+962180094/%D7%94%D7%95%D7%A8%D7%93%D7%94+(6).jpg",
-    "qaStandardLink": "https://hanaref-bucket.s3.amazonaws.com/hanaref-technical-manuals/%D7%A4%D7%99%D7%AA%D7%95%D7%97+-+%D7%97%D7%95%D7%9E%D7%A8+%D7%98%D7%9B%D7%A0%D7%99/%D7%9E%D7%A9%D7%90%D7%91%D7%95%D7%AA+-+%D7%97%D7%95%D7%9E%D7%A8+%D7%98%D7%9B%D7%A0%D7%99/Devillbiss+suction+pump/devilbiss_portable_suction_machine.pdf",
+    "imageLink": "https://hanaref-image-url.com/tspSRpwYri.jpg",
+    "qaStandardLink": "https://hanaref-document-url.com/qfMeeQhExu.pdf",
     "models": [
       {
         "name": "7305 - Devilbiss Sunrise Medical",
@@ -804,7 +827,8 @@
     "belongsToKits": [],
     "similarItems": [],
     "kitItem": []
-  },{
+  },
+  {
     "cat": "-",
     "accessories": [],
     "belongsToKits": [],
@@ -817,14 +841,15 @@
     "name": "צינור שאיבה מחולה",
     "sector": "פיתוח (מכשור רפואת חירום)",
     "similarItems": []
-  },{
+  },
+  {
     "name": "מכשיר שאיבה ויטלוגרף",
     "cat": "962180019",
     "sector": "פיתוח (מכשור רפואת חירום)",
     "department": "משאבות",
     "catType": "מקט רגיל",
     "description": "מכשיר שאיבה מכני ונייד שואב הפרשות בזמן ביצוע החייאה , כולל שאיבה דרך הטובוס",
-    "imageLink": "https://hanaref-bucket.s3.amazonaws.com/Hanaref/%D7%9E%D7%93%D7%95%D7%A8+%D7%A4%D7%99%D7%AA%D7%95%D7%97/%D7%9E%D7%A9%D7%90%D7%91%D7%95%D7%AA/%D7%95%D7%99%D7%98%D7%9C%D7%95%D7%92%D7%A8%D7%A3+-+962180019/%D7%94%D7%95%D7%A8%D7%93%D7%94+(8).jpg",
+    "imageLink": "https://hanaref-image-url.com/nCTKsAXKLa.jpg",
     "qaStandardLink": "",
     "models": [
       {
@@ -837,15 +862,16 @@
     "belongsToKits": [],
     "similarItems": [],
     "kitItem": []
-  },{
+  },
+  {
     "name": "סקשן",
     "cat": "962153410",
     "sector": "פיתוח (מכשור רפואת חירום)",
     "department": "משאבות",
     "catType": "מקט רגיל",
     "description": "",
-    "imageLink": "https://hanaref-bucket.s3.amazonaws.com/Hanaref/%D7%9E%D7%93%D7%95%D7%A8+%D7%A4%D7%99%D7%AA%D7%95%D7%97/%D7%9E%D7%A9%D7%90%D7%91%D7%95%D7%AA/%D7%A1%D7%A7%D7%A9%D7%9F+-+962153410/Vortex+-+AS-200.png",
-    "qaStandardLink": "https://hanaref-bucket.s3.amazonaws.com/Hanaref/%D7%9E%D7%93%D7%95%D7%A8+%D7%A4%D7%99%D7%AA%D7%95%D7%97/%D7%9E%D7%A9%D7%90%D7%91%D7%95%D7%AA/%D7%A1%D7%A7%D7%A9%D7%9F+-+962153410/Alsa+Vortex+-+User+manual.pdf.pdf",
+    "imageLink": "https://hanaref-image-url.com/wagPicRtzL.jpg",
+    "qaStandardLink": "https://hanaref-document-url.com/RpbxoiBwCC.pdf",
     "models": [
       {
         "name": "AS-200",
@@ -878,8 +904,8 @@
     "department": "ניטור",
     "catType": "מקט רגיל",
     "description": "מוניטור רב מדדים מתקדם",
-    "imageLink": "https://hanaref-bucket.s3.amazonaws.com/Hanaref/%D7%9E%D7%93%D7%95%D7%A8+%D7%A4%D7%99%D7%AA%D7%95%D7%97/%D7%A0%D7%99%D7%98%D7%95%D7%A8/%D7%9E%D7%95%D7%A0%D7%99%D7%98%D7%95%D7%A8+%D7%98%D7%9E%D7%A4%D7%95%D7%A1+-+962053815/TempusLeftFront.jpg",
-    "qaStandardLink": "https://hanaref-bucket.s3.amazonaws.com/Hanaref/%D7%9E%D7%93%D7%95%D7%A8+%D7%A4%D7%99%D7%AA%D7%95%D7%97/%D7%A0%D7%99%D7%98%D7%95%D7%A8/%D7%9E%D7%95%D7%A0%D7%99%D7%98%D7%95%D7%A8+%D7%98%D7%9E%D7%A4%D7%95%D7%A1+-+962053815/Users-manual-1-of-2-4378145.pdf",
+    "imageLink": "https://hanaref-image-url.com/kJcTJVLDXX.jpg",
+    "qaStandardLink": "https://hanaref-document-url.com/OXDHvtwywk.pdf",
     "models": [
       {
         "name": "Philips-Monitor Tempus pro",
@@ -926,14 +952,15 @@
     ],
     "similarItems": [],
     "kitItem": []
-  },{
+  },
+  {
     "name": "סוללת ליתיום-יון למוניטור טמפוס פרו",
     "cat": "965160345",
     "sector": "פיתוח (מכשור רפואת חירום)",
     "department": "ניטור",
     "catType": "מקט רגיל",
     "description": "",
-    "imageLink": "https://hanaref-bucket.s3.us-east-1.amazonaws.com/Hanaref/%D7%9E%D7%93%D7%95%D7%A8+%D7%A4%D7%99%D7%AA%D7%95%D7%97/%D7%A0%D7%99%D7%98%D7%95%D7%A8/%D7%9E%D7%95%D7%A0%D7%99%D7%98%D7%95%D7%A8+%D7%98%D7%9E%D7%A4%D7%95%D7%A1+-+962053815/965160345+-+%D7%A1%D7%95%D7%9C%D7%9C%D7%AA+%D7%9C%D7%99%D7%AA%D7%99%D7%95%D7%9D.png",
+    "imageLink": "https://hanaref-image-url.com/JJvJYJzUfV.jpg",
     "qaStandardLink": "",
     "models": [
       {
@@ -951,15 +978,16 @@
     ],
     "similarItems": [],
     "kitItem": []
-  },{
+  },
+  {
     "name": "ערכת מוניטור טמפוס פרו / Tempus PRO Monitor",
     "cat": "967041181",
     "sector": "פיתוח (מכשור רפואת חירום)",
     "department": "ניטור",
     "catType": "מקט ערכה",
     "description": "",
-    "imageLink": "https://hanaref-bucket.s3.amazonaws.com/Hanaref/%D7%9E%D7%93%D7%95%D7%A8+%D7%A4%D7%99%D7%AA%D7%95%D7%97/%D7%A0%D7%99%D7%98%D7%95%D7%A8/%D7%9E%D7%95%D7%A0%D7%99%D7%98%D7%95%D7%A8+%D7%98%D7%9E%D7%A4%D7%95%D7%A1+-+962053815/TempusLeftFront.jpg",
-    "qaStandardLink": "https://hanaref-bucket.s3.amazonaws.com/Hanaref/%D7%9E%D7%93%D7%95%D7%A8+%D7%A4%D7%99%D7%AA%D7%95%D7%97/%D7%A0%D7%99%D7%98%D7%95%D7%A8/%D7%9E%D7%95%D7%A0%D7%99%D7%98%D7%95%D7%A8+%D7%98%D7%9E%D7%A4%D7%95%D7%A1+-+962053815/Users-manual-1-of-2-4378145.pdf",
+    "imageLink": "https://hanaref-image-url.com/zjOrNBeslc.jpg",
+    "qaStandardLink": "https://hanaref-document-url.com/UbnybsUhLl.pdf",
     "models": [],
     "accessories": [
       {
@@ -1029,15 +1057,16 @@
         "cat": "962053815"
       }
     ]
-  },{
+  },
+  {
     "name": "מוניטור Athena / אתנה ",
     "cat": "962054722",
     "sector": "פיתוח (מכשור רפואת חירום)",
     "department": "ניטור",
     "catType": "מקט רגיל",
     "description": "המכשיר נועד למידור מדדי הפצוע בזמן חירום . המכשיר אל ומתלבש על זרוע המטופל ולכן הוא נייד ונוח לשימוש. המכשיר מודד א.ק.ג , קפנומטריה ,לחץ דם לא פולשני וסטוראציה.",
-    "imageLink": "https://hanaref-bucket.s3.amazonaws.com/Hanaref/%D7%9E%D7%93%D7%95%D7%A8+%D7%A4%D7%99%D7%AA%D7%95%D7%97/%D7%A0%D7%99%D7%98%D7%95%D7%A8/%D7%9E%D7%95%D7%A0%D7%99%D7%98%D7%95%D7%A8+Athena+-+962054722/atena+gtx.jpeg",
-    "qaStandardLink": "https://hanaref-bucket.s3.amazonaws.com/hanaref-technical-manuals/%D7%A4%D7%99%D7%AA%D7%95%D7%97+-+%D7%97%D7%95%D7%9E%D7%A8+%D7%98%D7%9B%D7%A0%D7%99/%D7%A0%D7%99%D7%98%D7%95%D7%A8+-+%D7%97%D7%95%D7%9E%D7%A8+%D7%98%D7%9B%D7%A0%D7%99/Monitor+athena/athena_users.pdf",
+    "imageLink": "https://hanaref-image-url.com/pTocodBTQs.jpg",
+    "qaStandardLink": "https://hanaref-document-url.com/egorWEkWEL.pdf",
     "models": [
       {
         "name": "515.288.3360",
@@ -1079,14 +1108,15 @@
     "belongsToKits": [],
     "similarItems": [],
     "kitItem": []
-  },{
+  },
+  {
     "name": "מוניטור פרוטוקול",
     "cat": "962052533",
     "sector": "פיתוח (מכשור רפואת חירום)",
     "department": "ניטור",
     "catType": "מקט רגיל",
     "description": "",
-    "imageLink": "https://hanaref-bucket.s3.amazonaws.com/Hanaref/%D7%9E%D7%93%D7%95%D7%A8+%D7%A4%D7%99%D7%AA%D7%95%D7%97/%D7%A0%D7%99%D7%98%D7%95%D7%A8/Monitor+Protocol+-+962052533/monitor+protocol.jpg",
+    "imageLink": "https://hanaref-image-url.com/hdZyYeRtMS.jpg",
     "qaStandardLink": "",
     "models": [
       {
@@ -1107,8 +1137,8 @@
     "department": "קירור דם",
     "catType": "מקט רגיל",
     "description": "מכשיר לחימום נוזלי אינפוזיה , דם ומוצרי דם לטמפרטורת הגוף טרם החדרתם למטופל . \nהמכשיר מיועד לשימוש על ידי אנשי רפואה מקצועיים בבתי החולים , מרפאות ובתנאי שטח , על מנת לעזור במניעת היפוטרמיה",
-    "imageLink": "https://hanaref-bucket.s3.us-east-1.amazonaws.com/Hanaref/%D7%9E%D7%93%D7%95%D7%A8+%D7%A4%D7%99%D7%AA%D7%95%D7%97/%D7%A2%D7%99%D7%A8%D7%95%D7%99/967064343+-+%D7%9E%D7%9B'+%D7%97%D7%99%D7%9E%D7%95%D7%9D+%D7%A0%D7%95%D7%96%D7%9C%D7%99%D7%9D+%D7%9E%D7%93%D7%92%D7%9D+Qin-Flow/962145477-+%D7%99%D7%97%D7%99%D7%93%D7%AA+%D7%91%D7%A1%D7%99%D7%A1.png",
-    "qaStandardLink": "https://hanaref-bucket.s3.amazonaws.com/Hanaref/%D7%9E%D7%93%D7%95%D7%A8+%D7%A4%D7%99%D7%AA%D7%95%D7%97/%D7%A2%D7%99%D7%A8%D7%95%D7%99/%D7%9E%D7%97%D7%9E%D7%9D+%D7%93%D7%9D+Qinflow+Warrior+-+962145477/962145477+-+Qinflow+Warrior+User+manual.pdf",
+    "imageLink": "https://hanaref-image-url.com/ZQikeVFeBD.jpg",
+    "qaStandardLink": "https://hanaref-document-url.com/JJWizZZbJN.pdf",
     "models": [
       {
         "name": "Qinflow Warrior",
@@ -1146,7 +1176,8 @@
     ],
     "similarItems": [],
     "kitItem": []
-  },{
+  },
+  {
     "cat": "967064343",
     "accessories": [
       {
@@ -1175,7 +1206,7 @@
       }
     ],
     "department": "קירור דם",
-    "imageLink": "https://hanaref-bucket.s3.us-east-1.amazonaws.com/Hanaref/%D7%9E%D7%93%D7%95%D7%A8+%D7%A4%D7%99%D7%AA%D7%95%D7%97/%D7%A2%D7%99%D7%A8%D7%95%D7%99/967064343+-+%D7%9E%D7%9B'+%D7%97%D7%99%D7%9E%D7%95%D7%9D+%D7%A0%D7%95%D7%96%D7%9C%D7%99%D7%9D+%D7%9E%D7%93%D7%92%D7%9D+Qin-Flow/962145477-+%D7%99%D7%97%D7%99%D7%93%D7%AA+%D7%91%D7%A1%D7%99%D7%A1.png",
+    "imageLink": "https://hanaref-image-url.com/IgmZJsNZUK.jpg",
     "kitItem": [
       {
         "name": "מחמם נוזלים Qinflow Warrior",
@@ -1186,6 +1217,6 @@
     "name": "מכ' חימום נוזלים מדגם Qin-Flow",
     "sector": "פיתוח (מכשור רפואת חירום)",
     "similarItems": [],
-    "qaStandardLink": "https://hanaref-bucket.s3.us-east-1.amazonaws.com/Hanaref/%D7%9E%D7%93%D7%95%D7%A8+%D7%A4%D7%99%D7%AA%D7%95%D7%97/%D7%A2%D7%99%D7%A8%D7%95%D7%99/967064343+-+%D7%9E%D7%9B'+%D7%97%D7%99%D7%9E%D7%95%D7%9D+%D7%A0%D7%95%D7%96%D7%9C%D7%99%D7%9D+%D7%9E%D7%93%D7%92%D7%9D+Qin-Flow/962145477+-+Qinflow+Warrior+User+manual.pdf"
+    "qaStandardLink": "https://hanaref-document-url.com/HKEjlPKATE.pdf"
   }
 ]
