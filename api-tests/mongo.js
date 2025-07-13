@@ -14,4 +14,9 @@ export const init = async () => {
     console.log("Database initialized with test data.");
 }
 
+export const close = async () => {
+    await client.close();
+    console.log("Database connection closed."); 
+}
+
 export const db = database;

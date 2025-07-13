@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { init as initDb } from './mongo';
+import { init as initDb, close as closeDb } from './mongo';
 import { data as itemsData } from './data/items.js';
 
 describe('hanaref-backend API', () => {
@@ -7,11 +7,14 @@ describe('hanaref-backend API', () => {
     await initDb();
   });
 
+  afterAll(async () => {
+    await closeDb();
+  })
+
   function compareWithExpectedItems(items, expectedItems, expectedLength) {
     expect(Array.isArray(items)).toBe(true);
     expect(items.length).toBe(Math.min(expectedLength, expectedItems.length));
     for (const item of items) {
-      console.log(`item ${item.cat}`);
       const expectedItem = expectedItems.find(i => i.cat === item.cat);
       expect(expectedItem).toBeDefined();
 
