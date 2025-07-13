@@ -41,4 +41,5 @@ services:
           condition: service_healthy
       environment:
         API_BASE_URL: http://hanaref-backend:5000
+        MONGO_URL: mongodb://hanardept:example@hanaref-mongodb:27017/
       command: ["npm", "test"]
