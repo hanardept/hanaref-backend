@@ -12,6 +12,7 @@ module.exports = (app) => {
 
     // item-viewing routes:
     app.get("/items", whoIsTheUser, ItemController.getItems);
+    app.get("/items/download-worksheet", whoIsTheUser, ItemController.getItemsWorksheet);
     app.get("/items/:cat", whoIsTheUser, ItemController.getItemInfo);
 
     // item-CUD routes:
