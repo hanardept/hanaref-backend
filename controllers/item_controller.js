@@ -1,6 +1,7 @@
 const Item = require("../models/Item");
 const { decodeItems } = require("../functions/helpers");
 const Sector = require("../models/Sector");
+const ExcelJS = require('exceljs'); 
 
 function preliminaryItem(item, sector, department) {
     return { name: item.name, cat: item.cat, sector: sector, department: department, imageLink: "" };
@@ -341,5 +342,97 @@ module.exports = {
             console.error(`Error toggling archive for item ${req.params.cat}:`, error);
             res.status(500).send('A server error occurred.');
         }
-    },    
+    }, 
+    
+    async getItemsWorksheet(req, res) {
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Items');
+
+        console.log(`Generating Excel worksheet for items...`);
+
+        worksheet.columns = [{
+            header: 'שם',
+            key: 'name',
+            width: 30
+        }, {
+            header: 'מק"ט',
+            key: 'cat',
+            width: 15
+        }, {
+            header: 'מדור',
+            key: 'sector',
+            width: 20
+        }, {
+            header: 'תחום',
+            key: 'department',
+            width: 10
+        }, {
+            header: 'סוג מק"ט',
+            key: 'catType',
+            width: 10
+        }, {
+            header: 'תיאור',
+            key: 'description',
+            width: 40
+        }, {
+            header: 'קישור לתמונה',
+            key: 'imageLink',
+            width: 30
+        }, {
+            header: 'קישור לתקן בחינה',
+            key: 'qaStandardLink',
+            width: 30
+        }, {
+            header: 'בארכיון',
+            key: 'archived',
+            width: 10
+        }, {
+            header: 'שייך לערכות',
+            key: 'belongsToKits',
+            width: 30
+        }, {
+            header: 'פריטים דומים',
+            key: 'similarItems',
+            width: 30
+        }];
+
+        let items;
+        let offset = 0;
+        const batchSize = 500;
+        do {
+            items = await Item.find({}, { name: 1, cat: 1, sector: 1, department: 1, archived: 1, catType: 1, description: 1, imageLink: 1, qaStandardLink: 1, belongsToKits: 1, similarItems: 1, kitItem: 1 })
+                .skip(offset)
+                .sort('cat')
+                .skip(offset)
+                .limit(500);
+            if (items?.length) {
+                worksheet.addRows(items.map(({ name, cat, sector, department, catType, description, imageLink, qaStandardLink, archived, belongsToKits, similarItems }) => (
+                    { name, cat, sector, department, catType, description, imageLink, qaStandardLink,
+                        archived: archived ? 'כן' : 'לא',
+                        belongsToKits: belongsToKits?.map(b => b.cat).join('\r\n'),
+                        similarItems: similarItems?.map(b => b.cat).join('\r\n'),
+                    }
+                )));
+            }
+            offset += batchSize;
+        } while (items.length > 0);
+
+        // Set the response headers
+        res.setHeader(
+            'Content-Type',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        );
+        res.setHeader(
+            'Content-Disposition',
+            'attachment; filename=' + 'my-generated-report.xlsx'
+        );
+
+        try {
+            await workbook.xlsx.write(res);
+            res.end();
+        } catch (error) {
+            console.error('Error sending Excel file:', error);
+            res.status(500).send('Error sending Excel file');
+        }
+    }
 };
