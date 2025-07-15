@@ -424,7 +424,7 @@ module.exports = {
         );
         res.setHeader(
             'Content-Disposition',
-            'attachment; filename=' + 'my-generated-report.xlsx'
+            'attachment; filename=' + 'items.xlsx'
         );
 
         try {
