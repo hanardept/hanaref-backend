@@ -1,6 +1,7 @@
 const Item = require("../models/Item");
 const { decodeItems } = require("../functions/helpers");
 const Sector = require("../models/Sector");
+const ExcelJS = require('exceljs'); 
 
 function preliminaryItem(item, sector, department) {
     return { name: item.name, cat: item.cat, sector: sector, department: department, imageLink: "" };
@@ -171,23 +172,47 @@ module.exports = {
             const mongoInsertPromises = [newItem.save()];
 
             if (accessories && accessories.length > 0)
-                accessories.forEach((a) =>
+                accessories.forEach((a) => {
                     mongoInsertPromises.push(
                         Item.updateOne({ cat: a.cat }, { $setOnInsert: preliminaryItem(a, sector, department) }, { upsert: true })
-                    )
-                );
+                    );
+                    mongoInsertPromises.push(
+                        Item.updateOne({ cat: a.cat }, { $addToSet: { belongsToKits: { name, cat } } })
+                    );
+                });
             if (consumables && consumables.length > 0)
-                consumables.forEach((c) =>
+                consumables.forEach((c) => {
                     mongoInsertPromises.push(
                         Item.updateOne({ cat: c.cat }, { $setOnInsert: preliminaryItem(c, sector, department) }, { upsert: true })
-                    )
-                );
+                    );
+                    mongoInsertPromises.push(
+                        Item.updateOne({ cat: c.cat }, { $addToSet: { belongsToKits: { name, cat } } })
+                    );
+                });
             if (belongsToKits && belongsToKits.length > 0)
-                belongsToKits.forEach((b) =>
+                belongsToKits.forEach((b) => {
+                    const { catType } = req.body;
+                    let listType;
+
+                    switch (catType) {
+                        case "אביזר":
+                            listType = "accessories";
+                            break;
+                        case "מתכלה":
+                            listType = "consumables";
+                            break;
+                        default:
+                            listType = "kitItem";
+                            break;
+                    }
+
                     mongoInsertPromises.push(
                         Item.updateOne({ cat: b.cat }, { $setOnInsert: preliminaryItem(b, sector, department) }, { upsert: true })
-                    )
-                );
+                    );
+                    mongoInsertPromises.push(
+                        Item.updateOne({ cat: b.cat }, { $addToSet: { [listType]: { name, cat } } })
+                    );
+                });
             if (similarItems && similarItems.length > 0)
                 similarItems.forEach((s) =>
                     mongoInsertPromises.push(
@@ -195,11 +220,14 @@ module.exports = {
                     )
                 );
             if (kitItem && kitItem.length > 0)
-                kitItem.forEach((i) =>
+                kitItem.forEach((i) => {
                     mongoInsertPromises.push(
-                        Item.updateOne({ cat: i.cat }, { $setOnInsert: preliminaryItem(i, sector, department) }, { upsert: aptrue })
+                        Item.updateOne({ cat: i.cat }, { $setOnInsert: preliminaryItem(i, sector, department) }, { upsert: true })
                     )
-                );
+                    mongoInsertPromises.push(
+                        Item.updateOne({ cat: i.cat }, { $addToSet: { belongsToKits: { name, cat } } })
+                    );
+                });
 
             await Promise.all(mongoInsertPromises);
             res.status(200).send("Item saved successfully!");
@@ -223,23 +251,46 @@ module.exports = {
             const mongoInsertPromises = [updateOwnItem];
             
             if (accessories && accessories.length > 0)
-                accessories.forEach((a) =>
+                accessories.forEach((a) => {
                     mongoInsertPromises.push(
                         Item.updateOne({ cat: a.cat }, { $setOnInsert: preliminaryItem(a, sector, department) }, { upsert: true })
-                    )
-                );
+                    );
+                    mongoInsertPromises.push(
+                        Item.updateOne({ cat: a.cat }, { $addToSet: { belongsToKits: { name: req.body.name, cat: req.body.cat } } })
+                    );
+                });
             if (consumables && consumables.length > 0)
-                consumables.forEach((c) =>
+                consumables.forEach((c) => {
                     mongoInsertPromises.push(
                         Item.updateOne({ cat: c.cat }, { $setOnInsert: preliminaryItem(c, sector, department) }, { upsert: true })
-                    )
-                );
+                    );
+                    mongoInsertPromises.push(
+                        Item.updateOne({ cat: c.cat }, { $addToSet: { belongsToKits: { name: req.body.name, cat: req.body.cat } } })
+                    );
+                });
             if (belongsToKits && belongsToKits.length > 0)
-                belongsToKits.forEach((b) =>
+                belongsToKits.forEach((b) => {
+                    const { catType } = req.body;
+                    let listType;
+
+                    switch (catType) {
+                        case "אביזר":
+                            listType = "accessories";
+                            break;
+                        case "מתכלה":
+                            listType = "consumables";
+                            break;
+                        default:
+                            listType = "kitItem";
+                            break;
+                    }
                     mongoInsertPromises.push(
                         Item.updateOne({ cat: b.cat }, { $setOnInsert: preliminaryItem(b, sector, department) }, { upsert: true })
-                    )
-                );
+                    );
+                    mongoInsertPromises.push(
+                        Item.updateOne({ cat: b.cat }, { $addToSet: { [listType]: { name: req.body.name, cat: req.body.cat } } })
+                    );
+                });
             if (similarItems && similarItems.length > 0)
                 similarItems.forEach((s) =>
                     mongoInsertPromises.push(
@@ -247,11 +298,14 @@ module.exports = {
                     )
                 );
             if (kitItem && kitItem.length > 0)
-                kitItem.forEach((i) =>
+                kitItem.forEach((i) => {
                     mongoInsertPromises.push(
                         Item.updateOne({ cat: i.cat }, { $setOnInsert: preliminaryItem(i, sector, department) }, { upsert: true })
-                    )
-                );
+                    );
+                    mongoInsertPromises.push(
+                        Item.updateOne({ cat: i.cat }, { $addToSet: { belongsToKits: { name: req.body.name, cat: req.body.cat } } })
+                    );
+                });
 
             await Promise.all(mongoInsertPromises);
             res.status(200).send("Item updated successfully!");
@@ -288,5 +342,96 @@ module.exports = {
             console.error(`Error toggling archive for item ${req.params.cat}:`, error);
             res.status(500).send('A server error occurred.');
         }
-    },    
+    }, 
+    
+    async getItemsWorksheet(req, res) {
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Items');
+
+        console.log(`Generating Excel worksheet for items...`);
+
+        worksheet.columns = [{
+            header: 'שם',
+            key: 'name',
+            width: 30
+        }, {
+            header: 'מק"ט',
+            key: 'cat',
+            width: 15
+        }, {
+            header: 'מדור',
+            key: 'sector',
+            width: 20
+        }, {
+            header: 'תחום',
+            key: 'department',
+            width: 10
+        }, {
+            header: 'סוג מק"ט',
+            key: 'catType',
+            width: 10
+        }, {
+            header: 'תיאור',
+            key: 'description',
+            width: 40
+        }, {
+            header: 'קישור לתמונה',
+            key: 'imageLink',
+            width: 30
+        }, {
+            header: 'קישור לתקן בחינה',
+            key: 'qaStandardLink',
+            width: 30
+        }, {
+            header: 'בארכיון',
+            key: 'archived',
+            width: 10
+        }, {
+            header: 'שייך לערכות',
+            key: 'belongsToKits',
+            width: 30
+        }, {
+            header: 'פריטים דומים',
+            key: 'similarItems',
+            width: 30
+        }];
+
+        let items;
+        let offset = 0;
+        const batchSize = 500;
+        do {
+            items = await Item.find({}, { name: 1, cat: 1, sector: 1, department: 1, archived: 1, catType: 1, description: 1, imageLink: 1, qaStandardLink: 1, belongsToKits: 1, similarItems: 1, kitItem: 1 })
+                .sort('cat')
+                .skip(offset)
+                .limit(batchSize);
+            if (items?.length) {
+                worksheet.addRows(items.map(({ name, cat, sector, department, catType, description, imageLink, qaStandardLink, archived, belongsToKits, similarItems }) => (
+                    { name, cat, sector, department, catType, description, imageLink, qaStandardLink,
+                        archived: archived ? 'כן' : 'לא',
+                        belongsToKits: belongsToKits?.map(b => b.cat).join('\r\n'),
+                        similarItems: similarItems?.map(b => b.cat).join('\r\n'),
+                    }
+                )));
+            }
+            offset += batchSize;
+        } while (items.length > 0);
+
+        // Set the response headers
+        res.setHeader(
+            'Content-Type',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        );
+        res.setHeader(
+            'Content-Disposition',
+            'attachment; filename=' + 'items.xlsx'
+        );
+
+        try {
+            await workbook.xlsx.write(res);
+            res.end();
+        } catch (error) {
+            console.error('Error sending Excel file:', error);
+            res.status(500).send('Error sending Excel file');
+        }
+    }
 };
