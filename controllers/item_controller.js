@@ -401,10 +401,9 @@ module.exports = {
         const batchSize = 500;
         do {
             items = await Item.find({}, { name: 1, cat: 1, sector: 1, department: 1, archived: 1, catType: 1, description: 1, imageLink: 1, qaStandardLink: 1, belongsToKits: 1, similarItems: 1, kitItem: 1 })
-                .skip(offset)
                 .sort('cat')
                 .skip(offset)
-                .limit(500);
+                .limit(batchSize);
             if (items?.length) {
                 worksheet.addRows(items.map(({ name, cat, sector, department, catType, description, imageLink, qaStandardLink, archived, belongsToKits, similarItems }) => (
                     { name, cat, sector, department, catType, description, imageLink, qaStandardLink,
