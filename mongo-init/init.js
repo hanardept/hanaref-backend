@@ -125,6 +125,6 @@ db.items.insertMany([
 // Users
 db.users.insertOne({
   username: "admin",
-  password: "admin123", // In production, use hashed passwords!
+  password: "$2a$12$GUQbLPQmFPcxnlpZoyJaqePs8XB6PBrmACuNzyVzfzdkV8R3mQnNe", // admin123
   privilege: "admin"
 });
