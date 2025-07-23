@@ -3,6 +3,7 @@ const { whoIsTheUser, adminAccessOnly, hanarAndAboveAccess } = require("../middl
 const UserController = require("../controllers/user_controller");
 const ItemController = require("../controllers/item_controller");
 const SectorController = require("../controllers/sector_controller");
+const TechnicianController = require("../controllers/technician_controller");
 
 module.exports = (app) => {
     // user-related routes:
@@ -34,4 +35,13 @@ module.exports = (app) => {
     // unused routes:
     app.post("/sectors/:sectorname", [whoIsTheUser, adminAccessOnly], SectorController.addDepartmentToSector); // not used
     app.delete("/sectors/:sectorname", [whoIsTheUser, adminAccessOnly], SectorController.deleteDepartmentFromSector); // not used
+
+    // technician-viewing routes:
+    app.get("/technicians", whoIsTheUser, TechnicianController.getTechnicians);
+    app.get("/technicians/:id", whoIsTheUser, TechnicianController.getTechnicianInfo);
+
+    // technician-CUD routes:
+    app.post("/technicians", [whoIsTheUser, adminAccessOnly], TechnicianController.addTechnician);
+    app.put("/technicians/:id", [whoIsTheUser, adminAccessOnly], TechnicianController.editTechnician);
+    app.delete("/technicians/:id", [whoIsTheUser, adminAccessOnly], TechnicianController.deleteTechnician);
 };
