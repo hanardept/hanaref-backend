@@ -4,6 +4,7 @@ const UserController = require("../controllers/user_controller");
 const ItemController = require("../controllers/item_controller");
 const SectorController = require("../controllers/sector_controller");
 const TechnicianController = require("../controllers/technician_controller");
+const CertificationController = require("../controllers/certification_controller");
 
 module.exports = (app) => {
     // user-related routes:
@@ -44,4 +45,16 @@ module.exports = (app) => {
     app.post("/technicians", [whoIsTheUser, adminAccessOnly], TechnicianController.addTechnician);
     app.put("/technicians/:id", [whoIsTheUser, adminAccessOnly], TechnicianController.editTechnician);
     app.delete("/technicians/:id", [whoIsTheUser, adminAccessOnly], TechnicianController.deleteTechnician);
+
+    // technician toggle archive
+    app.post("/technicians/:id/toggle-archive", [whoIsTheUser], TechnicianController.toggleArchive);
+
+    // certification-viewing routes:
+    app.get("/certifications", whoIsTheUser, CertificationController.getCertifications);
+    app.get("/certifications/:id", whoIsTheUser, CertificationController.getCertificationInfo);
+
+    // technician-CUD routes:
+    app.post("/certifications", [whoIsTheUser, adminAccessOnly], CertificationController.addCertification);
+    app.put("/certifications/:id", [whoIsTheUser, adminAccessOnly], CertificationController.editCertification);
+    app.delete("/certifications/:id", [whoIsTheUser, adminAccessOnly], CertificationController.deleteCertification);
 };
