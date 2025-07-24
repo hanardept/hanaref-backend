@@ -14,7 +14,7 @@ module.exports = (app) => {
 
     // item-viewing routes:
     app.get("/items", whoIsTheUser, ItemController.getItems);
-    app.get("/items/suggestions", adminAccessOnly, ItemController.getItemSuggestions)
+    app.get("/items/suggestions", [whoIsTheUser, adminAccessOnly], ItemController.getItemSuggestions)
     app.get("/items/download-worksheet", whoIsTheUser, ItemController.getItemsWorksheet);
     app.get("/items/:cat", whoIsTheUser, ItemController.getItemInfo);
 
