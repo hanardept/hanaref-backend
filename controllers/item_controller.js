@@ -61,6 +61,22 @@ module.exports = {
         }
     },
 
+    async getItemSuggestions(req, res) {
+        // GET path: /items/suggetions?cat=126172&name=אלונקה&catType=מכשיר&maxSuggestions=5
+        let { cat, name, catType, maxSuggestions } = req.query;
+        maxSuggestions = Math.max(maxSuggestions, 10);
+
+        try {
+            const items = await Item.find({ cat, name, catType }, { cat: 1, name: 1 })
+                .sort(cat ? "cat" : "name")
+                .limit(maxSuggestions);
+            res.status(200).send(items);
+
+        } catch (error) {
+            res.status(400).send(`Error fetching item suggestions: ${error}`);
+        }
+    },
+
     async getItemInfo(req, res) {
         // THIS FUNCTION HAS BEEN CORRECTED TO FIX THE DUPLICATION ISSUE
         try {
