@@ -4,6 +4,7 @@ const Schema = mongoose.Schema;
 const certificationSchema = new Schema({
     itemId: {
         type: Schema.Types.ObjectId,
+        ref: "Item",
         required: true,
     },
     itemCat: {
@@ -16,6 +17,7 @@ const certificationSchema = new Schema({
     },
     technicianId: {
         type: Schema.Types.ObjectId,
+        ref: "Technician",
         required: true,
     },
     technicianFirstName: {
