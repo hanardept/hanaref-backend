@@ -27,9 +27,12 @@ module.exports = {
                     : {},
                     defaultProjection,
                 )
+                .populate('item')
+                .populate('technician')
                 .sort("itemCat")
                 .skip(page * 20)
                 .limit(20);
+            
             res.status(200).send(certifications);
         } catch (error) {
             res.status(400).send(`Error fetching certifications: ${error}`);
@@ -39,7 +42,10 @@ module.exports = {
     async getCertificationInfo(req, res) {
         try {
 
-            const certification = await Certification.findById(req.params.id, defaultProjection);
+            const certification = await Certification
+                .findById(req.params.id, defaultProjection)
+                .populate('item')
+                .populate('technician')
 
             if (certification) {
                 res.status(200).send(certification);
@@ -55,17 +61,17 @@ module.exports = {
     async addCertification(req, res) {
         // POST path: /certifications
         const {
-            itemId, itemCat, itemName, technicianId, technicianFirstName, technicianLastName, certificationDocumentLink,
+            item, technician, certificationDocumentLink,
             firstCertificationDate, lastCertificationDate, lastCertificationDurationMonths, plannedCertificationDate
         } = req.body;
 
         const newCertification = new Certification({
-            itemId, itemCat, itemName, technicianId, technicianFirstName, technicianLastName, certificationDocumentLink,
+            item, technician, certificationDocumentLink,
             firstCertificationDate, lastCertificationDate, lastCertificationDurationMonths, plannedCertificationDate
         });
 
-        try {  
-            const certificationAlreadyExists = await Certification.findOne({ itemCat, technicianId });
+        try {
+            const certificationAlreadyExists = await Certification.findOne({ item, technician });
             if (certificationAlreadyExists) return res.status(400).send({ errorMsg: "A certification for thie cat and technician id number is already in the database." });
 
             await newCertification.save();
@@ -78,13 +84,13 @@ module.exports = {
     async editCertification(req, res) {
         // PUT path: /certification/962780438
         const {
-            itemId, itemCat, itemName, technicianId, technicianFirstName, technicianLastName, certificationDocumentLink,
+            item, technician, certificationDocumentLink,
             firstCertificationDate, lastCertificationDate, lastCertificationDurationMonths, plannedCertificationDate
         } = req.body;
 
         try {
             await Certification.findByIdAndUpdate(req.params.id, { 
-                itemId, itemCat, itemName, technicianId, technicianFirstName, technicianLastName, certificationDocumentLink,
+                item, technician, certificationDocumentLink,
                 firstCertificationDate, lastCertificationDate, lastCertificationDurationMonths, plannedCertificationDate
             });
             res.status(200).send("Certification updated successfully!");

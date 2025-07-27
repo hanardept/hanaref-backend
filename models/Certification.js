@@ -2,30 +2,14 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const certificationSchema = new Schema({
-    itemId: {
+    item: {
         type: Schema.Types.ObjectId,
         ref: "Item",
         required: true,
     },
-    itemCat: {
-        type: String,
-        required: true,
-    },    
-    itemName: {
-        type: String,
-        required: true,
-    },
-    technicianId: {
+    technician: {
         type: Schema.Types.ObjectId,
         ref: "Technician",
-        required: true,
-    },
-    technicianFirstName: {
-        type: String,
-        required: true,
-    },
-    technicianLastName: {
-        type: String,
         required: true,
     },
     certificationDocumentLink: {
@@ -48,10 +32,6 @@ const certificationSchema = new Schema({
         type: Date,
         required: false,
     }
-    // lastCertificationExpirationDate: {
-    //     type: Date,
-    //     required: false,
-    // }
 });
 
 module.exports = mongoose.model("Certification", certificationSchema);
