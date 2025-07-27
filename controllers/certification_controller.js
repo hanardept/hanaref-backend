@@ -3,7 +3,7 @@ const { decodeItems } = require("../functions/helpers");
 
 const defaultProjection = {
      itemId: 1, itemCat: 1, itemName: 1, technicianId: 1, technicianFirstName: 1, technicianLastName: 1, certificationDocumentLink: 1,
-     firstCertificationDate: 1, lastCertificationDate: 1, lastCertificationExpirationDate: 1 
+     firstCertificationDate: 1, lastCertificationDate: 1, lastCertificationDurationMonths: 1, plannedCertificationDate: 1 
 }
 
 module.exports = {
@@ -56,12 +56,12 @@ module.exports = {
         // POST path: /certifications
         const {
             itemId, itemCat, itemName, technicianId, technicianFirstName, technicianLastName, certificationDocumentLink,
-            firstCertificationDate, lastCertificationDate, lastCertificationExpirationDate
+            firstCertificationDate, lastCertificationDate, lastCertificationDurationMonths, plannedCertificationDate
         } = req.body;
 
         const newCertification = new Certification({
             itemId, itemCat, itemName, technicianId, technicianFirstName, technicianLastName, certificationDocumentLink,
-            firstCertificationDate, lastCertificationDate, lastCertificationExpirationDate
+            firstCertificationDate, lastCertificationDate, lastCertificationDurationMonths, plannedCertificationDate
         });
 
         try {  
@@ -79,13 +79,13 @@ module.exports = {
         // PUT path: /certification/962780438
         const {
             itemId, itemCat, itemName, technicianId, technicianFirstName, technicianLastName, certificationDocumentLink,
-            firstCertificationDate, lastCertificationDate, lastCertificationExpirationDate
+            firstCertificationDate, lastCertificationDate, lastCertificationDurationMonths, plannedCertificationDate
         } = req.body;
 
         try {
             await Certification.findByIdAndUpdate(req.params.id, { 
                 itemId, itemCat, itemName, technicianId, technicianFirstName, technicianLastName, certificationDocumentLink,
-                firstCertificationDate, lastCertificationDate, lastCertificationExpirationDate
+                firstCertificationDate, lastCertificationDate, lastCertificationDurationMonths, plannedCertificationDate
             });
             res.status(200).send("Certification updated successfully!");
         } catch (error) {

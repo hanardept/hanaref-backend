@@ -38,10 +38,18 @@ const certificationSchema = new Schema({
         type: Date,
         required: false,
     },
-    lastCertificationExpirationDate: {
+    lastCertificationDurationMonths: {
+        type: Number,
+        required: false,
+    },
+    plannedCertificationDate: {
         type: Date,
         required: false,
     }
+    // lastCertificationExpirationDate: {
+    //     type: Date,
+    //     required: false,
+    // }
 });
 
 module.exports = mongoose.model("Certification", certificationSchema);
