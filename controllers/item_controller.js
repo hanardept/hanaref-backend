@@ -61,30 +61,6 @@ module.exports = {
         }
     },
 
-    async getItemSuggestions(req, res) {
-        // GET path: /items/suggetions?cat=126172&name=אלונקה&catType=מכשיר&maxSuggestions=5
-        const defaultMaxSuggestions = 10;
-        let { cat, name, catType, maxSuggestions = defaultMaxSuggestions } = req.query;
-        const [decodedCat, decodedName] = decodeItems(cat, name);
-        maxSuggestions = Math.max(maxSuggestions, defaultMaxSuggestions);
-
-        try {
-            const items = await Item.find({
-                $and: [
-                    name && { name: { $regex: decodedName, $options: "i" }},
-                    cat && { cat: { $regex: decodedCat }},
-                    catType && { catType }
-                ].filter(Boolean)
-            }, { cat: 1, name: 1 })
-                .sort(cat ? "cat" : "name")
-                .limit(maxSuggestions);
-            res.status(200).send(items);
-
-        } catch (error) {
-            res.status(400).send(`Error fetching item suggestions: ${error}`);
-        }
-    },
-
     async getItemInfo(req, res) {
         // THIS FUNCTION HAS BEEN CORRECTED TO FIX THE DUPLICATION ISSUE
         try {
