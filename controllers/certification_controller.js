@@ -15,7 +15,9 @@ module.exports = {
         try {
 
             const certifications = await Certification
-                .find(search
+                .find({ $and: [
+                    { archived: {$ne: true} },
+                    search
                     ? {
                             $or: [
                                 { itemCat: { $regex: decodedSearch, $options: "i" } },
@@ -24,7 +26,8 @@ module.exports = {
                                 { technicianLastName: { $regex: decodedSearch, $options: "i" } },
                             ],
                         }
-                    : {},
+                    : {}
+                    ] },
                     defaultProjection,
                 )
                 .populate('item')
