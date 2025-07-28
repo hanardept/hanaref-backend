@@ -123,7 +123,7 @@ module.exports = {
             technician.archived = newArchiveStatus;
             await Promises.all([
                 technician.save(),
-                await Certification.updateMany({ technician: technician._id }, { $set: { archived: newArchiveStatus } })
+                Certification.updateMany({ technician: technician._id }, { $set: { archived: newArchiveStatus } })
             ]);
 
             res.status(200).json(technician);
