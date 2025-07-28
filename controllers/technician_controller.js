@@ -4,27 +4,45 @@ const { decodeItems } = require("../functions/helpers");
 module.exports = {
     async getTechnicians(req, res) {
         // GET path: /technicians?search=jjo&page=0
-        const { search, page = 0 } = req.query;
+        const { search, page = 0, status } = req.query;
         const [decodedSearch] = decodeItems(search);
         // privilege stored in req.userPrivilege ("public"/"hanar"/"admin")
+        console.log(`status: ${status}, search: ${search ? "yes" : "no"}`);
         try {
 
-            const technicians = await Technician
-                .find(search
+            const query = { $and: [
+                    (status !== 'all') ? { archived: {$ne: true} } : {},
+                    search
                     ? {
-                            $or: [
-                                { id: { $regex: decodedSearch, $options: "i" } },
-                                { firstName: { $regex: decodedSearch, $options: "i" } },
-                                { lastName: { $regex: decodedSearch, $options: "i" } },
-                                { association: { $regex: decodedSearch, $options: "i" } },
-                            ],
-                        }
-                    : {},
-                    { id: 1, firstName: 1, lastName: 1, association: 1, _id: 1 },
+                        $or: [
+                            { id: { $regex: decodedSearch, $options: "i" } },
+                            { firstName: { $regex: decodedSearch, $options: "i" } },
+                            { lastName: { $regex: decodedSearch, $options: "i" } },
+                            { association: { $regex: decodedSearch, $options: "i" } },
+                        ]
+                    } : {}
+                    ] };
+            console.log(`query: ${JSON.stringify(query)}`);
+
+            const technicians = await Technician
+                .find({ $and: [
+                    (status !== 'all') ? { archived: {$ne: true} } : {},
+                    search
+                    ? {
+                        $or: [
+                            { id: { $regex: decodedSearch, $options: "i" } },
+                            { firstName: { $regex: decodedSearch, $options: "i" } },
+                            { lastName: { $regex: decodedSearch, $options: "i" } },
+                            { association: { $regex: decodedSearch, $options: "i" } },
+                        ]
+                    } : {}
+                    ] },
+                    { id: 1, firstName: 1, lastName: 1, association: 1, archived: 1, _id: 1 },
                 )
                 .sort("firstName")
                 .skip(page * 20)
                 .limit(20);
+            console.log(`Technicians found: ${technicians.length}`);
             res.status(200).send(technicians);
         } catch (error) {
             res.status(400).send(`Error fetching technicians: ${error}`);
@@ -35,7 +53,7 @@ module.exports = {
         try {
 
             const technician = await Technician.findById(req.params.id,
-                { _id: 1, id: 1, firstName: 1, lastName: 1, association: 1 });
+                { _id: 1, id: 1, firstName: 1, lastName: 1, association: 1, archived: 1 });
 
             if (technician) {
                 res.status(200).send(technician);
@@ -51,7 +69,7 @@ module.exports = {
     async addTechnician(req, res) {
         // POST path: /technicians
         const {
-            id, firstName, lastName, association,
+            id, firstName, lastName, association
         } = req.body;
 
         const newTechnician = new Technician({
@@ -100,10 +118,10 @@ module.exports = {
             technician.archived = !technician.archived;
             await technician.save();
 
-            res.status(200).json(item);
+            res.status(200).json(technician);
 
         } catch (error) {
-            console.error(`Error toggling archive for item ${req.params.cat}:`, error);
+            console.error(`Error toggling archive for technician ${req.params.id}:`, error);
             res.status(500).send('A server error occurred.');
         }
     }, 
