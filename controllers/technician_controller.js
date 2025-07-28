@@ -121,7 +121,7 @@ module.exports = {
 
             const newArchiveStatus = !technician.archived;
             technician.archived = newArchiveStatus;
-            await Promises.all([
+            await Promise.all([
                 technician.save(),
                 Certification.updateMany({ technician: technician._id }, { $set: { archived: newArchiveStatus } })
             ]);
