@@ -31,6 +31,10 @@ const certificationSchema = new Schema({
     plannedCertificationDate: {
         type: Date,
         required: false,
+    },
+    archived: {
+        type: Boolean,
+        required: false,
     }
 });
 

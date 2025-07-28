@@ -1,5 +1,6 @@
 const Technician = require("../models/Technician");
 const { decodeItems } = require("../functions/helpers");
+const Certification = require("../models/Certification");
 
 module.exports = {
     async getTechnicians(req, res) {
@@ -115,8 +116,12 @@ module.exports = {
                 return res.status(404).send('Technician not found.');
             }
 
-            technician.archived = !technician.archived;
-            await technician.save();
+            const newArchiveStatus = !technician.archived;
+            technician.archived = newArchiveStatus;
+            await Promises.all([
+                technician.save(),
+                await Certification.updateMany({ technician: technician._id }, { $set: { archived: newArchiveStatus } })
+            ]);
 
             res.status(200).json(technician);
 
