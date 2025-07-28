@@ -16,7 +16,11 @@ const technicianSchema = new Schema({
     },
     association: {
         type: String,
-        required: true
+        required: true,
+    },
+    archived: {
+        type: Boolean,
+        required: false,
     }
 });
 

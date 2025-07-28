@@ -88,4 +88,23 @@ module.exports = {
             res.status(200).send("Technician removed successfully!");
         } catch (error) {}
     },
+
+     toggleArchive: async (req, res) => {
+        try {
+            const technician = await Technician.findById(req.params.id)
+
+            if (!technician) {
+                return res.status(404).send('Technician not found.');
+            }
+
+            technician.archived = !technician.archived;
+            await technician.save();
+
+            res.status(200).json(item);
+
+        } catch (error) {
+            console.error(`Error toggling archive for item ${req.params.cat}:`, error);
+            res.status(500).send('A server error occurred.');
+        }
+    }, 
 };
