@@ -1,5 +1,6 @@
 const Certification = require("../models/Certification");
 const { decodeItems } = require("../functions/helpers");
+const ExcelJS = require('exceljs'); 
 
 const defaultProjection = {
      itemId: 1, itemCat: 1, itemName: 1, technicianId: 1, technicianFirstName: 1, technicianLastName: 1, certificationDocumentLink: 1,
@@ -109,4 +110,96 @@ module.exports = {
             res.status(200).send("Certification removed successfully!");
         } catch (error) {}
     },
+
+    async getCertificationsWorksheet(req, res) {
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Certifications');
+
+        console.log(`Generating Excel worksheet for certifications...`);
+
+        worksheet.columns = [{
+            header: 'מק"ט',
+            key: 'item',
+            width: 20
+        }, {
+            header: 'ת.ז. טכנאי',
+            key: 'technicianId',
+            width: 15
+        }, {
+            header: 'שם פרטי טכנאי',
+            key: 'technicianFirstName',
+            width: 15
+        }, {
+            header: 'שם משפחה טכנאי',
+            key: 'technicianLastName',
+            width: 20
+        }, {
+            header: 'תאריך הסמכה ראשונה',
+            key: 'firstCertificationDate',
+            width: 20
+        }, {
+            header: 'תאריך הסמכה אחרונה',
+            key: 'lastCertificationDate',
+            width: 20
+        }, {
+            header: 'אורך הסמכה אחרונה בחודשים',
+            key: 'lastCertificationDurationMonths',
+            width: 10,
+        }, {
+            header: 'תאריך הסמכה צפויה',
+            key: 'plannedCertificationDate',
+            width: 20,
+        }, {
+            header: 'קישור לתעודת הסמכה',
+            key: 'certificationDocumentLink',
+            width: 40
+        }, {
+            header: 'בארכיון',
+            key: 'archived',
+            width: 10
+        }];
+
+        let certifications;
+        let offset = 0;
+        const batchSize = 500;
+        do {
+            certifications = await Certification.find({}, { firstCertificationDate: 1, lastCertificationDate: 1, lastCertificationDurationMonths: 1, plannedCertificationDate: 1, certificationDocumentLink: 1, archived: 1 })
+                .populate('item')
+                .populate('technician')
+                .sort('item.cat')
+                .skip(offset)
+                .limit(batchSize);
+            if (certifications?.length) {
+                worksheet.addRows(certifications.map(({ item, technician, firstCertificationDate, lastCertificationDate, lastCertificationDurationMonths, plannedCertificationDate, certificationDocumentLink, archived }) => (
+                    { 
+                        item: item.cat,
+                        technicianId: technician.id,
+                        technicianFirstName: technician.firstName,
+                        technicianLastName: technician.lastName,
+                        firstCertificationDate, lastCertificationDate, lastCertificationDurationMonths, plannedCertificationDate, certificationDocumentLink,
+                        archived: archived ? 'כן' : 'לא',
+                    }
+                )));
+            }
+            offset += batchSize;
+        } while (certifications.length > 0);
+
+        // Set the response headers
+        res.setHeader(
+            'Content-Type',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        );
+        res.setHeader(
+            'Content-Disposition',
+            'attachment; filename=' + 'certifications.xlsx'
+        );
+
+        try {
+            await workbook.xlsx.write(res);
+            res.end();
+        } catch (error) {
+            console.error('Error sending Excel file:', error);
+            res.status(500).send('Error sending Excel file');
+        }
+    }    
 };

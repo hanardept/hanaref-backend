@@ -38,8 +38,8 @@ module.exports = (app) => {
     app.delete("/sectors/:sectorname", [whoIsTheUser, adminAccessOnly], SectorController.deleteDepartmentFromSector); // not used
 
     // technician-viewing routes:
-    app.get("/technicians", whoIsTheUser, TechnicianController.getTechnicians);
-    app.get("/technicians/:id", whoIsTheUser, TechnicianController.getTechnicianInfo);
+    app.get("/technicians", [whoIsTheUser, adminAccessOnly], TechnicianController.getTechnicians);
+    app.get("/technicians/:id", [whoIsTheUser, adminAccessOnly], TechnicianController.getTechnicianInfo);
 
     // technician-CUD routes:
     app.post("/technicians", [whoIsTheUser, adminAccessOnly], TechnicianController.addTechnician);
@@ -50,10 +50,11 @@ module.exports = (app) => {
     app.post("/technicians/:id/toggle-archive", [whoIsTheUser], TechnicianController.toggleArchive);
 
     // certification-viewing routes:
-    app.get("/certifications", whoIsTheUser, CertificationController.getCertifications);
-    app.get("/certifications/:id", whoIsTheUser, CertificationController.getCertificationInfo);
+    app.get("/certifications", [whoIsTheUser, adminAccessOnly], CertificationController.getCertifications);
+    app.get("/certifications/download-worksheet", [whoIsTheUser, adminAccessOnly], CertificationController.getCertificationsWorksheet);
+    app.get("/certifications/:id", [whoIsTheUser, adminAccessOnly], CertificationController.getCertificationInfo);
 
-    // technician-CUD routes:
+    // certification-CUD routes:
     app.post("/certifications", [whoIsTheUser, adminAccessOnly], CertificationController.addCertification);
     app.put("/certifications/:id", [whoIsTheUser, adminAccessOnly], CertificationController.editCertification);
     app.delete("/certifications/:id", [whoIsTheUser, adminAccessOnly], CertificationController.deleteCertification);
