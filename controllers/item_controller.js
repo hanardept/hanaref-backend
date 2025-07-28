@@ -345,8 +345,7 @@ module.exports = {
             // This is the core logic: it flips the boolean value.
             const newArchiveStatus = !item.archived;
             item.archived = newArchiveStatus;
-            technician.archived = newArchiveStatus;
-            await Promises.all([
+            await Promise.all([
                 item.save(),
                 Certification.updateMany({ item: item._id }, { $set: { archived: newArchiveStatus } })
             ]);
