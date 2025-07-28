@@ -2,6 +2,9 @@ const Item = require("../models/Item");
 const { decodeItems } = require("../functions/helpers");
 const Sector = require("../models/Sector");
 const ExcelJS = require('exceljs'); 
+const mongoose = require("mongoose");
+const Certification = require("../models/Certification");
+const { ObjectId } = mongoose.Types;
 
 function preliminaryItem(item, sector, department) {
     return { name: item.name, cat: item.cat, sector: sector, department: department, imageLink: "" };
@@ -317,9 +320,17 @@ module.exports = {
     async deleteItem(req, res) {
         // DELETE path: /items/962780438
         try {
-            await Item.findOneAndRemove({ cat: req.params.cat });
+            const removed = await Item.findOneAndRemove({ cat: req.params.cat });
+            if (removed?._id) {
+                await Certification.deleteMany({ item: new ObjectId(removed._id)})
+            }
+
             res.status(200).send("Item removed successfully!");
-        } catch (error) {}
+        } catch (error) {
+            console.error("Error removing item: ", error);
+            res.status(400).send("Failure removing item: ", error);
+
+        }
     },
 
     toggleArchive: async (req, res) => {
@@ -332,8 +343,13 @@ module.exports = {
             }
 
             // This is the core logic: it flips the boolean value.
-            item.archived = !item.archived;
-            await item.save();
+            const newArchiveStatus = !item.archived;
+            item.archived = newArchiveStatus;
+            technician.archived = newArchiveStatus;
+            await Promises.all([
+                item.save(),
+                Certification.updateMany({ item: item._id }, { $set: { archived: newArchiveStatus } })
+            ]);
 
             // Send the updated item back to the frontend.
             res.status(200).json(item);

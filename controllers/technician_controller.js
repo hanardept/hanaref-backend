@@ -103,7 +103,10 @@ module.exports = {
     async deleteTechnician(req, res) {
         // DELETE path: /technicians/962780438
         try {
-            await Technician.findByIdAndRemove(req.params.id);
+            await Promise.all([
+                Technician.findByIdAndRemove(req.params.id),
+                Certification.deleteMany({ technician: req.params.id })
+            ]);
             res.status(200).send("Technician removed successfully!");
         } catch (error) {}
     },
@@ -120,7 +123,7 @@ module.exports = {
             technician.archived = newArchiveStatus;
             await Promises.all([
                 technician.save(),
-                await Certification.updateMany({ technician: technician._id }, { $set: { archived: newArchiveStatus } })
+                Certification.updateMany({ technician: technician._id }, { $set: { archived: newArchiveStatus } })
             ]);
 
             res.status(200).json(technician);
