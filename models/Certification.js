@@ -38,4 +38,6 @@ const certificationSchema = new Schema({
     }
 });
 
+certificationSchema.index({ item: 1, technician: 1}, { unique: true });
+
 module.exports = mongoose.model("Certification", certificationSchema);
