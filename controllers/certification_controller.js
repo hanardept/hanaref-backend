@@ -10,14 +10,17 @@ const defaultProjection = {
 module.exports = {
     async getCertifications(req, res) {
         // GET path: /certification?search=jjo&page=0
-        const { search, page = 0 } = req.query;
-        const [decodedSearch] = decodeItems(search);
+        const { search, technician, page = 0 } = req.query;
+        const [decodedSearch, decodedTechnician ] = decodeItems(search, technician);
         // privilege stored in req.userPrivilege ("public"/"hanar"/"admin")
+
+        console.log(`Fetching certifications with search: ${decodedSearch}, technician: ${decodedTechnician}, page: ${page}`);
         try {
 
             const certifications = await Certification
                 .find({ $and: [
                     { archived: {$ne: true} },
+                    technician ? { technician: decodedTechnician } : {},
                     search
                     ? {
                             $or: [
