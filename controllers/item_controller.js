@@ -164,11 +164,11 @@ module.exports = {
     async addItem(req, res) {
         // POST path: /items
         const {
-            name, cat, sector, department, catType, description, imageLink, qaStandardLink, models, accessories, consumables, belongsToKits, similarItems, kitItem,
+            name, cat, sector, department, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, models, accessories, consumables, belongsToKits, similarItems, kitItem,
         } = req.body;
 
         const newItem = new Item({
-            name, cat, sector, department, catType, description, imageLink, qaStandardLink, models, accessories, consumables, belongsToKits, similarItems, kitItem,
+            name, cat, sector, department, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, models, accessories, consumables, belongsToKits, similarItems, kitItem,
         });
 
         try {
@@ -245,13 +245,13 @@ module.exports = {
     async editItem(req, res) {
         // PUT path: /items/962780438
         const {
-            name, cat, sector, department, catType, description, imageLink, qaStandardLink, models, accessories, consumables, belongsToKits, similarItems, kitItem,
+            name, cat, sector, department, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, models, accessories, consumables, belongsToKits, similarItems, kitItem,
         } = req.body;
 
         try {
             const updateOwnItem = Item.findOneAndUpdate(
                 { cat: req.params.cat },
-                { name, cat, sector, department, catType, description, imageLink, qaStandardLink, models, accessories, consumables, belongsToKits, similarItems, kitItem, }
+                { name, cat, sector, department, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, models, accessories, consumables, belongsToKits, similarItems, kitItem, }
             );
 
             const mongoInsertPromises = [updateOwnItem];
@@ -389,6 +389,10 @@ module.exports = {
             key: 'catType',
             width: 10
         }, {
+            header: 'תקופת הסמכה בחודשים',
+            certificationPeriodMonths: 'certificationPeriodMonths',
+            width: 10,
+        }, {
             header: 'מק"ט יצרן',
             key: 'manufacturerCat',
             width: 30,
@@ -428,12 +432,12 @@ module.exports = {
         let offset = 0;
         const batchSize = 500;
         do {
-            items = await Item.find({}, { name: 1, cat: 1, sector: 1, department: 1, models: 1, archived: 1, catType: 1, description: 1, imageLink: 1, qaStandardLink: 1, belongsToKits: 1, similarItems: 1, kitItem: 1 })
+            items = await Item.find({}, { name: 1, cat: 1, sector: 1, department: 1, models: 1, archived: 1, catType: 1, certificationPeriodMonths: 1, description: 1, imageLink: 1, qaStandardLink: 1, belongsToKits: 1, similarItems: 1, kitItem: 1 })
                 .sort('cat')
                 .skip(offset)
                 .limit(batchSize);
             if (items?.length) {
-                worksheet.addRows(items.map(({ name, cat, sector, department, models, catType, description, imageLink, qaStandardLink, archived, belongsToKits, similarItems }) => (
+                worksheet.addRows(items.map(({ name, cat, sector, department, models, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, archived, belongsToKits, similarItems }) => (
                     { name, cat, sector, department, models, catType, description, imageLink, qaStandardLink,
                         archived: archived ? 'כן' : 'לא',
                         belongsToKits: belongsToKits?.map(b => b.cat).join('\r\n'),

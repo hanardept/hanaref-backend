@@ -145,7 +145,7 @@ module.exports = {
             key: 'lastCertificationDate',
             width: 20
         }, {
-            header: 'אורך הסמכה אחרונה בחודשים',
+            header: 'תוקף הסמכה בחודשים',
             key: 'lastCertificationDurationMonths',
             width: 10,
         }, {
