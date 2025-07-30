@@ -55,7 +55,7 @@ module.exports = {
                     $match: status !== 'all' ? { archived: {$ne: true} } : {},
                 },
                 {
-                    $project: { name: 1, cat: 1, _id: 1, imageLink: 1, archived: 1  },
+                    $project: { name: 1, cat: 1, _id: 1, imageLink: 1, archived: 1, certificationPeriodMonths: 1  },
                 },
             ])
                 .sort("name")
