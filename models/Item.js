@@ -26,7 +26,8 @@ const itemSchema = new Schema({
     },
     catType: {
         type: String,
-        default: "מקט רגיל",
+        enum: ["מכשיר", "אביזר", "מתכלה", "חלקי חילוף", "חלק חילוף"],
+        default: "מכשיר",
     },
     archived: {
         type: Boolean,

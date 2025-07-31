@@ -207,6 +207,10 @@ module.exports = {
                         case "מתכלה":
                             listType = "consumables";
                             break;
+                        case "חלקי חילוף":
+                        case "חלק חילוף":
+                            listType = "spareParts";
+                            break;
                         default:
                             listType = "kitItem";
                             break;
@@ -285,6 +289,10 @@ module.exports = {
                             break;
                         case "מתכלה":
                             listType = "consumables";
+                            break;
+                        case "חלקי חילוף":
+                        case "חלק חילוף":
+                            listType = "spareParts";
                             break;
                         default:
                             listType = "kitItem";

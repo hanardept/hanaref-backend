@@ -21,25 +21,23 @@ services:
     restart: always
     depends_on:
       - mongodb
-    environment:
-      MONGO_URL: mongodb://hanardept:example@hanaref-mongodb:27017/
+    env_file:
+      - ./.env
     ports:
       - "5000:5000"
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')", "hanaref-mongodb:27017"]
       interval: 10s
       timeout: 5s
-      retries: 5      
+      retries: 5
 
   api-tests:
       build:
         context: ./api-tests
       container_name: hanaref-api-tests
       depends_on:
-        #- hanaref-backend
         hanaref-backend:
           condition: service_healthy
-      environment:
-        API_BASE_URL: http://hanaref-backend:5000
-        MONGO_URL: mongodb://hanardept:example@hanaref-mongodb:27017/
+      env_file:
+        - ./.env
       command: ["npm", "test"]

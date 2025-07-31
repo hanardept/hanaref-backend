@@ -1,13 +1,12 @@
+const mongoose = require("mongoose");
 const dotenv = require('dotenv');
 dotenv.config();
 
-const mongoUrl = process.env.MONGO_URL ?? `mongodb+srv://hanardept:${process.env.MONGO_PWD}@${process.env.MONGO_HOST}/?retryWrites=true&w=majority`
+const mongoUrl = process.env.MONGO_URL
 
-const connectMongoose = async (mongoose = require("mongoose")) => {
+const connectMongoose = async () => {
     try {
-        await mongoose.disconnect();
-
-        mongoose.connect(
+        await mongoose.connect(
             mongoUrl,
             {
                 useNewUrlParser: true,
@@ -15,11 +14,9 @@ const connectMongoose = async (mongoose = require("mongoose")) => {
             }
         );
         console.log(`Database loaded!`);
-
-        return mongoose;
     } catch (error) {
         console.error(error);
     }
 }
 
-module.exports = { connectMongoose };
+module.exports = { connectMongoose, mongoose };
