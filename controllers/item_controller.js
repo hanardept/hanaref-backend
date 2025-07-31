@@ -2,6 +2,9 @@ const Item = require("../models/Item");
 const { decodeItems } = require("../functions/helpers");
 const Sector = require("../models/Sector");
 const ExcelJS = require('exceljs'); 
+const mongoose = require("mongoose");
+const Certification = require("../models/Certification");
+const { ObjectId } = mongoose.Types;
 
 function preliminaryItem(item, sector, department) {
     return { name: item.name, cat: item.cat, sector: sector, department: department, imageLink: "" };
@@ -11,8 +14,8 @@ module.exports = {
     async getItems(req, res) {
         // GET path: /items?search=jjo&sector=sj&department=wji&page=0
         // called via DEBOUNCE while entering Search word / choosing sector/dept
-        const { search, sector, department, status, page = 0 } = req.query;
-        const [decodedSearch, decodedSector, decodedDepartment] = decodeItems(search, sector, department);
+        const { search, sector, department, status, catType, page = 0 } = req.query;
+        const [decodedSearch, decodedSector, decodedDepartment, decodedCatType] = decodeItems(search, sector, department, catType);
         // privilege stored in req.userPrivilege ("public"/"hanar"/"admin")
         // currently we work in a binary fashion - "public" can see only public items, other privileges can see ALL items
         try {
@@ -46,10 +49,13 @@ module.exports = {
                     $match: department ? { department: decodedDepartment } : {},
                 },
                 {
+                    $match: catType ? { catType: decodedCatType } : {},
+                },                
+                {
                     $match: status !== 'all' ? { archived: {$ne: true} } : {},
                 },
                 {
-                    $project: { name: 1, cat: 1, _id: 1, imageLink: 1, archived: 1  },
+                    $project: { name: 1, cat: 1, _id: 1, imageLink: 1, archived: 1, certificationPeriodMonths: 1  },
                 },
             ])
                 .sort("name")
@@ -158,11 +164,11 @@ module.exports = {
     async addItem(req, res) {
         // POST path: /items
         const {
-            name, cat, sector, department, catType, description, imageLink, qaStandardLink, models, accessories, consumables, belongsToKits, similarItems, kitItem,
+            name, cat, sector, department, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, models, accessories, consumables, belongsToKits, similarItems, kitItem,
         } = req.body;
 
         const newItem = new Item({
-            name, cat, sector, department, catType, description, imageLink, qaStandardLink, models, accessories, consumables, belongsToKits, similarItems, kitItem,
+            name, cat, sector, department, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, models, accessories, consumables, belongsToKits, similarItems, kitItem,
         });
 
         try {
@@ -239,13 +245,13 @@ module.exports = {
     async editItem(req, res) {
         // PUT path: /items/962780438
         const {
-            name, cat, sector, department, catType, description, imageLink, qaStandardLink, models, accessories, consumables, belongsToKits, similarItems, kitItem,
+            name, cat, sector, department, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, models, accessories, consumables, belongsToKits, similarItems, kitItem,
         } = req.body;
 
         try {
             const updateOwnItem = Item.findOneAndUpdate(
                 { cat: req.params.cat },
-                { name, cat, sector, department, catType, description, imageLink, qaStandardLink, models, accessories, consumables, belongsToKits, similarItems, kitItem, }
+                { name, cat, sector, department, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, models, accessories, consumables, belongsToKits, similarItems, kitItem, }
             );
 
             const mongoInsertPromises = [updateOwnItem];
@@ -317,9 +323,17 @@ module.exports = {
     async deleteItem(req, res) {
         // DELETE path: /items/962780438
         try {
-            await Item.findOneAndRemove({ cat: req.params.cat });
+            const removed = await Item.findOneAndRemove({ cat: req.params.cat });
+            if (removed?._id) {
+                await Certification.deleteMany({ item: new ObjectId(removed._id)})
+            }
+
             res.status(200).send("Item removed successfully!");
-        } catch (error) {}
+        } catch (error) {
+            console.error("Error removing item: ", error);
+            res.status(400).send("Failure removing item: ", error);
+
+        }
     },
 
     toggleArchive: async (req, res) => {
@@ -332,8 +346,12 @@ module.exports = {
             }
 
             // This is the core logic: it flips the boolean value.
-            item.archived = !item.archived;
-            await item.save();
+            const newArchiveStatus = !item.archived;
+            item.archived = newArchiveStatus;
+            await Promise.all([
+                item.save(),
+                Certification.updateMany({ item: item._id }, { $set: { archived: newArchiveStatus } })
+            ]);
 
             // Send the updated item back to the frontend.
             res.status(200).json(item);
@@ -370,6 +388,10 @@ module.exports = {
             header: 'סוג מק"ט',
             key: 'catType',
             width: 10
+        }, {
+            header: 'תקופת הסמכה בחודשים',
+            certificationPeriodMonths: 'certificationPeriodMonths',
+            width: 10,
         }, {
             header: 'מק"ט יצרן',
             key: 'manufacturerCat',
@@ -410,12 +432,12 @@ module.exports = {
         let offset = 0;
         const batchSize = 500;
         do {
-            items = await Item.find({}, { name: 1, cat: 1, sector: 1, department: 1, models: 1, archived: 1, catType: 1, description: 1, imageLink: 1, qaStandardLink: 1, belongsToKits: 1, similarItems: 1, kitItem: 1 })
+            items = await Item.find({}, { name: 1, cat: 1, sector: 1, department: 1, models: 1, archived: 1, catType: 1, certificationPeriodMonths: 1, description: 1, imageLink: 1, qaStandardLink: 1, belongsToKits: 1, similarItems: 1, kitItem: 1 })
                 .sort('cat')
                 .skip(offset)
                 .limit(batchSize);
             if (items?.length) {
-                worksheet.addRows(items.map(({ name, cat, sector, department, models, catType, description, imageLink, qaStandardLink, archived, belongsToKits, similarItems }) => (
+                worksheet.addRows(items.map(({ name, cat, sector, department, models, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, archived, belongsToKits, similarItems }) => (
                     { name, cat, sector, department, models, catType, description, imageLink, qaStandardLink,
                         archived: archived ? 'כן' : 'לא',
                         belongsToKits: belongsToKits?.map(b => b.cat).join('\r\n'),

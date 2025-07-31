@@ -28,9 +28,14 @@ const itemSchema = new Schema({
         type: String,
         default: "מקט רגיל",
     },
-     archived: {
-      type: Boolean,
-      default: false,
+    archived: {
+        type: Boolean,
+        default: false,
+    },
+    certificationPeriodMonths: {
+        type: Number,
+        default: 0,
+        required: true,
     },
     description: String,
     imageLink: String,
