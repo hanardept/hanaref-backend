@@ -1,5 +1,4 @@
 const { chai, expect, adminUname, adminPwd } = require("./resources/test_resources");
-const app = require("../app");
 
 const fakeItem = {
     name: "מנשם",
@@ -23,18 +22,9 @@ const fakeSector = {
 
 describe("Admin actions", function () {
     let authToken = "";
-    let server;
-
-    before((done) => {
-        server = app.listen(5000, done);
-    });
-
-    after((done) => {
-        server.close(done);
-    });
 
     it("Logs admin in", function (done) {
-        chai.request(server)
+        chai.request("http://localhost:5000")
             .post("/login")
             .send({ username: adminUname, password: adminPwd })
             .set("Content-Type", "application/json")
@@ -47,7 +37,7 @@ describe("Admin actions", function () {
             });
     });
     it("Adds an item", function (done) {
-        chai.request(server)
+        chai.request("http://localhost:5000")
             .post("/items")
             .send(fakeItem)
             .set("Content-Type", "application/json")
@@ -60,7 +50,7 @@ describe("Admin actions", function () {
             });
     });
     it("Updates item details - change sector to bhina", function (done) {
-        chai.request(server)
+        chai.request("http://localhost:5000")
             .put("/items/000000000")
             .send({ sector: "בחינה" })
             .set("Content-Type", "application/json")
@@ -73,7 +63,7 @@ describe("Admin actions", function () {
             });
     });
     it("Gets items", function (done) {
-        chai.request(server)
+        chai.request("http://localhost:5000")
             .get("/items")
             .set("auth-token", authToken)
             .end((error, res) => {
@@ -84,7 +74,7 @@ describe("Admin actions", function () {
             });
     });
     it("Deletes item", function (done) {
-        chai.request(server)
+        chai.request("http://localhost:5000")
             .delete("/items/000000000")
             .set("auth-token", authToken)
             .end((error, res) => {
@@ -94,7 +84,7 @@ describe("Admin actions", function () {
             });
     });
     it("Gets sectors", function (done) {
-        chai.request(server)
+        chai.request("http://localhost:5000")
             .get("/sectors")
             .set("auth-token", authToken)
             .end((error, res) => {
@@ -104,7 +94,7 @@ describe("Admin actions", function () {
             });
     });
     it("Adds a sector", function (done) {
-        chai.request(server)
+        chai.request("http://localhost:5000")
             .post("/sectors")
             .set("auth-token", authToken)
             .send(fakeSector)
@@ -115,7 +105,7 @@ describe("Admin actions", function () {
             });
     });
     it("Adds a department to a given sector", function (done) {
-        chai.request(server)
+        chai.request("http://localhost:5000")
             .post(encodeURI("/sectors/מדור1"))
             .set("auth-token", authToken)
             .send({ departmentName: "תחום4" })
@@ -126,7 +116,7 @@ describe("Admin actions", function () {
             });
     });
     it("Deletes a department from given sector", function (done) {
-        chai.request(server)
+        chai.request("http://localhost:5000")
             .delete(encodeURI("/sectors/מדור1"))
             .set("auth-token", authToken)
             .send({ departmentName: "תחום4" })
@@ -137,7 +127,7 @@ describe("Admin actions", function () {
             });
     });
     it("Deletes a sector", function (done) {
-        chai.request(server)
+        chai.request("http://localhost:5000")
             .delete("/sectors")
             .set("auth-token", authToken)
             .send({ sectorName: "מדור1" })

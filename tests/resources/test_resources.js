@@ -1,6 +1,7 @@
 const dotenv = require('dotenv');
 const chai = require('chai');
 const chaiHttp = require('chai-http');
+const app = require('../../app');
 
 const { expect, assert } = chai;
 chai.use(chaiHttp);
@@ -11,6 +12,8 @@ const adminPwd = process.env.ADMIN_PWD;
 const hanarUname = process.env.HANAR_USERNAME;
 const hanarPwd = process.env.HANAR_PWD;
 
+const server = app;
+
 module.exports = {
     chai,
     expect,
@@ -18,5 +21,6 @@ module.exports = {
     adminUname,
     adminPwd,
     hanarUname,
-    hanarPwd
+    hanarPwd,
+    server
 };

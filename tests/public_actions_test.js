@@ -1,17 +1,7 @@
-const { chai, expect, assert } = require("./resources/test_resources");
-const app = require("../app");
+const { chai, expect, assert, server } = require("./resources/test_resources");
 
 describe("Public user actions", function () {
     let itemCat = "";
-    let server;
-
-    before((done) => {
-        server = app.listen(5000, done);
-    });
-
-    after((done) => {
-        server.close(done);
-    });
 
     it("Gets items", function (done) {
         chai.request(server)
