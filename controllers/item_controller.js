@@ -164,12 +164,12 @@ module.exports = {
     async addItem(req, res) {
         // POST path: /items
         const {
-            name, cat, kitCat, sector, department, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, models, accessories, consumables, spareParts, belongsToDevices, similarItems, kitItem,
+            name, cat, kitCats, sector, department, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, models, accessories, consumables, spareParts, belongsToDevices, similarItems, kitItem,
             hebrewManualLink, serviceManualLink, userManualLink, supplier, lifeSpan
         } = req.body;
 
         const newItem = new Item({
-            name, cat, kitCat, sector, department, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, models, accessories, consumables, spareParts, belongsToDevices, similarItems, kitItem,
+            name, cat, kitCats, sector, department, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, models, accessories, consumables, spareParts, belongsToDevices, similarItems, kitItem,
             hebrewManualLink, serviceManualLink, userManualLink, supplier, lifeSpan
         });
 
@@ -258,7 +258,7 @@ module.exports = {
     async editItem(req, res) {
         // PUT path: /items/962780438
         const {
-            name, cat, kitCat, sector, department, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, models, accessories, consumables, spareParts, belongsToDevices, similarItems, kitItem,
+            name, cat, kitCats, sector, department, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, models, accessories, consumables, spareParts, belongsToDevices, similarItems, kitItem,
             hebrewManualLink, serviceManualLink, userManualLink, supplier, lifeSpan
         } = req.body;        
 
@@ -266,7 +266,7 @@ module.exports = {
             const updateOwnItem = Item.findOneAndUpdate(
                 { cat: req.params.cat },
                 { 
-                    name, cat, kitCat, sector, department, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, models, accessories, consumables, spareParts, belongsToDevices, similarItems, kitItem,
+                    name, cat, kitCats, sector, department, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, models, accessories, consumables, spareParts, belongsToDevices, similarItems, kitItem,
                     hebrewManualLink, serviceManualLink, userManualLink, supplier, lifeSpan
                 }
             );
@@ -403,8 +403,8 @@ module.exports = {
             key: 'cat',
             width: 15
         }, {
-            header: 'מק"ט ערכה"',
-            key: 'kitCat',
+            header: 'מק"טי ערכה"',
+            key: 'kitCats',
             width: 15
         }, {
             header: 'מדור',
@@ -486,7 +486,7 @@ module.exports = {
         const batchSize = 500;
         do {
             items = await Item.find({}, { 
-                    name: 1, cat: 1, kitCat: 1, sector: 1, department: 1, models: 1, archived: 1, catType: 1, certificationPeriodMonths: 1, description: 1, imageLink: 1, qaStandardLink: 1, medicalEngineeringManualLink: 1, 
+                    name: 1, cat: 1, kitCats: 1, sector: 1, department: 1, models: 1, archived: 1, catType: 1, certificationPeriodMonths: 1, description: 1, imageLink: 1, qaStandardLink: 1, medicalEngineeringManualLink: 1, 
                     serviceManualLink: 1, userManualLink: 1, supplier: 1, lifeSpan: 1, belongsToDevices: 1, similarItems: 1, kitItem: 1 
                 })
                 .sort('cat')
@@ -494,11 +494,12 @@ module.exports = {
                 .limit(batchSize);
             if (items?.length) {
                 worksheet.addRows(items.map(({ 
-                    name, cat, kitCat, sector, department, models, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, archived, belongsToDevices, similarItems
+                    name, cat, kitCats, sector, department, models, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, archived, belongsToDevices, similarItems
                 }) => (
                     { 
-                        name, cat, kitCat, sector, department, models, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, serviceManualLink, userManualLink, 
+                        name, cat, sector, department, models, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, serviceManualLink, userManualLink, 
                         supplier, lifeSpan,
+                        kitCats: kitCats?.join('\r\n'),
                         archived: archived ? 'כן' : 'לא',
                         belongsToDevices: belongsToDevices?.map(b => b.cat).join('\r\n'),
                         similarItems: similarItems?.map(b => b.cat).join('\r\n'),

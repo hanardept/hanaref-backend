@@ -16,10 +16,9 @@ const itemSchema = new Schema({
         required: true,
         unique: true,
     },
-    kitCat: {
-        type: String,
+    kitCats: {
+        type: [String],
         required: false,
-        unique: true,
     },    
     sector: {
         type: String,
@@ -55,7 +54,7 @@ const itemSchema = new Schema({
     accessories: [nameAndCatSchema],
     consumables: [nameAndCatSchema],
     spareParts: [nameAndCatSchema],
-    belongsToDevice: [nameAndCatSchema],
+    belongsToDevices: [nameAndCatSchema],
     similarItems: [nameAndCatSchema],
     kitItem: [nameAndCatSchema],
 });
