@@ -6,8 +6,8 @@ const mongoose = require("mongoose");
 const Certification = require("../models/Certification");
 const { ObjectId } = mongoose.Types;
 
-function preliminaryItem(item, sector, department) {
-    return { name: item.name, cat: item.cat, sector: sector, department: department, imageLink: "" };
+function preliminaryItem(item, sector, department, catType = "מכשיר") {
+    return { name: item.name, cat: item.cat, catType, sector: sector, department: department, imageLink: "" };
 }
 
 module.exports = {
@@ -182,7 +182,7 @@ module.exports = {
             if (accessories && accessories.length > 0)
                 accessories.forEach((a) => {
                     mongoInsertPromises.push(
-                        Item.updateOne({ cat: a.cat }, { $setOnInsert: preliminaryItem(a, sector, department) }, { upsert: true })
+                        Item.updateOne({ cat: a.cat }, { $setOnInsert: preliminaryItem(a, sector, department, "אביזר") }, { upsert: true })
                     );
                     mongoInsertPromises.push(
                         Item.updateOne({ cat: a.cat }, { $addToSet: { belongsToDevices: { name, cat } } })
@@ -191,7 +191,7 @@ module.exports = {
             if (consumables && consumables.length > 0)
                 consumables.forEach((c) => {
                     mongoInsertPromises.push(
-                        Item.updateOne({ cat: c.cat }, { $setOnInsert: preliminaryItem(c, sector, department) }, { upsert: true })
+                        Item.updateOne({ cat: c.cat }, { $setOnInsert: preliminaryItem(c, sector, department, "מתכלה") }, { upsert: true })
                     );
                     mongoInsertPromises.push(
                         Item.updateOne({ cat: c.cat }, { $addToSet: { belongsToDevices: { name, cat } } })
@@ -200,7 +200,7 @@ module.exports = {
             if (spareParts && spareParts.length > 0)
                 spareParts.forEach((c) => {
                     mongoInsertPromises.push(
-                        Item.updateOne({ cat: c.cat }, { $setOnInsert: preliminaryItem(c, sector, department) }, { upsert: true })
+                        Item.updateOne({ cat: c.cat }, { $setOnInsert: preliminaryItem(c, sector, department, "חלק חילוף") }, { upsert: true })
                     );
                     mongoInsertPromises.push(
                         Item.updateOne({ cat: c.cat }, { $addToSet: { belongsToDevices: { name, cat } } })
@@ -276,7 +276,7 @@ module.exports = {
             if (accessories && accessories.length > 0)
                 accessories.forEach((a) => {
                     mongoInsertPromises.push(
-                        Item.updateOne({ cat: a.cat }, { $setOnInsert: preliminaryItem(a, sector, department) }, { upsert: true })
+                        Item.updateOne({ cat: a.cat }, { $setOnInsert: preliminaryItem(a, sector, department, "אביזר") }, { upsert: true })
                     );
                     mongoInsertPromises.push(
                         Item.updateOne({ cat: a.cat }, { $addToSet: { belongsToDevices: { name: req.body.name, cat: req.body.cat } } })
@@ -285,7 +285,7 @@ module.exports = {
             if (consumables && consumables.length > 0)
                 consumables.forEach((c) => {
                     mongoInsertPromises.push(
-                        Item.updateOne({ cat: c.cat }, { $setOnInsert: preliminaryItem(c, sector, department) }, { upsert: true })
+                        Item.updateOne({ cat: c.cat }, { $setOnInsert: preliminaryItem(c, sector, department, "מתכלה") }, { upsert: true })
                     );
                     mongoInsertPromises.push(
                         Item.updateOne({ cat: c.cat }, { $addToSet: { belongsToDevices: { name: req.body.name, cat: req.body.cat } } })
@@ -294,7 +294,7 @@ module.exports = {
             if (spareParts && spareParts.length > 0)
                 spareParts.forEach((c) => {
                     mongoInsertPromises.push(
-                        Item.updateOne({ cat: c.cat }, { $setOnInsert: preliminaryItem(c, sector, department) }, { upsert: true })
+                        Item.updateOne({ cat: c.cat }, { $setOnInsert: preliminaryItem(c, sector, department, "חלק חילוף") }, { upsert: true })
                     );
                     mongoInsertPromises.push(
                         Item.updateOne({ cat: c.cat }, { $addToSet: { belongsToDevices: { name: req.body.name, cat: req.body.cat } } })
