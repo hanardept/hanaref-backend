@@ -37,7 +37,7 @@ db.items.insertMany([
     ],
     "accessories": [],
     "consumables": [],
-    "belongsToKits": [],
+    "belongsToDevices": [],
     "similarItems": [],
     "kitItem": [],
   },{
@@ -61,7 +61,7 @@ db.items.insertMany([
     ],
     "accessories": [],
     "consumables": [],
-    "belongsToKits": [],
+    "belongsToDevices": [],
     "similarItems": [],
     "kitItem": [],
   },{
@@ -81,7 +81,7 @@ db.items.insertMany([
     ],
     "accessories": [],
     "consumables": [],
-    "belongsToKits": [],
+    "belongsToDevices": [],
     "similarItems": [],
     "kitItem": [],
   },{
@@ -109,7 +109,7 @@ db.items.insertMany([
     ],
     "accessories": [],
     "consumables": [],
-    "belongsToKits": [],
+    "belongsToDevices": [],
     "similarItems": [],
     "kitItem": [],
   },

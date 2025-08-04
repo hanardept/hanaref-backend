@@ -4,7 +4,7 @@ const ExcelJS = require('exceljs');
 
 const defaultProjection = {
      itemId: 1, itemCat: 1, itemName: 1, technicianId: 1, technicianFirstName: 1, technicianLastName: 1, certificationDocumentLink: 1,
-     firstCertificationDate: 1, lastCertificationDate: 1, lastCertificationDurationMonths: 1, plannedCertificationDate: 1 
+     firstCertificationDate: 1, lastCertificationDate: 1, lastCertificationDurationMonths: 1, plannedCertificationDate: 1
 }
 
 module.exports = {
