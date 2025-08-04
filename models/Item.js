@@ -16,6 +16,10 @@ const itemSchema = new Schema({
         required: true,
         unique: true,
     },
+    kitCats: {
+        type: [String],
+        required: false,
+    },    
     sector: {
         type: String,
         required: true,
@@ -26,7 +30,7 @@ const itemSchema = new Schema({
     },
     catType: {
         type: String,
-        default: "מקט רגיל",
+        default: "מכשיר",
     },
     archived: {
         type: Boolean,
@@ -40,10 +44,17 @@ const itemSchema = new Schema({
     description: String,
     imageLink: String,
     qaStandardLink: String,
-    models: [nameAndCatSchema],
+    medicalEngineeringManualLink: String,
+    userManualLink: String,
+    serviceManualLink: String,
+    hebrewManualLink: String,
+    supplier: String,
+    lifeSpan: String,
+    models: [new Schema({ ...nameAndCatSchema.obj, manufacturer: String })],
     accessories: [nameAndCatSchema],
     consumables: [nameAndCatSchema],
-    belongsToKits: [nameAndCatSchema],
+    spareParts: [nameAndCatSchema],
+    belongsToDevices: [nameAndCatSchema],
     similarItems: [nameAndCatSchema],
     kitItem: [nameAndCatSchema],
 });
