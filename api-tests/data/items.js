@@ -17,7 +17,7 @@ export const data = [
     ],
     "accessories": [],
     "consumables": [],
-    "belongsToKits": [],
+    "belongsToDevices": [],
     "similarItems": [],
     "kitItem": []
   },
@@ -42,7 +42,7 @@ export const data = [
     ],
     "accessories": [],
     "consumables": [],
-    "belongsToKits": [],
+    "belongsToDevices": [],
     "similarItems": [],
     "kitItem": []
   },
@@ -63,7 +63,7 @@ export const data = [
     ],
     "accessories": [],
     "consumables": [],
-    "belongsToKits": [],
+    "belongsToDevices": [],
     "similarItems": [],
     "kitItem": []
   },
@@ -92,7 +92,7 @@ export const data = [
     ],
     "accessories": [],
     "consumables": [],
-    "belongsToKits": [],
+    "belongsToDevices": [],
     "similarItems": [],
     "kitItem": []
   },
@@ -113,7 +113,7 @@ export const data = [
     ],
     "accessories": [],
     "consumables": [],
-    "belongsToKits": [],
+    "belongsToDevices": [],
     "similarItems": [],
     "kitItem": []
   },
@@ -134,7 +134,7 @@ export const data = [
     ],
     "accessories": [],
     "consumables": [],
-    "belongsToKits": [],
+    "belongsToDevices": [],
     "similarItems": [],
     "kitItem": []
   },
@@ -155,7 +155,7 @@ export const data = [
     ],
     "accessories": [],
     "consumables": [],
-    "belongsToKits": [],
+    "belongsToDevices": [],
     "similarItems": [],
     "kitItem": []
   },
@@ -171,7 +171,7 @@ export const data = [
     "models": [],
     "accessories": [],
     "consumables": [],
-    "belongsToKits": [],
+    "belongsToDevices": [],
     "similarItems": [],
     "kitItem": []
   },
@@ -192,7 +192,7 @@ export const data = [
     ],
     "accessories": [],
     "consumables": [],
-    "belongsToKits": [],
+    "belongsToDevices": [],
     "similarItems": [],
     "kitItem": []
   },
@@ -213,7 +213,7 @@ export const data = [
     ],
     "accessories": [],
     "consumables": [],
-    "belongsToKits": [],
+    "belongsToDevices": [],
     "similarItems": [],
     "kitItem": []
   },
@@ -234,7 +234,7 @@ export const data = [
     ],
     "accessories": [],
     "consumables": [],
-    "belongsToKits": [],
+    "belongsToDevices": [],
     "similarItems": [],
     "kitItem": []
   },
@@ -255,7 +255,7 @@ export const data = [
     ],
     "accessories": [],
     "consumables": [],
-    "belongsToKits": [],
+    "belongsToDevices": [],
     "similarItems": [],
     "kitItem": []
   },
@@ -276,7 +276,7 @@ export const data = [
     ],
     "accessories": [],
     "consumables": [],
-    "belongsToKits": [],
+    "belongsToDevices": [],
     "similarItems": [],
     "kitItem": []
   },
@@ -297,7 +297,7 @@ export const data = [
     ],
     "accessories": [],
     "consumables": [],
-    "belongsToKits": [],
+    "belongsToDevices": [],
     "similarItems": [],
     "kitItem": []
   },
@@ -343,7 +343,7 @@ export const data = [
       }
     ],
     "consumables": [],
-    "belongsToKits": [],
+    "belongsToDevices": [],
     "similarItems": [],
     "kitItem": []
   },
@@ -373,7 +373,7 @@ export const data = [
       }
     ],
     "consumables": [],
-    "belongsToKits": [],
+    "belongsToDevices": [],
     "similarItems": [],
     "kitItem": []
   },
@@ -407,7 +407,7 @@ export const data = [
       }
     ],
     "consumables": [],
-    "belongsToKits": [],
+    "belongsToDevices": [],
     "similarItems": [],
     "kitItem": []
   },
@@ -428,7 +428,7 @@ export const data = [
     ],
     "accessories": [],
     "consumables": [],
-    "belongsToKits": [],
+    "belongsToDevices": [],
     "similarItems": [],
     "kitItem": []
   },
@@ -449,7 +449,7 @@ export const data = [
     ],
     "accessories": [],
     "consumables": [],
-    "belongsToKits": [],
+    "belongsToDevices": [],
     "similarItems": [],
     "kitItem": []
   },
@@ -487,7 +487,7 @@ export const data = [
       }
     ],
     "consumables": [],
-    "belongsToKits": [],
+    "belongsToDevices": [],
     "similarItems": [],
     "kitItem": []
   },
@@ -508,7 +508,7 @@ export const data = [
     ],
     "accessories": [],
     "consumables": [],
-    "belongsToKits": [],
+    "belongsToDevices": [],
     "similarItems": [],
     "kitItem": []
   },
@@ -542,7 +542,7 @@ export const data = [
       }
     ],
     "consumables": [],
-    "belongsToKits": [],
+    "belongsToDevices": [],
     "similarItems": [],
     "kitItem": []
   },
@@ -576,7 +576,7 @@ export const data = [
       }
     ],
     "consumables": [],
-    "belongsToKits": [],
+    "belongsToDevices": [],
     "similarItems": [],
     "kitItem": []
   },
@@ -597,7 +597,7 @@ export const data = [
     ],
     "accessories": [],
     "consumables": [],
-    "belongsToKits": [],
+    "belongsToDevices": [],
     "similarItems": [],
     "kitItem": []
   },
@@ -627,7 +627,7 @@ export const data = [
       }
     ],
     "consumables": [],
-    "belongsToKits": [],
+    "belongsToDevices": [],
     "similarItems": [],
     "kitItem": []
   },
@@ -661,7 +661,7 @@ export const data = [
       }
     ],
     "consumables": [],
-    "belongsToKits": [],
+    "belongsToDevices": [],
     "similarItems": [],
     "kitItem": []
   },
@@ -695,7 +695,7 @@ export const data = [
       }
     ],
     "consumables": [],
-    "belongsToKits": [],
+    "belongsToDevices": [],
     "similarItems": [],
     "kitItem": []
   },
@@ -741,7 +741,7 @@ export const data = [
       }
     ],
     "consumables": [],
-    "belongsToKits": [],
+    "belongsToDevices": [],
     "similarItems": [],
     "kitItem": []
   },
@@ -783,7 +783,7 @@ export const data = [
       }
     ],
     "consumables": [],
-    "belongsToKits": [],
+    "belongsToDevices": [],
     "similarItems": [],
     "kitItem": []
   },
@@ -825,14 +825,14 @@ export const data = [
       }
     ],
     "consumables": [],
-    "belongsToKits": [],
+    "belongsToDevices": [],
     "similarItems": [],
     "kitItem": []
   },
   {
     "cat": "-",
     "accessories": [],
-    "belongsToKits": [],
+    "belongsToDevices": [],
     "catType": "מקט רגיל",
     "consumables": [],
     "department": "משאבות",
@@ -860,7 +860,7 @@ export const data = [
     ],
     "accessories": [],
     "consumables": [],
-    "belongsToKits": [],
+    "belongsToDevices": [],
     "similarItems": [],
     "kitItem": []
   },
@@ -894,7 +894,7 @@ export const data = [
       }
     ],
     "consumables": [],
-    "belongsToKits": [],
+    "belongsToDevices": [],
     "similarItems": [],
     "kitItem": []
   },
@@ -945,7 +945,7 @@ export const data = [
         "cat": "962222021"
       }
     ],
-    "belongsToKits": [
+    "belongsToDevices": [
       {
         "name": "ערכת מוניטור טמפוס פרו / Tempus PRO Monitor",
         "cat": "967041181"
@@ -971,7 +971,7 @@ export const data = [
     ],
     "accessories": [],
     "consumables": [],
-    "belongsToKits": [
+    "belongsToDevices": [
       {
         "name": "ערכת מוניטור טמפוס פרו",
         "cat": "967041181"
@@ -1050,7 +1050,7 @@ export const data = [
         "cat": "962222021"
       }
     ],
-    "belongsToKits": [],
+    "belongsToDevices": [],
     "similarItems": [],
     "kitItem": [
       {
@@ -1106,7 +1106,7 @@ export const data = [
         "cat": "-"
       }
     ],
-    "belongsToKits": [],
+    "belongsToDevices": [],
     "similarItems": [],
     "kitItem": []
   },
@@ -1127,7 +1127,7 @@ export const data = [
     ],
     "accessories": [],
     "consumables": [],
-    "belongsToKits": [],
+    "belongsToDevices": [],
     "similarItems": [],
     "kitItem": []
   },
@@ -1169,7 +1169,7 @@ export const data = [
       }
     ],
     "consumables": [],
-    "belongsToKits": [
+    "belongsToDevices": [
       {
         "name": "מכ' חימום נוזלים מדגם Qin-Flow",
         "cat": "967064343"
@@ -1198,7 +1198,7 @@ export const data = [
         "cat": "962145515"
       }
     ],
-    "belongsToKits": [],
+    "belongsToDevices": [],
     "catType": "מקט ערכה",
     "consumables": [
       {

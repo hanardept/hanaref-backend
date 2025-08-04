@@ -6,8 +6,8 @@ const mongoose = require("mongoose");
 const Certification = require("../models/Certification");
 const { ObjectId } = mongoose.Types;
 
-function preliminaryItem(item, sector, department) {
-    return { name: item.name, cat: item.cat, sector: sector, department: department, imageLink: "" };
+function preliminaryItem(item, sector, department, catType = "מכשיר") {
+    return { name: item.name, cat: item.cat, catType, sector: sector, department: department, imageLink: "" };
 }
 
 module.exports = {
@@ -164,11 +164,13 @@ module.exports = {
     async addItem(req, res) {
         // POST path: /items
         const {
-            name, cat, sector, department, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, models, accessories, consumables, belongsToKits, similarItems, kitItem,
+            name, cat, kitCats, sector, department, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, models, accessories, consumables, spareParts, belongsToDevices, similarItems, kitItem,
+            hebrewManualLink, serviceManualLink, userManualLink, supplier, lifeSpan
         } = req.body;
 
         const newItem = new Item({
-            name, cat, sector, department, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, models, accessories, consumables, belongsToKits, similarItems, kitItem,
+            name, cat, kitCats, sector, department, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, models, accessories, consumables, spareParts, belongsToDevices, similarItems, kitItem,
+            hebrewManualLink, serviceManualLink, userManualLink, supplier, lifeSpan
         });
 
         try {
@@ -180,23 +182,32 @@ module.exports = {
             if (accessories && accessories.length > 0)
                 accessories.forEach((a) => {
                     mongoInsertPromises.push(
-                        Item.updateOne({ cat: a.cat }, { $setOnInsert: preliminaryItem(a, sector, department) }, { upsert: true })
+                        Item.updateOne({ cat: a.cat }, { $setOnInsert: preliminaryItem(a, sector, department, "אביזר") }, { upsert: true })
                     );
                     mongoInsertPromises.push(
-                        Item.updateOne({ cat: a.cat }, { $addToSet: { belongsToKits: { name, cat } } })
+                        Item.updateOne({ cat: a.cat }, { $addToSet: { belongsToDevices: { name, cat } } })
                     );
                 });
             if (consumables && consumables.length > 0)
                 consumables.forEach((c) => {
                     mongoInsertPromises.push(
-                        Item.updateOne({ cat: c.cat }, { $setOnInsert: preliminaryItem(c, sector, department) }, { upsert: true })
+                        Item.updateOne({ cat: c.cat }, { $setOnInsert: preliminaryItem(c, sector, department, "מתכלה") }, { upsert: true })
                     );
                     mongoInsertPromises.push(
-                        Item.updateOne({ cat: c.cat }, { $addToSet: { belongsToKits: { name, cat } } })
+                        Item.updateOne({ cat: c.cat }, { $addToSet: { belongsToDevices: { name, cat } } })
                     );
                 });
-            if (belongsToKits && belongsToKits.length > 0)
-                belongsToKits.forEach((b) => {
+            if (spareParts && spareParts.length > 0)
+                spareParts.forEach((c) => {
+                    mongoInsertPromises.push(
+                        Item.updateOne({ cat: c.cat }, { $setOnInsert: preliminaryItem(c, sector, department, "חלק חילוף") }, { upsert: true })
+                    );
+                    mongoInsertPromises.push(
+                        Item.updateOne({ cat: c.cat }, { $addToSet: { belongsToDevices: { name, cat } } })
+                    );
+                });                
+            if (belongsToDevices && belongsToDevices.length > 0)
+                belongsToDevices.forEach((b) => {
                     const { catType } = req.body;
                     let listType;
 
@@ -207,6 +218,8 @@ module.exports = {
                         case "מתכלה":
                             listType = "consumables";
                             break;
+                        case "חלק חילוף":
+                            listType = "spareParts";
                         default:
                             listType = "kitItem";
                             break;
@@ -231,7 +244,7 @@ module.exports = {
                         Item.updateOne({ cat: i.cat }, { $setOnInsert: preliminaryItem(i, sector, department) }, { upsert: true })
                     )
                     mongoInsertPromises.push(
-                        Item.updateOne({ cat: i.cat }, { $addToSet: { belongsToKits: { name, cat } } })
+                        Item.updateOne({ cat: i.cat }, { $addToSet: { belongsToDevices: { name, cat } } })
                     );
                 });
 
@@ -245,13 +258,17 @@ module.exports = {
     async editItem(req, res) {
         // PUT path: /items/962780438
         const {
-            name, cat, sector, department, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, models, accessories, consumables, belongsToKits, similarItems, kitItem,
-        } = req.body;
+            name, cat, kitCats, sector, department, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, models, accessories, consumables, spareParts, belongsToDevices, similarItems, kitItem,
+            hebrewManualLink, serviceManualLink, userManualLink, supplier, lifeSpan
+        } = req.body;        
 
         try {
             const updateOwnItem = Item.findOneAndUpdate(
                 { cat: req.params.cat },
-                { name, cat, sector, department, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, models, accessories, consumables, belongsToKits, similarItems, kitItem, }
+                { 
+                    name, cat, kitCats, sector, department, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, models, accessories, consumables, spareParts, belongsToDevices, similarItems, kitItem,
+                    hebrewManualLink, serviceManualLink, userManualLink, supplier, lifeSpan
+                }
             );
 
             const mongoInsertPromises = [updateOwnItem];
@@ -259,23 +276,32 @@ module.exports = {
             if (accessories && accessories.length > 0)
                 accessories.forEach((a) => {
                     mongoInsertPromises.push(
-                        Item.updateOne({ cat: a.cat }, { $setOnInsert: preliminaryItem(a, sector, department) }, { upsert: true })
+                        Item.updateOne({ cat: a.cat }, { $setOnInsert: preliminaryItem(a, sector, department, "אביזר") }, { upsert: true })
                     );
                     mongoInsertPromises.push(
-                        Item.updateOne({ cat: a.cat }, { $addToSet: { belongsToKits: { name: req.body.name, cat: req.body.cat } } })
+                        Item.updateOne({ cat: a.cat }, { $addToSet: { belongsToDevices: { name: req.body.name, cat: req.body.cat } } })
                     );
                 });
             if (consumables && consumables.length > 0)
                 consumables.forEach((c) => {
                     mongoInsertPromises.push(
-                        Item.updateOne({ cat: c.cat }, { $setOnInsert: preliminaryItem(c, sector, department) }, { upsert: true })
+                        Item.updateOne({ cat: c.cat }, { $setOnInsert: preliminaryItem(c, sector, department, "מתכלה") }, { upsert: true })
                     );
                     mongoInsertPromises.push(
-                        Item.updateOne({ cat: c.cat }, { $addToSet: { belongsToKits: { name: req.body.name, cat: req.body.cat } } })
+                        Item.updateOne({ cat: c.cat }, { $addToSet: { belongsToDevices: { name: req.body.name, cat: req.body.cat } } })
                     );
                 });
-            if (belongsToKits && belongsToKits.length > 0)
-                belongsToKits.forEach((b) => {
+            if (spareParts && spareParts.length > 0)
+                spareParts.forEach((c) => {
+                    mongoInsertPromises.push(
+                        Item.updateOne({ cat: c.cat }, { $setOnInsert: preliminaryItem(c, sector, department, "חלק חילוף") }, { upsert: true })
+                    );
+                    mongoInsertPromises.push(
+                        Item.updateOne({ cat: c.cat }, { $addToSet: { belongsToDevices: { name: req.body.name, cat: req.body.cat } } })
+                    );
+                });                
+            if (belongsToDevices && belongsToDevices.length > 0)
+                belongsToDevices.forEach((b) => {
                     const { catType } = req.body;
                     let listType;
 
@@ -309,7 +335,7 @@ module.exports = {
                         Item.updateOne({ cat: i.cat }, { $setOnInsert: preliminaryItem(i, sector, department) }, { upsert: true })
                     );
                     mongoInsertPromises.push(
-                        Item.updateOne({ cat: i.cat }, { $addToSet: { belongsToKits: { name: req.body.name, cat: req.body.cat } } })
+                        Item.updateOne({ cat: i.cat }, { $addToSet: { belongsToDevices: { name: req.body.name, cat: req.body.cat } } })
                     );
                 });
 
@@ -377,6 +403,10 @@ module.exports = {
             key: 'cat',
             width: 15
         }, {
+            header: 'מק"טי ערכה',
+            key: 'kitCats',
+            width: 15
+        }, {
             header: 'מדור',
             key: 'sector',
             width: 20
@@ -392,6 +422,13 @@ module.exports = {
             header: 'תקופת הסמכה בחודשים',
             certificationPeriodMonths: 'certificationPeriodMonths',
             width: 10,
+        }, {
+            header: 'יצרן',
+            key: 'supplier',
+            width: 25,
+        }, {
+            header: 'אורך חיים',
+            key: 'lifeSpan',
         }, {
             header: 'מק"ט יצרן',
             key: 'manufacturerCat',
@@ -415,12 +452,28 @@ module.exports = {
             key: 'qaStandardLink',
             width: 30
         }, {
+            header: 'הוראות הנר',
+            key: 'medicalEngineeringManualLink',
+            width: 30
+        },{
+            header: 'הוראות הפעלה בעברית',
+            key: 'hebrewManualLink',
+            width: 30
+        }, {
+            header: 'Service Manual',
+            key: 'serviceManualLink',
+            width: 30
+        }, {
+            header: 'מדריך למשתמש',
+            key: 'userManualLink',
+            width: 30
+        }, {
             header: 'בארכיון',
             key: 'archived',
             width: 10
         }, {
-            header: 'שייך לערכות',
-            key: 'belongsToKits',
+            header: 'שייך למכשירים',
+            key: 'belongsToDevices',
             width: 30
         }, {
             header: 'פריטים דומים',
@@ -432,15 +485,24 @@ module.exports = {
         let offset = 0;
         const batchSize = 500;
         do {
-            items = await Item.find({}, { name: 1, cat: 1, sector: 1, department: 1, models: 1, archived: 1, catType: 1, certificationPeriodMonths: 1, description: 1, imageLink: 1, qaStandardLink: 1, belongsToKits: 1, similarItems: 1, kitItem: 1 })
+            items = await Item.find({}, { 
+                    name: 1, cat: 1, kitCats: 1, sector: 1, department: 1, models: 1, archived: 1, catType: 1, certificationPeriodMonths: 1, description: 1, imageLink: 1, qaStandardLink: 1, medicalEngineeringManualLink: 1, 
+                    serviceManualLink: 1, userManualLink: 1, hebrewManualLink: 1, supplier: 1, lifeSpan: 1, belongsToDevices: 1, similarItems: 1, kitItem: 1 
+                })
                 .sort('cat')
                 .skip(offset)
                 .limit(batchSize);
             if (items?.length) {
-                worksheet.addRows(items.map(({ name, cat, sector, department, models, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, archived, belongsToKits, similarItems }) => (
-                    { name, cat, sector, department, models, catType, description, imageLink, qaStandardLink,
+                worksheet.addRows(items.map(({ 
+                    name, cat, kitCats, sector, department, models, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, serviceManualLink, userManualLink,
+                    hebrewManualLink, archived, belongsToDevices, similarItems, supplier, lifeSpan,
+                }) => (
+                    { 
+                        name, cat, sector, department, models, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, serviceManualLink, userManualLink, 
+                        hebrewManualLink, supplier, lifeSpan,
+                        kitCats: kitCats?.join('\r\n'),
                         archived: archived ? 'כן' : 'לא',
-                        belongsToKits: belongsToKits?.map(b => b.cat).join('\r\n'),
+                        belongsToDevices: belongsToDevices?.map(b => b.cat).join('\r\n'),
                         similarItems: similarItems?.map(b => b.cat).join('\r\n'),
                         manufacturerCat: models?.map(m => m.cat).join('\r\n'),
                         models: models?.map(m => m.name).join('\r\n'),

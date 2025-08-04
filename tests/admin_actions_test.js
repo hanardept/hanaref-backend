@@ -11,7 +11,7 @@ const fakeItem = {
     models: [{ name: "VentilatorA", cat: "123V" }],
     accessories: [{ name: "צינור", cat: "111111111" }],
     consumables: [{ name: "פילטר", cat: "222222222" }],
-    belongsToKits: [{ name: "ערכת מנשם", cat: "121121121" }],
+    belongsToDevices: [{ name: "ערכת מנשם", cat: "121121121" }],
     similarItems: [{ name: "מנשם שני", cat: "010101010" }],
 };
 const fakeSector = {
