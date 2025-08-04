@@ -16,6 +16,11 @@ const itemSchema = new Schema({
         required: true,
         unique: true,
     },
+    kitCat: {
+        type: String,
+        required: false,
+        unique: true,
+    },    
     sector: {
         type: String,
         required: true,
