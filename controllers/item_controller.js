@@ -460,7 +460,7 @@ module.exports = {
             key: 'hebrewManualLink',
             width: 30
         }, {
-            header: 'מדריך שירות',
+            header: 'Service Manual',
             key: 'serviceManualLink',
             width: 30
         }, {
