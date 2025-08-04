@@ -403,7 +403,7 @@ module.exports = {
             key: 'cat',
             width: 15
         }, {
-            header: 'מק"טי ערכה"',
+            header: 'מק"טי ערכה',
             key: 'kitCats',
             width: 15
         }, {
@@ -487,18 +487,19 @@ module.exports = {
         do {
             items = await Item.find({}, { 
                     name: 1, cat: 1, kitCats: 1, sector: 1, department: 1, models: 1, archived: 1, catType: 1, certificationPeriodMonths: 1, description: 1, imageLink: 1, qaStandardLink: 1, medicalEngineeringManualLink: 1, 
-                    serviceManualLink: 1, userManualLink: 1, supplier: 1, lifeSpan: 1, belongsToDevices: 1, similarItems: 1, kitItem: 1 
+                    serviceManualLink: 1, userManualLink: 1, hebrewManualLink: 1, supplier: 1, lifeSpan: 1, belongsToDevices: 1, similarItems: 1, kitItem: 1 
                 })
                 .sort('cat')
                 .skip(offset)
                 .limit(batchSize);
             if (items?.length) {
                 worksheet.addRows(items.map(({ 
-                    name, cat, kitCats, sector, department, models, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, archived, belongsToDevices, similarItems
+                    name, cat, kitCats, sector, department, models, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, serviceManualLink, userManualLink,
+                    hebrewManualLink, archived, belongsToDevices, similarItems, supplier, lifeSpan,
                 }) => (
                     { 
                         name, cat, sector, department, models, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, serviceManualLink, userManualLink, 
-                        supplier, lifeSpan,
+                        hebrewManualLink, supplier, lifeSpan,
                         kitCats: kitCats?.join('\r\n'),
                         archived: archived ? 'כן' : 'לא',
                         belongsToDevices: belongsToDevices?.map(b => b.cat).join('\r\n'),
