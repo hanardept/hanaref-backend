@@ -5,6 +5,8 @@ const ExcelJS = require('exceljs');
 const mongoose = require("mongoose");
 const Certification = require("../models/Certification");
 const { ObjectId } = mongoose.Types;
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner")
+const { S3Client, PutObjectCommand, GetObjectCommandInput } = require("@aws-sdk/client-s3");
 
 function preliminaryItem(item, sector, department, catType = "מכשיר") {
     return { name: item.name, cat: item.cat, catType, sector: sector, department: department, imageLink: "" };
@@ -387,6 +389,28 @@ module.exports = {
             res.status(500).send('A server error occurred.');
         }
     }, 
+
+    async createFileUploadUrl(req, res) {
+        try {
+            const item = await Item.findOne({ cat: req.params.cat}, { cat: 1, name: 1, sector: 1, department: 1 });
+            if (!item) {
+                return res.status(404).send('Item not found.');
+            }
+            const client = new S3Client({ apiVersion: '2006-03-01' });
+            const { cat, name, sector, department } = item;
+            const params = {
+                Bucket: process.env.BUCKET_NAME,
+                Key: `${sector}/${department}/${cat} - ${name}/${req.body.filename}`,
+                ContentType: req.body.contentType,
+            };
+            const command = new PutObjectCommand(params);
+            const url = await getSignedUrl(client, command, { expiresIn: 3600 });
+            res.status(200).json({ url });
+        } catch (error) {
+            console.error(`Error toggling archive for item ${req.params.cat}:`, error);
+            res.status(500).send('A server error occurred.');
+        }
+    },
     
     async getItemsWorksheet(req, res) {
         const workbook = new ExcelJS.Workbook();
