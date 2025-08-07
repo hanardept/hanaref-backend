@@ -39,7 +39,7 @@ const itemSchema = new Schema({
     certificationPeriodMonths: {
         type: Number,
         default: 0,
-        required: true,
+        required: false,
     },
     description: String,
     imageLink: String,
