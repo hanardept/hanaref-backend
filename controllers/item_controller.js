@@ -253,7 +253,7 @@ module.exports = {
             await Promise.all(mongoInsertPromises);
             res.status(200).send("Item saved successfully!");
         } catch (error) {
-            res.status(400).send("Failure saving item: ", error);
+            res.status(400).send(`Failure saving item: ${error}`);
         }   
     },
 
