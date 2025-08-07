@@ -254,7 +254,7 @@ module.exports = {
             res.status(200).send("Item saved successfully!");
         } catch (error) {
             res.status(400).send("Failure saving item: ", error);
-        }
+        }   
     },
 
     async editItem(req, res) {
@@ -344,7 +344,7 @@ module.exports = {
             await Promise.all(mongoInsertPromises);
             res.status(200).send("Item updated successfully!");
         } catch (error) {
-            res.status(400).send("Failure updating item: ", error);
+            res.status(400).send(`Failure updating item: ${error}`);
         }
     },
     
@@ -396,6 +396,7 @@ module.exports = {
             if (!item) {
                 return res.status(404).send('Item not found.');
             }
+            console.log(`item: ${JSON.stringify(item)}`);
             const client = new S3Client({ apiVersion: '2006-03-01' });
             const { cat, name, sector, department } = item;
             const params = {
