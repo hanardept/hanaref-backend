@@ -294,8 +294,11 @@ module.exports = {
                 { returnOriginal: true }
             ).then(original => {
                 const linkFields = [ 'imageLink', 'qaStandardLink', 'medicalEngineeringManualLink', 'hebrewManualLink', 'serviceManualLink', 'userManualLink' ];
-                const s3ObjectsToDelete = linkFields.filter(link => original[link]?.length && (req.body[link] !== original[link])).map(link => prepareS3KeyFromLink(original[link]));
-                console.log(`s3 objects to delete: ${JSON.stringify(linkFields.filter(link => original[link]?.length && (req.body[link] !== original[link])).map(link => ({ old: prepareS3KeyFromLink(original[link]), new: prepareS3KeyFromLink(req.body[link ])})))}`);
+                const s3ObjectsToDelete = linkFields
+                    .filter(link => original[link]?.length && (req.body[link] !== original[link]) && !linkFields.some(field => original[link] === req.body[field] ))
+                    .map(link => prepareS3KeyFromLink(original[link]));
+                //console.log(`s3 objects to delete: ${JSON.stringify(linkFields.filter(link => original[link]?.length && (req.body[link] !== original[link])).map(link => ({ old: prepareS3KeyFromLink(original[link]), new: prepareS3KeyFromLink(req.body[link ])})))}`);
+                console.log(`s3 objects to delete: ${s3ObjectsToDelete}`);
                 if (s3ObjectsToDelete.length) {
                     deleteS3Objects(s3ObjectsToDelete);
                 }
