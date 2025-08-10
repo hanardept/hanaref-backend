@@ -5,9 +5,31 @@ const ExcelJS = require('exceljs');
 const mongoose = require("mongoose");
 const Certification = require("../models/Certification");
 const { ObjectId } = mongoose.Types;
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner")
+const { S3Client, PutObjectCommand, DeleteObjectsCommand, ListObjectVersionsCommand } = require("@aws-sdk/client-s3");
 
 function preliminaryItem(item, sector, department, catType = "מכשיר") {
     return { name: item.name, cat: item.cat, catType, sector: sector, department: department, imageLink: "" };
+}
+
+function prepareS3KeyFromLink(link) {
+    console.log(`preparing link: ${link}`);
+    const s3DomainEnding = '.amazonaws.com/';
+    return decodeURI(link.substring(link.indexOf(s3DomainEnding) + s3DomainEnding.length));
+}
+
+async function deleteS3Objects(keys, client) {
+    const params = {
+        Bucket: process.env.BUCKET_NAME,
+        Delete: {
+            Objects: keys.map(key => ({ Key: key }))
+        }
+    };
+    console.log(`deleting objects command params: ${JSON.stringify(params)}`);
+    const command = new DeleteObjectsCommand(params);
+    client = client ?? new S3Client({ apiVersion: '2006-03-01' });
+    const res = await client.send(command);
+    console.log(`delete objects result: ${JSON.stringify(res)}`);
 }
 
 module.exports = {
@@ -251,8 +273,8 @@ module.exports = {
             await Promise.all(mongoInsertPromises);
             res.status(200).send("Item saved successfully!");
         } catch (error) {
-            res.status(400).send("Failure saving item: ", error);
-        }
+            res.status(400).send(`Failure saving item: ${error}`);
+        }   
     },
 
     async editItem(req, res) {
@@ -268,8 +290,19 @@ module.exports = {
                 { 
                     name, cat, kitCats, sector, department, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, models, accessories, consumables, spareParts, belongsToDevices, similarItems, kitItem,
                     hebrewManualLink, serviceManualLink, userManualLink, supplier, lifeSpan
+                },
+                { returnOriginal: true }
+            ).then(original => {
+                const linkFields = [ 'imageLink', 'qaStandardLink', 'medicalEngineeringManualLink', 'hebrewManualLink', 'serviceManualLink', 'userManualLink' ];
+                const s3ObjectsToDelete = linkFields
+                    .filter(link => original[link]?.length && (req.body[link] !== original[link]) && !linkFields.some(field => original[link] === req.body[field] ))
+                    .map(link => prepareS3KeyFromLink(original[link]));
+                //console.log(`s3 objects to delete: ${JSON.stringify(linkFields.filter(link => original[link]?.length && (req.body[link] !== original[link])).map(link => ({ old: prepareS3KeyFromLink(original[link]), new: prepareS3KeyFromLink(req.body[link ])})))}`);
+                console.log(`s3 objects to delete: ${s3ObjectsToDelete}`);
+                if (s3ObjectsToDelete.length) {
+                    deleteS3Objects(s3ObjectsToDelete);
                 }
-            );
+            });
 
             const mongoInsertPromises = [updateOwnItem];
             
@@ -342,22 +375,55 @@ module.exports = {
             await Promise.all(mongoInsertPromises);
             res.status(200).send("Item updated successfully!");
         } catch (error) {
-            res.status(400).send("Failure updating item: ", error);
+            res.status(400).send(`Failure updating item: ${error}`);
         }
     },
     
     async deleteItem(req, res) {
         // DELETE path: /items/962780438
         try {
-            const removed = await Item.findOneAndRemove({ cat: req.params.cat });
-            if (removed?._id) {
-                await Certification.deleteMany({ item: new ObjectId(removed._id)})
+            let removed = await Item.findOne({ cat: req.params.cat });
+
+            try {
+                const objects = [ removed.imageLink, removed.userManualLink, removed.serviceManualLink, removed.hebrewManualLink, removed.qaStandardLink, removed.medicalEngineeringManualLink ]
+                    .filter(link => link?.length)
+                    .map(link => prepareS3KeyFromLink(link));
+                console.log(`deleting links: ${JSON.stringify(objects)}`);
+
+                if (objects.length) {
+                    const client = new S3Client({ apiVersion: '2006-03-01' });
+
+                    const prefix = objects[0].substring(0, objects[0].lastIndexOf('/') + 1);
+                    console.log(`fetching objects with prefix: ${prefix}`)
+                    const verionsParams = {
+                        Bucket: process.env.BUCKET_NAME,
+                        Prefix: prefix
+                    };
+                    const versionsCommand = new ListObjectVersionsCommand(verionsParams);
+                    const versionsRes = await client.send(versionsCommand);
+                    console.log(`versions objects result: ${JSON.stringify(versionsRes)}`);
+
+                    await deleteS3Objects(objects, client);
+                }
+
+            } catch(error) {
+                console.log(`Error deleting s3 objects for item cat ${req.params.cat}: ${error}`);
+                throw error;
             }
+
+             try {
+                await Certification.deleteMany({ item: new ObjectId(removed._id)})
+            } catch (error) {
+                console.log(`Error deleting certifications for item cat ${req.params.cat}: ${error}`);
+                throw error;
+            }
+
+            await Item.findOneAndRemove({ cat: req.params.cat });
 
             res.status(200).send("Item removed successfully!");
         } catch (error) {
-            console.error("Error removing item: ", error);
-            res.status(400).send("Failure removing item: ", error);
+            console.error(`Error removing item: ${error}`);
+            res.status(400).send(`Failure removing item: ${error}`);
 
         }
     },
@@ -387,6 +453,29 @@ module.exports = {
             res.status(500).send('A server error occurred.');
         }
     }, 
+
+    async createFileUploadUrl(req, res) {
+        try {
+            const item = await Item.findOne({ cat: req.params.cat}, { cat: 1, name: 1, sector: 1, department: 1 });
+            if (!item) {
+                return res.status(404).send('Item not found.');
+            }
+            console.log(`item: ${JSON.stringify(item)}`);
+            const client = new S3Client({ apiVersion: '2006-03-01' });
+            const { cat, name, sector, department } = item;
+            const params = {
+                Bucket: process.env.BUCKET_NAME,
+                Key: `${sector}/${department}/${cat} - ${name}/${req.body.filename}`,
+                ContentType: req.body.contentType,
+            };
+            const command = new PutObjectCommand(params);
+            const url = await getSignedUrl(client, command, { expiresIn: 3600 });
+            res.status(200).json({ url });
+        } catch (error) {
+            console.error(`Error toggling archive for item ${req.params.cat}:`, error);
+            res.status(500).send('A server error occurred.');
+        }
+    },
     
     async getItemsWorksheet(req, res) {
         const workbook = new ExcelJS.Workbook();

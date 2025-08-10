@@ -22,6 +22,8 @@ module.exports = (app) => {
     app.put("/items/:cat", [whoIsTheUser, adminAccessOnly], ItemController.editItem);
     app.delete("/items/:cat", [whoIsTheUser, adminAccessOnly], ItemController.deleteItem);
 
+    app.post("/items/:cat/url", whoIsTheUser, ItemController.createFileUploadUrl);
+
     // archive-related routes:
     app.post("/items/:cat/toggle-archive", [whoIsTheUser], ItemController.toggleArchive);
 
