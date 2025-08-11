@@ -36,7 +36,7 @@ module.exports = {
     async getItems(req, res) {
         // GET path: /items?search=jjo&sector=sj&department=wji&page=0
         // called via DEBOUNCE while entering Search word / choosing sector/dept
-        const { search, sector, department, status, catType, page = 0 } = req.query;
+        const { search, searchFields, sector, department, status, catType, page = 0 } = req.query;
         const [decodedSearch, decodedSector, decodedDepartment, decodedCatType] = decodeItems(search, sector, department, catType);
         // privilege stored in req.userPrivilege ("public"/"hanar"/"admin")
         // currently we work in a binary fashion - "public" can see only public items, other privileges can see ALL items
