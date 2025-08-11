@@ -48,6 +48,8 @@ module.exports = {
                 sectorsVisibleForPublic = rawSectorObjects.map((s) => s.sectorName);
             }
 
+            const actualSearchFields = searchFields ?? [ 'name', 'cat', 'models.name', 'models.cat' ]
+
             const items = await Item.aggregate([
                 {
                     $match: sectorsVisibleForPublic ? { sector: { $in: sectorsVisibleForPublic } } : {},
@@ -56,11 +58,11 @@ module.exports = {
                     $match: search
                         ? {
                               $or: [
-                                  { name: { $regex: decodedSearch, $options: "i" } },
-                                  { cat: { $regex: decodedSearch } },
-                                  { "models.name": { $regex: decodedSearch, $options: "i" } },
-                                  { "models.cat": { $regex: decodedSearch, $options: "i" } },
-                              ],
+                                  actualSearchFields.includes('name') && { name: { $regex: decodedSearch, $options: "i" } },
+                                  actualSearchFields.includes('cat') && { cat: { $regex: decodedSearch } },
+                                  actualSearchFields.includes('models.name') && { "models.name": { $regex: decodedSearch, $options: "i" } },
+                                  actualSearchFields.includes('models.cat') && { "models.cat": { $regex: decodedSearch, $options: "i" } },
+                              ].filter(Boolean),
                           }
                         : {},
                 },
