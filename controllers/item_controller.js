@@ -36,7 +36,7 @@ module.exports = {
     async getItems(req, res) {
         // GET path: /items?search=jjo&sector=sj&department=wji&page=0
         // called via DEBOUNCE while entering Search word / choosing sector/dept
-        const { search, sector, department, status, catType, page = 0 } = req.query;
+        const { search, searchFields, sector, department, status, catType, page = 0 } = req.query;
         const [decodedSearch, decodedSector, decodedDepartment, decodedCatType] = decodeItems(search, sector, department, catType);
         // privilege stored in req.userPrivilege ("public"/"hanar"/"admin")
         // currently we work in a binary fashion - "public" can see only public items, other privileges can see ALL items
@@ -48,6 +48,8 @@ module.exports = {
                 sectorsVisibleForPublic = rawSectorObjects.map((s) => s.sectorName);
             }
 
+            const actualSearchFields = searchFields ?? [ 'name', 'cat', 'models.name', 'models.cat' ]
+
             const items = await Item.aggregate([
                 {
                     $match: sectorsVisibleForPublic ? { sector: { $in: sectorsVisibleForPublic } } : {},
@@ -56,11 +58,11 @@ module.exports = {
                     $match: search
                         ? {
                               $or: [
-                                  { name: { $regex: decodedSearch, $options: "i" } },
-                                  { cat: { $regex: decodedSearch } },
-                                  { "models.name": { $regex: decodedSearch, $options: "i" } },
-                                  { "models.cat": { $regex: decodedSearch, $options: "i" } },
-                              ],
+                                  actualSearchFields.includes('name') && { name: { $regex: decodedSearch, $options: "i" } },
+                                  actualSearchFields.includes('cat') && { cat: { $regex: decodedSearch } },
+                                  actualSearchFields.includes('models.name') && { "models.name": { $regex: decodedSearch, $options: "i" } },
+                                  actualSearchFields.includes('models.cat') && { "models.cat": { $regex: decodedSearch, $options: "i" } },
+                              ].filter(Boolean),
                           }
                         : {},
                 },
