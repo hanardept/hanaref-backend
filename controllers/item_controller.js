@@ -8,7 +8,7 @@ const { ObjectId } = mongoose.Types;
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner")
 const { S3Client, PutObjectCommand, DeleteObjectsCommand, ListObjectVersionsCommand } = require("@aws-sdk/client-s3");
 
-function preliminaryItem(item, sector, department, catType = "מכשיר") {
+function preliminaryItem(item, sector, department, catType = "מכשיר", belongsToDevice = undefined) {
     return { name: item.name, cat: item.cat, catType, sector: sector, department: department, imageLink: "" };
 }
 
@@ -36,7 +36,7 @@ module.exports = {
     async getItems(req, res) {
         // GET path: /items?search=jjo&sector=sj&department=wji&page=0
         // called via DEBOUNCE while entering Search word / choosing sector/dept
-        const { search, sector, department, status, catType, page = 0 } = req.query;
+        const { search, searchFields, sector, department, status, catType, page = 0 } = req.query;
         const [decodedSearch, decodedSector, decodedDepartment, decodedCatType] = decodeItems(search, sector, department, catType);
         // privilege stored in req.userPrivilege ("public"/"hanar"/"admin")
         // currently we work in a binary fashion - "public" can see only public items, other privileges can see ALL items
@@ -48,6 +48,8 @@ module.exports = {
                 sectorsVisibleForPublic = rawSectorObjects.map((s) => s.sectorName);
             }
 
+            const actualSearchFields = searchFields ?? [ 'name', 'cat', 'models.name', 'models.cat' ]
+
             const items = await Item.aggregate([
                 {
                     $match: sectorsVisibleForPublic ? { sector: { $in: sectorsVisibleForPublic } } : {},
@@ -56,11 +58,11 @@ module.exports = {
                     $match: search
                         ? {
                               $or: [
-                                  { name: { $regex: decodedSearch, $options: "i" } },
-                                  { cat: { $regex: decodedSearch } },
-                                  { "models.name": { $regex: decodedSearch, $options: "i" } },
-                                  { "models.cat": { $regex: decodedSearch, $options: "i" } },
-                              ],
+                                  actualSearchFields.includes('name') && { name: { $regex: decodedSearch, $options: "i" } },
+                                  actualSearchFields.includes('cat') && { cat: { $regex: decodedSearch } },
+                                  actualSearchFields.includes('models.name') && { "models.name": { $regex: decodedSearch, $options: "i" } },
+                                  actualSearchFields.includes('models.cat') && { "models.cat": { $regex: decodedSearch, $options: "i" } },
+                              ].filter(Boolean),
                           }
                         : {},
                 },
@@ -199,12 +201,13 @@ module.exports = {
             const catAlreadyExists = await Item.findOne({ cat: cat });
             if (catAlreadyExists) return res.status(400).send({ errorMsg: "This catalog number is already in the database." });
 
+            const belongsToDevice = { name, cat };
             const mongoInsertPromises = [newItem.save()];
 
             if (accessories && accessories.length > 0)
                 accessories.forEach((a) => {
                     mongoInsertPromises.push(
-                        Item.updateOne({ cat: a.cat }, { $setOnInsert: preliminaryItem(a, sector, department, "אביזר") }, { upsert: true })
+                        Item.updateOne({ cat: a.cat }, { $setOnInsert: preliminaryItem(a, sector, department, "אביזר", belongsToDevice) }, { upsert: true })
                     );
                     mongoInsertPromises.push(
                         Item.updateOne({ cat: a.cat }, { $addToSet: { belongsToDevices: { name, cat } } })
@@ -213,7 +216,7 @@ module.exports = {
             if (consumables && consumables.length > 0)
                 consumables.forEach((c) => {
                     mongoInsertPromises.push(
-                        Item.updateOne({ cat: c.cat }, { $setOnInsert: preliminaryItem(c, sector, department, "מתכלה") }, { upsert: true })
+                        Item.updateOne({ cat: c.cat }, { $setOnInsert: preliminaryItem(c, sector, department, "מתכלה", belongsToDevice) }, { upsert: true })
                     );
                     mongoInsertPromises.push(
                         Item.updateOne({ cat: c.cat }, { $addToSet: { belongsToDevices: { name, cat } } })
@@ -222,7 +225,7 @@ module.exports = {
             if (spareParts && spareParts.length > 0)
                 spareParts.forEach((c) => {
                     mongoInsertPromises.push(
-                        Item.updateOne({ cat: c.cat }, { $setOnInsert: preliminaryItem(c, sector, department, "חלק חילוף") }, { upsert: true })
+                        Item.updateOne({ cat: c.cat }, { $setOnInsert: preliminaryItem(c, sector, department, "חלק חילוף", belongsToDevice) }, { upsert: true })
                     );
                     mongoInsertPromises.push(
                         Item.updateOne({ cat: c.cat }, { $addToSet: { belongsToDevices: { name, cat } } })
@@ -304,12 +307,13 @@ module.exports = {
                 }
             });
 
+            const belongsToDevice = { name, cat };
             const mongoInsertPromises = [updateOwnItem];
             
             if (accessories && accessories.length > 0)
                 accessories.forEach((a) => {
                     mongoInsertPromises.push(
-                        Item.updateOne({ cat: a.cat }, { $setOnInsert: preliminaryItem(a, sector, department, "אביזר") }, { upsert: true })
+                        Item.updateOne({ cat: a.cat }, { $setOnInsert: preliminaryItem(a, sector, department, "אביזר", belongsToDevice) }, { upsert: true })
                     );
                     mongoInsertPromises.push(
                         Item.updateOne({ cat: a.cat }, { $addToSet: { belongsToDevices: { name: req.body.name, cat: req.body.cat } } })
@@ -318,7 +322,7 @@ module.exports = {
             if (consumables && consumables.length > 0)
                 consumables.forEach((c) => {
                     mongoInsertPromises.push(
-                        Item.updateOne({ cat: c.cat }, { $setOnInsert: preliminaryItem(c, sector, department, "מתכלה") }, { upsert: true })
+                        Item.updateOne({ cat: c.cat }, { $setOnInsert: preliminaryItem(c, sector, department, "מתכלה", belongsToDevice) }, { upsert: true })
                     );
                     mongoInsertPromises.push(
                         Item.updateOne({ cat: c.cat }, { $addToSet: { belongsToDevices: { name: req.body.name, cat: req.body.cat } } })
@@ -327,7 +331,7 @@ module.exports = {
             if (spareParts && spareParts.length > 0)
                 spareParts.forEach((c) => {
                     mongoInsertPromises.push(
-                        Item.updateOne({ cat: c.cat }, { $setOnInsert: preliminaryItem(c, sector, department, "חלק חילוף") }, { upsert: true })
+                        Item.updateOne({ cat: c.cat }, { $setOnInsert: preliminaryItem(c, sector, department, "חלק חילוף", belongsToDevice) }, { upsert: true })
                     );
                     mongoInsertPromises.push(
                         Item.updateOne({ cat: c.cat }, { $addToSet: { belongsToDevices: { name: req.body.name, cat: req.body.cat } } })
