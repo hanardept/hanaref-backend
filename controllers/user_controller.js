@@ -1,10 +1,66 @@
 const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { decodeItems } = require("../functions/helpers");
 
 const AUTO_LOGOUT_TIME = 8; // in hours
 
 module.exports = {
+    async getUsers(req, res) {
+        // GET path: /users?search=jjo&page=0
+        const { search, page = 0 } = req.query;
+        const [decodedSearch] = decodeItems(search);
+        // privilege stored in req.userPrivilege ("public"/"hanar"/"admin")
+        console.log(`search: ${search ? "yes" : "no"}`);
+        try {
+
+            const query = search
+                    ? {
+                        $or: [
+                            { firstName: { $regex: decodedSearch, $options: "i" } },
+                            { lastName: { $regex: decodedSearch, $options: "i" } },
+                            { username: { $regex: decodedSearch, $options: "i" } },
+                        ]
+                    } : {};
+            console.log(`query: ${JSON.stringify(query)}`);
+
+            const users = await User
+                .find(search
+                    ? {
+                        $or: [
+                            { firstName: { $regex: decodedSearch, $options: "i" } },
+                            { lastName: { $regex: decodedSearch, $options: "i" } },
+                            { username: { $regex: decodedSearch, $options: "i" } },
+                        ]
+                    } : {},
+                    { firstName: 1, lastName: 1, username: 1, _id: 1 },
+                )
+                .sort("firstName")
+                .skip(page * 20)
+                .limit(20);
+            console.log(`Users found: ${users.length}`);
+            res.status(200).send(users);
+        } catch (error) {
+            res.status(400).send(`Error fetching users: ${error}`);
+        }
+    },
+
+    async getUserInfo(req, res) {
+        try {
+
+            const user = await User.findById(req.params.id,
+                { _id: 1, firstName: 1, lastName: 1, username: 1 });
+
+            if (user) {
+                res.status(200).send(user);
+            } else {
+                res.status(404).send("User could not be found in database");
+            }
+        } catch (error) {
+            res.status(400).send("User fetch error: ", error);
+        }
+    },    
+
     // public routes:
     async createUser(req, res) {
         // check if username already registered:

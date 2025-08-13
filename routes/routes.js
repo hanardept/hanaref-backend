@@ -7,6 +7,10 @@ const TechnicianController = require("../controllers/technician_controller");
 const CertificationController = require("../controllers/certification_controller");
 
 module.exports = (app) => {
+    // user-viewing routes:
+    app.get("/users", [whoIsTheUser, adminAccessOnly], UserController.getUsers);
+    app.get("/users/:id", [whoIsTheUser, adminAccessOnly], UserController.getUserInfo);
+
     // user-related routes:
     app.post("/register", UserController.createUser);
     app.post("/login", UserController.authenticateUser);
