@@ -11,8 +11,14 @@ module.exports = (app) => {
     app.get("/users", [whoIsTheUser, adminAccessOnly], UserController.getUsers);
     app.get("/users/:id", [whoIsTheUser, adminAccessOnly], UserController.getUserInfo);
 
+    // user-CUD routes:
+    app.post("/users", [whoIsTheUser, adminAccessOnly], UserController.addUser);
+    // app.put("/users/:id", [whoIsTheUser, adminAccessOnly], UserController.editUser);
+    // app.delete("/users/:id", [whoIsTheUser, adminAccessOnly], UserController.deleteUser);
+
+
     // user-related routes:
-    app.post("/register", UserController.createUser);
+    //app.post("/register", UserController.createUser);
     app.post("/login", UserController.authenticateUser);
     app.post("/change-password", [whoIsTheUser, hanarAndAboveAccess], UserController.changePassword);
 

@@ -19,13 +19,14 @@ const userSchema = new Schema({
         max: 255,
         min: 6
     },
-    password: {
+    email: {
         type: String,
         required: true,
-        max: 1024,
+        unique: true,
+        max: 255,
         min: 6
     },
-    privilege: {
+    role: {
         type: String,
         required: true
     }

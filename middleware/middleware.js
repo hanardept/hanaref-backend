@@ -8,7 +8,7 @@ const whoIsTheUser = (req, res, next) => {
     // case 2) they don't have an "auth-token" header --> req.userPrivilege gets changed to "public"
 
     const token = req.header("auth-token");
-    console.log(`path: ${req.path}, token: ${req.header("auth-token")}, other: ${req.header("Auth-Token")}`);
+    //console.log(`path: ${req.path}, token: ${req.header("auth-token")}, other: ${req.header("Auth-Token")}`);
     if (!token) {
         req.userPrivilege = "public";
         return next();
@@ -31,7 +31,7 @@ const whoIsTheUser = (req, res, next) => {
         });
     }
 
-    console.log(`token: ${token}`);
+   //console.log(`token: ${token}`);
     return jwt.verify(token, getKey, {
         audience: authConfig.audience,
         issuer: `https://${authConfig.domain}/`,
@@ -41,8 +41,9 @@ const whoIsTheUser = (req, res, next) => {
             res.status(400).send("Invalid token!");
         } else {
             console.log(`token verification succeeded: ${JSON.stringify(userInfo)}`);
+            console.log(`role: ${userInfo[`${process.env.AUTH0_NAMESPACE}/roles`]?.[0]}`);
             req.userId = userInfo._id;
-            req.userPrivilege = userInfo.privilege;
+            req.userPrivilege = userInfo[`${process.env.AUTH0_NAMESPACE}/roles`]?.[0];
             next();
         }
     });
@@ -61,6 +62,7 @@ const hanarAndAboveAccess = (req, res, next) => {
     if (["admin", "hanar"].includes(req.userPrivilege)) {
         next();
     } else {
+        console.log(`hii2`);
         res.status(401).send("You are unauthorized to access this endpoint.");
     }
 };

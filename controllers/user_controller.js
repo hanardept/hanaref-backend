@@ -2,6 +2,9 @@ const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { decodeItems } = require("../functions/helpers");
+const { ManagementClient } = require('auth0');
+var generator = require('generate-password');
+
 
 const AUTO_LOGOUT_TIME = 8; // in hours
 
@@ -20,6 +23,7 @@ module.exports = {
                             { firstName: { $regex: decodedSearch, $options: "i" } },
                             { lastName: { $regex: decodedSearch, $options: "i" } },
                             { username: { $regex: decodedSearch, $options: "i" } },
+                            { email: { $regex: decodedSearch, $options: "i" } },
                         ]
                     } : {};
             console.log(`query: ${JSON.stringify(query)}`);
@@ -31,6 +35,7 @@ module.exports = {
                             { firstName: { $regex: decodedSearch, $options: "i" } },
                             { lastName: { $regex: decodedSearch, $options: "i" } },
                             { username: { $regex: decodedSearch, $options: "i" } },
+                            { email: { $regex: decodedSearch, $options: "i" } },
                         ]
                     } : {},
                     { firstName: 1, lastName: 1, username: 1, _id: 1 },
@@ -38,7 +43,7 @@ module.exports = {
                 .sort("firstName")
                 .skip(page * 20)
                 .limit(20);
-            console.log(`Users found: ${users.length}`);
+            console.log(`Users found: ${users.length}, list: ${JSON.stringify(users)}`);
             res.status(200).send(users);
         } catch (error) {
             res.status(400).send(`Error fetching users: ${error}`);
@@ -49,7 +54,7 @@ module.exports = {
         try {
 
             const user = await User.findById(req.params.id,
-                { _id: 1, firstName: 1, lastName: 1, username: 1 });
+                { _id: 1, firstName: 1, lastName: 1, username: 1, email: 1 });
 
             if (user) {
                 res.status(200).send(user);
@@ -62,24 +67,62 @@ module.exports = {
     },    
 
     // public routes:
-    async createUser(req, res) {
+    async addUser(req, res) {
         // check if username already registered:
-        const usernameExistsInDB = await User.findOne({ username: req.body.username });
-        if (usernameExistsInDB) return res.status(400).send("Username already registered!");
+        const userExistsInDB = await User.findOne({
+            $or: [
+                { username: req.body.username },
+                { email: req.body.email }
+            ]
+        });
+        if (userExistsInDB) return res.status(400).send("User already registered!");
 
-        // register new user with bcrypt-hashed password:
-        const salty = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(req.body.password, salty);
-        const user = new User({
+
+        var management = new ManagementClient({
+            domain: process.env.AUTH0_DOMAIN,
+            clientId: process.env.AUTH0_CLIENT_ID,
+            clientSecret: process.env.AUTH0_CLIENT_SECRET
+        });
+
+        var password = generator.generate({
+            length: 10,
+            numbers: true,
+            symbols: true,
+        });
+
+        const createUserRes = await management.users.create({ 
             username: req.body.username,
-            password: hashedPassword,
-            privilege: req.body.privilege,
+            email: req.body.email,
+            given_name: req.body.firstName,
+            family_name: req.body.lastName,
+            password,
+            connection: 'Username-Password-Authentication'
+        });
+
+        const roleId = (await management.roles.getAll({ name_filter: req.body.role })).data?.[0].id;
+        if (!roleId) {
+            res.status(400).send(`Cannot create user with unknown role: ${request.body.role}`);
+            return;
+        }
+
+        const assignRoleRes = await management.roles.assignUsers({
+            id: roleId,
+        }, { users: [ createUserRes.data.user_id ] });
+
+        const user = new User({
+            firstName: req.body.firstName,
+            lastName: req.body.lastName,
+            username: req.body.username,
+            email: req.body.email,
+            role: req.body.role ?? "admin",
         });
 
         try {
             await user.save();
             res.status(200).send("User created!");
         } catch (error) {
+            console.log(`error creating user in DB: ${error}`);
+            await management.users.delete({ id: createUserRes.data.user_id });
             res.status(400).send(error);
         }
     },
