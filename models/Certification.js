@@ -7,9 +7,9 @@ const certificationSchema = new Schema({
         ref: "Item",
         required: true,
     },
-    technician: {
+    user: {
         type: Schema.Types.ObjectId,
-        ref: "Technician",
+        ref: "User",
         required: true,
     },
     certificationDocumentLink: {

@@ -38,7 +38,7 @@ module.exports = {
                             { email: { $regex: decodedSearch, $options: "i" } },
                         ]
                     } : {},
-                    { firstName: 1, lastName: 1, username: 1, _id: 1 },
+                    { id: 1, firstName: 1, lastName: 1, username: 1, role: 1, _id: 1 },
                 )
                 .sort("firstName")
                 .skip(page * 20)
@@ -52,9 +52,8 @@ module.exports = {
 
     async getUserInfo(req, res) {
         try {
-
             const user = await User.findById(req.params.id,
-                { _id: 1, firstName: 1, lastName: 1, username: 1, email: 1 });
+                { _id: 1, id: 1, firstName: 1, lastName: 1, username: 1, email: 1, role: 1, association: 1 });
 
             if (user) {
                 res.status(200).send(user);
@@ -71,12 +70,12 @@ module.exports = {
         // check if username already registered:
         const userExistsInDB = await User.findOne({
             $or: [
+                { id: req.body.id },
                 { username: req.body.username },
                 { email: req.body.email }
             ]
         });
         if (userExistsInDB) return res.status(400).send("User already registered!");
-
 
         var management = new ManagementClient({
             domain: process.env.AUTH0_DOMAIN,
@@ -110,11 +109,13 @@ module.exports = {
         }, { users: [ createUserRes.data.user_id ] });
 
         const user = new User({
+            id: req.body.id,
             firstName: req.body.firstName,
             lastName: req.body.lastName,
             username: req.body.username,
             email: req.body.email,
-            role: req.body.role ?? "admin",
+            role: req.body.role ?? "technician",
+            association: req.body.association,
         });
 
         try {

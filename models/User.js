@@ -2,6 +2,10 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const userSchema = new Schema({
+    id: {
+        type: String,
+        required: true,
+    },
     firstName: {
         type: String,
         max: 255,
@@ -29,6 +33,14 @@ const userSchema = new Schema({
     role: {
         type: String,
         required: true
+    },
+    association: {
+        type: String,
+        required: true,
+    },
+    archived: {
+        type: Boolean,
+        required: false,
     }
 });
 
