@@ -1,4 +1,5 @@
 const User = require("../models/User");
+const { Role } = require("../models/Role");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { decodeItems } = require("../functions/helpers");
@@ -67,6 +68,7 @@ module.exports = {
 
     // public routes:
     async addUser(req, res) {
+        console.log(`adding user with body: ${JSON.stringify(req.body)}`);
         // check if username already registered:
         const userExistsInDB = await User.findOne({
             $or: [
@@ -95,7 +97,11 @@ module.exports = {
             given_name: req.body.firstName,
             family_name: req.body.lastName,
             password,
-            connection: 'Username-Password-Authentication'
+            connection: 'Username-Password-Authentication',
+            user_metadata: {
+                status: 'active'
+            },
+            email_verified: process.env.AUTH0_SEND_EMAILS !== 'true',
         });
 
         const roleId = (await management.roles.getAll({ name_filter: req.body.role })).data?.[0].id;
@@ -108,13 +114,20 @@ module.exports = {
             id: roleId,
         }, { users: [ createUserRes.data.user_id ] });
 
+        const changePasswordRes = await management.tickets.changePassword({ 
+            user_id: createUserRes.data.user_id,
+            client_id: process.env.AUTH0_CLIENT_ID,
+         });
+
+         console.log(`change pass res: ${JSON.stringify(changePasswordRes)}`);
+
         const user = new User({
             id: req.body.id,
             firstName: req.body.firstName,
             lastName: req.body.lastName,
             username: req.body.username,
             email: req.body.email,
-            role: req.body.role ?? "technician",
+            role: req.body.role ?? Role.Viewer,
             association: req.body.association,
         });
 

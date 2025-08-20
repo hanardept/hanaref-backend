@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
+const { Role } = require('./Role');
 
 const userSchema = new Schema({
     id: {
@@ -32,6 +33,7 @@ const userSchema = new Schema({
     },
     role: {
         type: String,
+        enum: Object.values(Role),
         required: true
     },
     association: {
