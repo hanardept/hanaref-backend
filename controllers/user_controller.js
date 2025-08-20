@@ -1,5 +1,5 @@
 const User = require("../models/User");
-const { Role } = require("../models/Role");
+const Role = require("../models/Role");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { decodeItems } = require("../functions/helpers");
@@ -92,6 +92,7 @@ module.exports = {
         });
 
         const createUserRes = await management.users.create({ 
+            user_id: 
             username: req.body.username,
             email: req.body.email,
             given_name: req.body.firstName,
@@ -99,20 +100,21 @@ module.exports = {
             password,
             connection: 'Username-Password-Authentication',
             user_metadata: {
+                role: req.body.role,
                 status: 'active'
             },
             email_verified: process.env.AUTH0_SEND_EMAILS !== 'true',
         });
 
-        const roleId = (await management.roles.getAll({ name_filter: req.body.role })).data?.[0].id;
-        if (!roleId) {
-            res.status(400).send(`Cannot create user with unknown role: ${request.body.role}`);
-            return;
-        }
+        // const roleId = (await management.roles.getAll({ name_filter: req.body.role })).data?.[0].id;
+        // if (!roleId) {
+        //     res.status(400).send(`Cannot create user with unknown role: ${request.body.role}`);
+        //     return;
+        // }
 
-        const assignRoleRes = await management.roles.assignUsers({
-            id: roleId,
-        }, { users: [ createUserRes.data.user_id ] });
+        // const assignRoleRes = await management.roles.assignUsers({
+        //     id: roleId,
+        // }, { users: [ createUserRes.data.user_id ] });
 
         const changePasswordRes = await management.tickets.changePassword({ 
             user_id: createUserRes.data.user_id,
@@ -162,6 +164,29 @@ module.exports = {
         } catch (error) {
             res.status(400).send("MongoDB error - Unable to find user even though password is correct: ", error);
         }
+    },
+
+    async deleteUser(req, res) {
+        // DELETE path: /users/962780438
+        try {
+            const [res1, res2 ] = await Promise.all([
+                User.findByIdAndRemove(req.params.id),
+                Certification.deleteMany({ user: req.params.id })
+            ]);
+            console.log(`findByIdAndRemove res: ${JSON.stringify(res1)}`);
+
+        var management = new ManagementClient({
+            domain: process.env.AUTH0_DOMAIN,
+            clientId: process.env.AUTH0_CLIENT_ID,
+            clientSecret: process.env.AUTH0_CLIENT_SECRET
+        });
+
+        const createUserRes = await management.users.delete({
+        
+        });
+
+            res.status(200).send("User removed successfully!");
+        } catch (error) {}
     },
 
     // user-only routes:
