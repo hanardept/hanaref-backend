@@ -23,11 +23,11 @@ module.exports = (app) => {
     app.get("/items/:cat", [ whoIsTheUser, authenticatedAccessOnly ], ItemController.getItemInfo);
 
     // item-CUD routes:
-    app.post("/items", [whoIsTheUser, rolesAccessOnly(Role.Admin, Role.Technician)], ItemController.addItem);
-    app.put("/items/:cat", [whoIsTheUser, adminAccessOnly], ItemController.editItem);
+    app.post("/items", [whoIsTheUser, rolesAccessOnly([Role.Admin, Role.Technician])], ItemController.addItem);
+    app.put("/items/:cat", [whoIsTheUser, rolesAccessOnly([Role.Admin, Role.Technician])], ItemController.editItem);
     app.delete("/items/:cat", [whoIsTheUser, adminAccessOnly], ItemController.deleteItem);
 
-    app.post("/items/:cat/url", [ whoIsTheUser, rolesAccessOnly(Role.Admin, Role.Technician)], ItemController.createFileUploadUrl);
+    app.post("/items/:cat/url", [ whoIsTheUser, rolesAccessOnly([Role.Admin, Role.Technician])], ItemController.createFileUploadUrl);
 
     // archive-related routes:
     app.post("/items/:cat/toggle-archive", [whoIsTheUser, adminAccessOnly], ItemController.toggleArchive);
@@ -45,8 +45,8 @@ module.exports = (app) => {
     app.delete("/sectors/:sectorname", [whoIsTheUser, adminAccessOnly], SectorController.deleteDepartmentFromSector); // not used
 
     // technician-viewing routes:
-    app.get("/technicians", [whoIsTheUser, rolesAccessOnly(Role.Admin, Role.Technician)], TechnicianController.getTechnicians);
-    app.get("/technicians/:id", [whoIsTheUser, rolesAccessOnly(Role.Admin, Role.Technician)], TechnicianController.getTechnicianInfo);
+    app.get("/technicians", [whoIsTheUser, rolesAccessOnly([Role.Admin, Role.Technician])], TechnicianController.getTechnicians);
+    app.get("/technicians/:id", [whoIsTheUser, rolesAccessOnly([Role.Admin, Role.Technician])], TechnicianController.getTechnicianInfo);
 
     // technician-CUD routes:
     app.post("/technicians", [whoIsTheUser, adminAccessOnly], TechnicianController.addTechnician);
@@ -57,12 +57,12 @@ module.exports = (app) => {
     app.post("/technicians/:id/toggle-archive", [whoIsTheUser, adminAccessOnly], TechnicianController.toggleArchive);
 
     // certification-viewing routes:
-    app.get("/certifications", [whoIsTheUser, rolesAccessOnly(Role.Admin, Role.Technician)], CertificationController.getCertifications);
+    app.get("/certifications", [whoIsTheUser, rolesAccessOnly([Role.Admin, Role.Technician])], CertificationController.getCertifications);
     app.get("/certifications/download-worksheet", [whoIsTheUser, adminAccessOnly], CertificationController.getCertificationsWorksheet);
-    app.get("/certifications/:id", [whoIsTheUser, rolesAccessOnly(Role.Admin, Role.Technician)], CertificationController.getCertificationInfo);
+    app.get("/certifications/:id", [whoIsTheUser, rolesAccessOnly([Role.Admin, Role.Technician])], CertificationController.getCertificationInfo);
 
     // certification-CUD routes:
-    app.post("/certifications", [whoIsTheUser, rolesAccessOnly(Role.Admin, Role.Technician)], CertificationController.addCertification);
+    app.post("/certifications", [whoIsTheUser, rolesAccessOnly([Role.Admin, Role.Technician])], CertificationController.addCertification);
     app.put("/certifications/:id", [whoIsTheUser, adminAccessOnly], CertificationController.editCertification);
     app.delete("/certifications/:id", [whoIsTheUser, adminAccessOnly], CertificationController.deleteCertification);
 };

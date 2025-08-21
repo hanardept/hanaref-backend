@@ -99,13 +99,13 @@ module.exports = {
         }        
 
         try {
-            var management = new ManagementClient({
+            const management = new ManagementClient({
                 domain: process.env.AUTH0_DOMAIN,
                 clientId: process.env.AUTH0_CLIENT_ID,
                 clientSecret: process.env.AUTH0_CLIENT_SECRET
             });
 
-            var password = generator.generate({
+            const password = generator.generate({
                 length: 10,
                 numbers: true,
                 symbols: true,

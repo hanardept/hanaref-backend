@@ -1,6 +1,7 @@
 const Certification = require("../models/Certification");
 const { decodeItems } = require("../functions/helpers");
 const ExcelJS = require('exceljs'); 
+const Role = require("../models/Role");
 
 const defaultProjection = {
      itemId: 1, itemCat: 1, itemName: 1, userId: 1, userFirstName: 1, userLastName: 1, certificationDocumentLink: 1,
@@ -10,7 +11,12 @@ const defaultProjection = {
 module.exports = {
     async getCertifications(req, res) {
         // GET path: /certification?search=jjo&page=0
-        const { search, user, page = 0 } = req.query;
+        let { search, user, page = 0 } = req.query;
+        console.log(`user privilege: ${req.userPrivilege}`);
+        if (req.userPrivilege !== Role.Admin) {
+            console.log(`setting user id to: ${req.userId}`);
+            user = req.userId;
+        }
         const [decodedSearch, decodedUser ] = decodeItems(search, user);
         // privilege stored in req.userPrivilege ("public"/"hanar"/"admin")
 
@@ -60,7 +66,7 @@ module.exports = {
                 res.status(404).send("Certification could not be found in database");
             }
         } catch (error) {
-            res.status(400).send("Certification fetch error: ", error);
+            res.status(400).send(`Certification fetch error: ${error}`);
         }
     },
 
@@ -84,7 +90,7 @@ module.exports = {
             await newCertification.save();
             res.status(200).send("Certification saved successfully!");
         } catch (error) {
-            res.status(400).send("Failure saving certification: ", error);
+            res.status(400).send(`Failure saving certification: ${error}`);
         }
     },
 
@@ -102,7 +108,7 @@ module.exports = {
             });
             res.status(200).send("Certification updated successfully!");
         } catch (error) {
-            res.status(400).send("Failure updating certification: ", error);
+            res.status(400).send(`Failure updating certification: ${error}`);
         }
     },
     
@@ -201,7 +207,7 @@ module.exports = {
             await workbook.xlsx.write(res);
             res.end();
         } catch (error) {
-            console.error('Error sending Excel file:', error);
+            console.error(`Error sending Excel file: ${error}`);
             res.status(500).send('Error sending Excel file');
         }
     }    

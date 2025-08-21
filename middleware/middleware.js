@@ -20,6 +20,8 @@ const whoIsTheUser = (req, res, next) => {
         audience: 'http://localhost:5000'
     };
 
+    console.log(`jwks url: https://${authConfig.domain}/.well-known/jwks.json`);
+
     const client = jwksClient({
         jwksUri: `https://${authConfig.domain}/.well-known/jwks.json`
     });
@@ -43,7 +45,10 @@ const whoIsTheUser = (req, res, next) => {
         } else {
             console.log(`token verification succeeded: ${JSON.stringify(userInfo)}`);
             console.log(`role: ${userInfo[`${process.env.AUTH0_NAMESPACE}/roles`]?.[0]}`);
-            req.userId = userInfo._id;
+            console.log(`hello!`);
+            console.log(`req user id path is 1: ${process.env.AUTH0_NAMESPACE}/user_id`);
+            req.userId = userInfo[`${process.env.AUTH0_NAMESPACE}/user_id`];
+            console.log(`req user id is 2: ${req.userId}`);
             req.userPrivilege = userInfo[`${process.env.AUTH0_NAMESPACE}/roles`]?.[0];
             next();
         }
@@ -52,9 +57,10 @@ const whoIsTheUser = (req, res, next) => {
 
 const rolesAccessOnly = (roles) => (req, res, next) => {
     if (roles.includes(req.userPrivilege)) {
+        console.log(`approved to use endpoint!`);
         next();
     } else {
-        console.log(`hii`);
+        console.log(`NOT approved to use endpoint! allowed roles: ${JSON.stringify(roles)}, current role: ${req.userPrivilege}`);
         res.status(401).send("You are unauthorized to access this endpoint.");
     }  
 }
