@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const jwksClient = require('jwks-rsa');
+const Role = require("../models/Role");
 
 const whoIsTheUser = (req, res, next) => {
     // The user can't just make requests with a req.userPrivilege="admin" that they inject on their own
@@ -49,6 +50,15 @@ const whoIsTheUser = (req, res, next) => {
     });
 };
 
+const rolesAccessOnly = (roles) => (req, res, next) => {
+    if (roles.includes(req.userPrivilege)) {
+        next();
+    } else {
+        console.log(`hii`);
+        res.status(401).send("You are unauthorized to access this endpoint.");
+    }  
+}
+
 const adminAccessOnly = (req, res, next) => {
     if (req.userPrivilege === "admin") {
         next();
@@ -57,6 +67,8 @@ const adminAccessOnly = (req, res, next) => {
         res.status(401).send("You are unauthorized to access this endpoint.");
     }
 };
+
+const authenticatedAccessOnly = (req, res, next) => rolesAccessOnly(Object.values(Role))(req, res, next);
 
 const hanarAndAboveAccess = (req, res, next) => {
     if (["admin", "hanar"].includes(req.userPrivilege)) {
@@ -69,6 +81,8 @@ const hanarAndAboveAccess = (req, res, next) => {
 
 module.exports = {
     whoIsTheUser,
+    rolesAccessOnly,
     adminAccessOnly,
+    authenticatedAccessOnly,
     hanarAndAboveAccess,
 };

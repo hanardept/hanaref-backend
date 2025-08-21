@@ -1,5 +1,6 @@
 const User = require("../models/User");
 const Role = require("../models/Role");
+const Certification = require("../models/Certification");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { decodeItems } = require("../functions/helpers");
@@ -79,50 +80,6 @@ module.exports = {
         });
         if (userExistsInDB) return res.status(400).send("User already registered!");
 
-        var management = new ManagementClient({
-            domain: process.env.AUTH0_DOMAIN,
-            clientId: process.env.AUTH0_CLIENT_ID,
-            clientSecret: process.env.AUTH0_CLIENT_SECRET
-        });
-
-        var password = generator.generate({
-            length: 10,
-            numbers: true,
-            symbols: true,
-        });
-
-        const createUserRes = await management.users.create({ 
-            user_id: 
-            username: req.body.username,
-            email: req.body.email,
-            given_name: req.body.firstName,
-            family_name: req.body.lastName,
-            password,
-            connection: 'Username-Password-Authentication',
-            user_metadata: {
-                role: req.body.role,
-                status: 'active'
-            },
-            email_verified: process.env.AUTH0_SEND_EMAILS !== 'true',
-        });
-
-        // const roleId = (await management.roles.getAll({ name_filter: req.body.role })).data?.[0].id;
-        // if (!roleId) {
-        //     res.status(400).send(`Cannot create user with unknown role: ${request.body.role}`);
-        //     return;
-        // }
-
-        // const assignRoleRes = await management.roles.assignUsers({
-        //     id: roleId,
-        // }, { users: [ createUserRes.data.user_id ] });
-
-        const changePasswordRes = await management.tickets.changePassword({ 
-            user_id: createUserRes.data.user_id,
-            client_id: process.env.AUTH0_CLIENT_ID,
-         });
-
-         console.log(`change pass res: ${JSON.stringify(changePasswordRes)}`);
-
         const user = new User({
             id: req.body.id,
             firstName: req.body.firstName,
@@ -138,9 +95,76 @@ module.exports = {
             res.status(200).send("User created!");
         } catch (error) {
             console.log(`error creating user in DB: ${error}`);
-            await management.users.delete({ id: createUserRes.data.user_id });
             res.status(400).send(error);
+        }        
+
+        try {
+            var management = new ManagementClient({
+                domain: process.env.AUTH0_DOMAIN,
+                clientId: process.env.AUTH0_CLIENT_ID,
+                clientSecret: process.env.AUTH0_CLIENT_SECRET
+            });
+
+            var password = generator.generate({
+                length: 10,
+                numbers: true,
+                symbols: true,
+            });
+
+            const createUserRes = await management.users.create({ 
+                user_id: user._id,
+                username: req.body.username,
+                email: req.body.email,
+                given_name: req.body.firstName,
+                family_name: req.body.lastName,
+                password,
+                connection: 'Username-Password-Authentication',
+                user_metadata: {
+                    role: req.body.role,
+                    status: 'active'
+                },
+                email_verified: true,
+            });
+        } catch (error) {
+            console.log(`error creating user in Auth0: ${error}`);
+            await User.findByIdAndDelete (user._id);
         }
+
+        // const roleId = (await management.roles.getAll({ name_filter: req.body.role })).data?.[0].id;
+        // if (!roleId) {
+        //     res.status(400).send(`Cannot create user with unknown role: ${request.body.role}`);
+        //     return;
+        // }
+
+        // const assignRoleRes = await management.roles.assignUsers({
+        //     id: roleId,
+        // }, { users: [ createUserRes.data.user_id ] });
+
+        // const changePasswordRes = await management.tickets.changePassword({ 
+        //     user_id: createUserRes.data.user_id,
+        //     client_id: process.env.AUTH0_CLIENT_ID,
+        //  });
+
+         //console.log(`change pass res: ${JSON.stringify(changePasswordRes)}`);
+
+        // const user = new User({
+        //     id: req.body.id,
+        //     firstName: req.body.firstName,
+        //     lastName: req.body.lastName,
+        //     username: req.body.username,
+        //     email: req.body.email,
+        //     role: req.body.role ?? Role.Viewer,
+        //     association: req.body.association,
+        // });
+
+        // try {
+        //     await user.save();
+        //     res.status(200).send("User created!");
+        // } catch (error) {
+        //     console.log(`error creating user in DB: ${error}`);
+        //     await management.users.delete({ id: createUserRes.data.user_id });
+        //     res.status(400).send(error);
+        // }
     },
     async authenticateUser(req, res) {
         try {
@@ -170,23 +194,25 @@ module.exports = {
         // DELETE path: /users/962780438
         try {
             const [res1, res2 ] = await Promise.all([
-                User.findByIdAndRemove(req.params.id),
+                User.findByIdAndDelete(req.params.id),
                 Certification.deleteMany({ user: req.params.id })
             ]);
-            console.log(`findByIdAndRemove res: ${JSON.stringify(res1)}`);
+            console.log(`findByIdAndDelete res: ${JSON.stringify(res1)}`);
 
-        var management = new ManagementClient({
-            domain: process.env.AUTH0_DOMAIN,
-            clientId: process.env.AUTH0_CLIENT_ID,
-            clientSecret: process.env.AUTH0_CLIENT_SECRET
-        });
+            var management = new ManagementClient({
+                domain: process.env.AUTH0_DOMAIN,
+                clientId: process.env.AUTH0_CLIENT_ID,
+                clientSecret: process.env.AUTH0_CLIENT_SECRET
+            });
 
-        const createUserRes = await management.users.delete({
-        
-        });
+            const createUserRes = await management.users.delete({
+                id: `auth0|${res1._id}`
+            });
 
             res.status(200).send("User removed successfully!");
-        } catch (error) {}
+        } catch (error) {
+            res.status(400).send(`Unable to delete user from the DB: ${error}`);
+        }
     },
 
     // user-only routes:
