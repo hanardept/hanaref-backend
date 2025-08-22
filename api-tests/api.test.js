@@ -5,7 +5,32 @@ import { data as itemsData } from './data/items.js';
 describe('hanaref-backend API', () => {
   beforeAll(async () => {
     await initDb();
-  });
+
+    mockServer('localhost', 1090)
+      .mockAnyResponse({
+        httpRequest: {
+          method: 'GET',
+          path: '/.well-known/jwks.json'
+        },
+        httpResponse: {
+          statusCode: 200,
+          headers: [
+            { name: 'Content-Type', values: ['application/json'] }
+          ],
+          body: JSON.stringify({ keys: [
+            {
+              kty: "RSA",
+              kid: "test-key-id",
+              use: "sig",
+              alg: "RS256",
+              n: "your-modulus",
+              e: "AQAB"
+            }
+          ] })
+        }
+      })
+      .then(response => console.log(response));    
+      });
 
   afterAll(async () => {
     await closeDb();
