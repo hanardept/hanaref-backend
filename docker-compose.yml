@@ -16,6 +16,7 @@ services:
 
   mockServer:
     image: mockserver/mockserver:5.14.0
+    container_name: mockServer
     command: -logLevel DEBUG -serverPort 1090 -proxyRemotePort 80 -proxyRemoteHost www.mock-server.com
     ports:
       - 1080:1090      
