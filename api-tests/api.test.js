@@ -5,9 +5,14 @@ import mockServer from 'mockserver-client';
 import jwt from 'jsonwebtoken';
 import { generateKeyPair } from 'jose/util/generate_key_pair';
 
+
+let token;
+
 describe('hanaref-backend API', () => {
   beforeAll(async () => {
     await initDb();
+
+    token = await generateToken();
 
     mockServer.mockServerClient('localhost', 1090)
       .mockAnyResponse({
@@ -39,12 +44,10 @@ describe('hanaref-backend API', () => {
     await closeDb();
   })
 
-  function generateToken() {
-    (async () => {
+  async function generateToken() {
       const { privateKey, publicKey } = await generateKeyPair('RS256');
       console.log(privateKey.export({ format: 'pem', type: 'pkcs1' }));
       console.log(publicKey.export({ format: 'pem', type: 'spki' }));
-    })();    
     // const privateKey = `
     // -----BEGIN RSA PRIVATE KEY-----
     // MIIBOgIBAAJBALwQbQKXwQwK9vZkQwQbQKXwQwK9vZkQwQbQKXwQwK9vZkQwQbQK
@@ -57,21 +60,23 @@ describe('hanaref-backend API', () => {
     // -----END RSA PRIVATE KEY-----
     // `;
 
-    const token = jwt.sign(
-      {
-        // your claims
-        'www.hanaref-test.com/roles': ['admin'],
-        'www.hanaref-test.com/user_id': 'abcd'
-      },
-      privateKey,
-      {
-        algorithm: 'RS256',
-        keyid: 'test-key-id', // must match JWKS
-        issuer: 'https://mockServer:1090/',
-        audience: 'http://localhost:5000',
-        expiresIn: '1h'
-      }
-    );
+      const token = jwt.sign(
+        {
+          // your claims
+          'www.hanaref-test.com/roles': ['admin'],
+          'www.hanaref-test.com/user_id': 'abcd'
+        },
+        privateKey,
+        {
+          algorithm: 'RS256',
+          keyid: 'test-key-id', // must match JWKS
+          issuer: 'https://mockServer:1090/',
+          audience: 'http://localhost:5000',
+          expiresIn: '1h'
+        }
+      );
+
+      return token;
   }
 
   function compareWithExpectedItems(items, expectedItems, expectedLength) {
@@ -91,17 +96,17 @@ describe('hanaref-backend API', () => {
   }
 
   test('GET /items returns an array', async () => {
-    const response = await axios.get(`${process.env.API_BASE_URL}/items`, { headers: { 'auth-token': generateToken() } });
+    const response = await axios.get(`${process.env.API_BASE_URL}/items`, { headers: { 'auth-token': token } });
     compareWithExpectedItems(response.data, itemsData, 20);
   });
 
   test('GET /items with sector filter returns an array with only sector items', async () => {
-    const response = await axios.get(`${process.env.API_BASE_URL}/items?sector=ביו-הנדסה (מכשור רפואת שגרה)`, { headers: { 'auth-token': generateToken() } });
+    const response = await axios.get(`${process.env.API_BASE_URL}/items?sector=ביו-הנדסה (מכשור רפואת שגרה)`, { headers: { 'auth-token': token } });
     compareWithExpectedItems(response.data, itemsData.filter(i => i.sector === "ביו-הנדסה (מכשור רפואת שגרה)" && !i.archived), 20);
   });
 
   test('GET /items with sector & departement filters returns an array with only sector + department items', async () => {
-    const response = await axios.get(`${process.env.API_BASE_URL}/items?sector=ביו-הנדסה (מכשור רפואת שגרה)&department=אודיולוגיה`, { headers: { 'auth-token': generateToken() } });
+    const response = await axios.get(`${process.env.API_BASE_URL}/items?sector=ביו-הנדסה (מכשור רפואת שגרה)&department=אודיולוגיה`, { headers: { 'auth-token': token } });
     compareWithExpectedItems(response.data, itemsData.filter(i => i.sector === "ביו-הנדסה (מכשור רפואת שגרה)" && i.department === "אודיולוגיה" && !i.archived), 20);
   });
 
@@ -112,7 +117,7 @@ describe('hanaref-backend API', () => {
       search: "אוזניות"
     })
     const url = `${process.env.API_BASE_URL}/items?${params.toString()}`;
-    const response = await axios.get(url, { headers: { 'auth-token': generateToken() } });
+    const response = await axios.get(url, { headers: { 'auth-token': token } });
     compareWithExpectedItems(response.data, itemsData.filter(i => i.sector === "ביו-הנדסה (מכשור רפואת שגרה)" && i.department === "אודיולוגיה" && i.name.includes("אוזניות") && !i.archived), 20);
   });
 
@@ -124,13 +129,13 @@ describe('hanaref-backend API', () => {
       page: 0
     })
     let url = `${process.env.API_BASE_URL}/items?${params.toString()}`;
-    const response1 = await axios.get(url, { headers: { 'auth-token': generateToken() } });
+    const response1 = await axios.get(url, { headers: { 'auth-token': token } });
     compareWithExpectedItems(response1.data, itemsData.filter(i => i.sector === "ביו-הנדסה (מכשור רפואת שגרה)" && i.department === "אודיולוגיה" && i.name.includes("אוזניות") && !i.archived), 20);
 
     // Get next page and verify items are returned and they are different than the first page
     params.set('page', 1);
     url = `${process.env.API_BASE_URL}/items?${params.toString()}`;
-    const response2 = await axios.get(url, { headers: { 'auth-token': generateToken() } });
+    const response2 = await axios.get(url, { headers: { 'auth-token': token } });
     compareWithExpectedItems(response2.data, itemsData.filter(i => 
       i.sector === "ביו-הנדסה (מכשור רפואת שגרה)" &&
       i.department === "אודיולוגיה" &&
@@ -147,7 +152,7 @@ describe('hanaref-backend API', () => {
       status: "all"
     })
     const url = `${process.env.API_BASE_URL}/items?${params.toString()}`;
-    const response = await axios.get(url, { headers: { 'auth-token': generateToken() } });
+    const response = await axios.get(url, { headers: { 'auth-token': token } });
     compareWithExpectedItems(response.data, itemsData.filter(i => i.sector === "ביו-הנדסה (מכשור רפואת שגרה)" && i.department === "אודיולוגיה" && i.name.includes("אוזניות")), 20);
   });
 });
