@@ -39,9 +39,17 @@ describe('hanaref-backend API', () => {
   })
 
   function generateToken() {
-    const privateKey = `-----BEGIN RSA PRIVATE KEY-----
-    somekey
-    -----END RSA PRIVATE KEY-----`;
+    const privateKey = `
+    -----BEGIN RSA PRIVATE KEY-----
+    MIIBOgIBAAJBALwQbQKXwQwK9vZkQwQbQKXwQwK9vZkQwQbQKXwQwK9vZkQwQbQK
+    XwQwK9vZkQwQbQKXwQwK9vZkQwQbQKXwQwK9vZkQwQbQKXwIDAQABAkA1QwQbQK
+    XwQwK9vZkQwQbQKXwQwK9vZkQwQbQKXwQwK9vZkQwQbQKXwQwK9vZkQwQbQKXwQ
+    wK9vZkQwQbQKXwQwK9vZkQwQbQKXwAiEA8wQbQKXwQwK9vZkQwQbQKXwQwK9vZk
+    QwQbQKXwQwK9vZkCIQDLQwQbQKXwQwK9vZkQwQbQKXwQwK9vZkQwQbQKXwQwK9v
+    ZkIhAPwQbQKXwQwK9vZkQwQbQKXwQwK9vZkQwQbQKXwQwK9vZkAiEA8wQbQKXw
+    QwK9vZkQwQbQKXwQwK9vZkQwQbQKXwQwK9vZk=
+    -----END RSA PRIVATE KEY-----
+    `;
 
     const token = jwt.sign(
       {
