@@ -4,7 +4,7 @@ import { data as itemsData } from './data/items.js';
 import mockServer from 'mockserver-client';
 import jwt from 'jsonwebtoken';
 //import { generateKeyPair } from 'jose/util/generate_key_pair';
-import { SignJWT, generateSecret } from 'jose'
+import { SignJWT, generateSecret } from 'jose';
 
 
 let token;
@@ -64,7 +64,7 @@ describe('hanaref-backend API', () => {
     // -----END RSA PRIVATE KEY-----
     // `;
 
-    const signJwt = new jose.SignJWT({
+    const signJwt = new SignJWT({
       'www.hanaref-test.com/roles': ['admin'],
       'www.hanaref-test.com/user_id': 'abcd'
     })
