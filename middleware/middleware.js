@@ -28,33 +28,39 @@ const whoIsTheUser = (req, res, next) => {
         jwksUri: `https://${authConfig.domain}/.well-known/jwks.json`
     });
 
-    const res213412 = fetch(`https://${authConfig.domain}/.well-known/jwks.json`)
+    return fetch(`https://${authConfig.domain}/.well-known/jwks.json`)
         .then(res => res.json())
-        .then(json => console.log(`retrieved jwks json: ${JSON.stringify(json)}`));
+        .then(json => {
+            console.log(`retrieved jwks json: ${JSON.stringify(json)}`);
 
-    // Function to get the signing key
-    function getKey(header, callback) {
-        client.getSigningKey(header.kid, (err, key) => {
-            const signingKey = key.getPublicKey();
-            callback(null, signingKey);
-        });
-    }
+            // Function to get the signing key
+            function getKey(header, callback) {
+                client.getSigningKey(header.kid, (err, key) => {
+                    const signingKey = key.getPublicKey();
+                    callback(null, signingKey);
+                });
+            }
 
-   //console.log(`token: ${token}`);
-    return jwt.verify(token, getKey, {
-        audience: authConfig.audience,
-        issuer: `https://${authConfig.domain}/`,
-        algorithms: ['RS256']
-    }, (error, userInfo) => { // userInfo: { _id: ..., privilege: "admin"/"hanar" }
-        if (error) {
-            console.log(`invalid token: ${error}`);
-            res.status(400).send("Invalid token!");
-        } else {
-            req.userId = userInfo[`${process.env.AUTH0_NAMESPACE}/user_id`];
-            req.userPrivilege = userInfo[`${process.env.AUTH0_NAMESPACE}/roles`]?.[0];
-            next();
+        //console.log(`token: ${token}`);
+            return jwt.verify(token, getKey, {
+                audience: authConfig.audience,
+                issuer: `https://${authConfig.domain}/`,
+                algorithms: ['RS256']
+            }, (error, userInfo) => { // userInfo: { _id: ..., privilege: "admin"/"hanar" }
+                if (error) {
+                    console.log(`invalid token: ${error}`);
+                    res.status(400).send("Invalid token!");
+                } else {
+                    req.userId = userInfo[`${process.env.AUTH0_NAMESPACE}/user_id`];
+                    req.userPrivilege = userInfo[`${process.env.AUTH0_NAMESPACE}/roles`]?.[0];
+                    next();
+                }
+            });
         }
-    });
+    )
+    .catch(err => {
+        console.log(`could not fetch jwks: ${err}`);
+    })
 };
 
 const rolesAccessOnly = (roles) => (req, res, next) => {
