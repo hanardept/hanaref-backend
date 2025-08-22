@@ -4,7 +4,7 @@ import { data as itemsData } from './data/items.js';
 import mockServer from 'mockserver-client';
 import jwt from 'jsonwebtoken';
 //import { generateKeyPair } from 'jose/util/generate_key_pair';
-import * as jose from 'jose'
+import { SignJWT, generateSecret } from 'jose'
 
 
 let token;
@@ -46,7 +46,8 @@ describe('hanaref-backend API', () => {
   })
 
   async function generateToken() {
-      const { privateKey, publicKey } = await jose.generateKeyPair('RS256');
+    const secret = await generateSecret('HS256');
+    // const { privateKey, publicKey } = await generateKeyPair('RS256');
 
 
       // console.log(privateKey.export({ format: 'pem', type: 'pkcs1' }));
@@ -63,7 +64,7 @@ describe('hanaref-backend API', () => {
     // -----END RSA PRIVATE KEY-----
     // `;
 
-    token = new jose.SignJWT({
+    const signJwt = new jose.SignJWT({
       'www.hanaref-test.com/roles': ['admin'],
       'www.hanaref-test.com/user_id': 'abcd'
     })
@@ -72,7 +73,7 @@ describe('hanaref-backend API', () => {
     .setExpirationTime('1h')
     .setIssuer('https://mockServer:1090/')
 
-    return token.sign(privateKey);
+    return signJwt.sign(secret);
   }
 
   function compareWithExpectedItems(items, expectedItems, expectedLength) {
