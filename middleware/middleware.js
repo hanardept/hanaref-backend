@@ -36,6 +36,9 @@ const whoIsTheUser = (req, res, next) => {
             // Function to get the signing key
             function getKey(header, callback) {
                 client.getSigningKey(header.kid, (err, key) => {
+                    if (err) {
+                        console.log(`error get signing key: ${err}`);
+                    }
                     const signingKey = key.getPublicKey();
                     callback(null, signingKey);
                 });
