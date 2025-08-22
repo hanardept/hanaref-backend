@@ -54,8 +54,8 @@ describe('hanaref-backend API', () => {
     const token = jwt.sign(
       {
         // your claims
-        'https://your-namespace/roles': ['admin'],
-        'https://your-namespace/user_id': 'abcd'
+        'www.hanaref-test.com/roles': ['admin'],
+        'www.hanaref-test.com/user_id': 'abcd'
       },
       privateKey,
       {
