@@ -29,7 +29,7 @@ services:
       - mongodb
     environment:
       MONGO_URL: mongodb://hanardept:example@hanaref-mongodb:27017/
-      AUTH0_DOMAIN: mockServer:1080
+      AUTH0_DOMAIN: mockServer:1090
       AUTH0_NAMESPACE: www.hanaref-test.com
     ports:
       - "5000:5000"

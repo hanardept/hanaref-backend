@@ -14,7 +14,7 @@ describe('hanaref-backend API', () => {
     const { jwk, token: generatedToken } = await generateToken();
     token = generatedToken;
 
-    const mockServerClient = mockServer.mockServerClient('mockServer', 1080);
+    const mockServerClient = mockServer.mockServerClient('mockServer', 1090);
     await mockServerClient.clear({ path: '/.well-known/jwks.json' });
     await mockServerClient.mockAnyResponse({
         httpRequest: {
@@ -48,7 +48,7 @@ describe('hanaref-backend API', () => {
     .setProtectedHeader({ alg: jwk.alg, kid: jwk.kid })
     .setAudience('http://localhost:5000')
     .setExpirationTime('1h')
-    .setIssuer('https://mockServer:1080/')
+    .setIssuer('https://mockServer:1090/')
 
     //return signJwt.sign(secret);
     return { jwk, token: await signJwt.sign(privateKey)};
