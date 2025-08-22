@@ -2,6 +2,7 @@ import axios from 'axios';
 import { init as initDb, close as closeDb } from './mongo';
 import { data as itemsData } from './data/items.js';
 import mockServer from 'mockserver-client';
+import jwt from 'jsonwebtoken';
 
 describe('hanaref-backend API', () => {
   beforeAll(async () => {
@@ -38,7 +39,6 @@ describe('hanaref-backend API', () => {
   })
 
   function generateToken() {
-    const jwt = require('jsonwebtoken');
     const privateKey = `-----BEGIN RSA PRIVATE KEY-----
     somekey
     -----END RSA PRIVATE KEY-----`;
