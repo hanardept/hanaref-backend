@@ -28,7 +28,7 @@ const whoIsTheUser = (req, res, next) => {
         jwksUri: `https://${authConfig.domain}/.well-known/jwks.json`
     });
 
-    const res = fetch(`https://${authConfig.domain}/.well-known/jwks.json`)
+    const res213412 = fetch(`https://${authConfig.domain}/.well-known/jwks.json`)
         .then(res => res.json())
         .then(json => console.log(`retrieved jwks json: ${JSON.stringify(json)}`));
 
