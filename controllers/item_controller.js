@@ -1,6 +1,7 @@
 const Item = require("../models/Item");
 const { decodeItems } = require("../functions/helpers");
 const Sector = require("../models/Sector");
+const Role = require("../models/Role");
 const ExcelJS = require('exceljs'); 
 const mongoose = require("mongoose");
 const Certification = require("../models/Certification");
@@ -10,6 +11,10 @@ const { S3Client, PutObjectCommand, DeleteObjectsCommand, ListObjectVersionsComm
 
 function preliminaryItem(item, sector, department, catType = "מכשיר", belongsToDevice = undefined) {
     return { name: item.name, cat: item.cat, catType, sector: sector, department: department, imageLink: "" };
+}
+
+const filteredFieldsForRole = {
+    [Role.Viewer]: [ 'certificationPeriodMonths', 'qaStandardLink', 'serviceManualLink' ],
 }
 
 function prepareS3KeyFromLink(link) {
@@ -34,6 +39,7 @@ async function deleteS3Objects(keys, client) {
 
 module.exports = {
     async getItems(req, res) {
+        const role = req.userPrivilege;
         // GET path: /items?search=jjo&sector=sj&department=wji&page=0
         // called via DEBOUNCE while entering Search word / choosing sector/dept
         const { search, searchFields, sector, department, status, catType, page = 0 } = req.query;
@@ -79,7 +85,10 @@ module.exports = {
                     $match: status !== 'all' ? { archived: {$ne: true} } : {},
                 },
                 {
-                    $project: { name: 1, cat: 1, _id: 1, imageLink: 1, archived: 1, certificationPeriodMonths: 1  },
+                    $project:
+                        [ 'name', 'cat', '_id', 'imageLink', 'archived', 'certificationPeriodMonths' ]
+                            .filter(field => !(filteredFieldsForRole[role] ?? []).includes(field))
+                            .reduce((obj, field) => ({ ...obj, [field]: 1 }) , {})
                 },
             ])
                 .sort("name")
@@ -87,11 +96,14 @@ module.exports = {
                 .limit(20);
             res.status(200).send(items);
         } catch (error) {
+            console.log(`Error fetching items: ${error}`);
             res.status(400).send(`Error fetching items: ${error}`);
         }
     },
 
     async getItemInfo(req, res) {
+        const role = req.userPrivilege;
+
         // THIS FUNCTION HAS BEEN CORRECTED TO FIX THE DUPLICATION ISSUE
         try {
             let sectorsVisibleForPublic = null;
@@ -165,7 +177,8 @@ module.exports = {
                         accessories_image: 0,
                         models_image: 0,
                         consumables_image: 0,
-                        kitItem_image: 0
+                        kitItem_image: 0,
+                        ...(filteredFieldsForRole[role] ?? {}).reduce((obj, field) => ({ ...obj, [field]: 0 }) , {})
                     }
                 }
             ]))?.[0];
@@ -180,7 +193,8 @@ module.exports = {
                 res.status(404).send("Item could not be found in database");
             }
         } catch (error) {
-            res.status(400).send("Item fetch error: ", error);
+            console.log(`Item fetch error: ${error}`);
+            res.status(400).send(`Item fetch error: ${error}`);
         }
     },
 

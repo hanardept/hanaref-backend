@@ -1,7 +1,22 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
+const Role = require('./Role');
 
 const userSchema = new Schema({
+    id: {
+        type: String,
+        required: true,
+    },
+    firstName: {
+        type: String,
+        max: 255,
+        min: 6
+    },
+    lastName: {
+        type: String,
+        max: 255,
+        min: 6
+    },        
     username: {
         type: String,
         required: true,
@@ -9,15 +24,25 @@ const userSchema = new Schema({
         max: 255,
         min: 6
     },
-    password: {
+    email: {
         type: String,
         required: true,
-        max: 1024,
+        unique: true,
+        max: 255,
         min: 6
     },
-    privilege: {
+    role: {
         type: String,
+        enum: Object.values(Role),
         required: true
+    },
+    association: {
+        type: String,
+        required: true,
+    },
+    archived: {
+        type: Boolean,
+        required: false,
     }
 });
 

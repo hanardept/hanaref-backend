@@ -14,6 +14,13 @@ services:
     volumes:
       - ./mongo-init:/docker-entrypoint-initdb.d
 
+  mockServer:
+    image: mockserver/mockserver:5.14.0
+    container_name: mockServer
+    command: -logLevel DEBUG -serverPort 1090 -proxyRemotePort 80 -proxyRemoteHost www.mock-server.com
+    ports:
+      - 1080:1090      
+
   hanaref-backend:
     build:
       context: ./
@@ -23,6 +30,9 @@ services:
       - mongodb
     environment:
       MONGO_URL: mongodb://hanardept:example@hanaref-mongodb:27017/
+      AUTH0_DOMAIN: mockServer:1090
+      AUTH0_NAMESPACE: www.hanaref-test.com
+      NODE_TLS_REJECT_UNAUTHORIZED: 0
     ports:
       - "5000:5000"
     healthcheck:
@@ -39,6 +49,8 @@ services:
         #- hanaref-backend
         hanaref-backend:
           condition: service_healthy
+        mockServer:
+          condition: service_started
       environment:
         API_BASE_URL: http://hanaref-backend:5000
         MONGO_URL: mongodb://hanardept:example@hanaref-mongodb:27017/

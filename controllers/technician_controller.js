@@ -1,4 +1,4 @@
-const Technician = require("../models/Technician");
+const User = require("../models/User");
 const { decodeItems } = require("../functions/helpers");
 const Certification = require("../models/Certification");
 
@@ -25,7 +25,7 @@ module.exports = {
                     ] };
             console.log(`query: ${JSON.stringify(query)}`);
 
-            const technicians = await Technician
+            const users = await User
                 .find({ $and: [
                     (status !== 'all') ? { archived: {$ne: true} } : {},
                     search
@@ -43,26 +43,26 @@ module.exports = {
                 .sort("firstName")
                 .skip(page * 20)
                 .limit(20);
-            console.log(`Technicians found: ${technicians.length}`);
-            res.status(200).send(technicians);
+            console.log(`Users found: ${users.length}`);
+            res.status(200).send(users);
         } catch (error) {
-            res.status(400).send(`Error fetching technicians: ${error}`);
+            res.status(400).send(`Error fetching users: ${error}`);
         }
     },
 
     async getTechnicianInfo(req, res) {
         try {
 
-            const technician = await Technician.findById(req.params.id,
+            const user = await User.findById(req.params.id,
                 { _id: 1, id: 1, firstName: 1, lastName: 1, association: 1, archived: 1 });
 
-            if (technician) {
-                res.status(200).send(technician);
+            if (user) {
+                res.status(200).send(user);
             } else {
-                res.status(404).send("Technician could not be found in database");
+                res.status(404).send("User could not be found in database");
             }
         } catch (error) {
-            res.status(400).send("Technician fetch error: ", error);
+            res.status(400).send("User fetch error: ", error);
         }
     },
 
@@ -73,18 +73,18 @@ module.exports = {
             id, firstName, lastName, association
         } = req.body;
 
-        const newTechnician = new Technician({
+        const newUser = new User({
             id, firstName, lastName, association
         });
 
         try {  
-            const idAlreadyExists = await Technician.findOne({ id: id });
+            const idAlreadyExists = await User.findOne({ id: id });
             if (idAlreadyExists) return res.status(400).send({ errorMsg: "This id number is already in the database." });
 
-            await newTechnician.save();
-            res.status(200).send("Technician saved successfully!");
+            await newUsersave();
+            res.status(200).send("User saved successfully!");
         } catch (error) {
-            res.status(400).send("Failure saving technician: ", error);
+            res.status(400).send("Failure saving user: ", error);
         }
     },
 
@@ -93,10 +93,10 @@ module.exports = {
         const { id, firstName, lastName, association } = req.body;
 
         try {
-            await Technician.findByIdAndUpdate(req.params.id, { id, firstName, lastName, association });
-            res.status(200).send("Technician updated successfully!");
+            await User.findByIdAndUpdate(req.params.id, { id, firstName, lastName, association });
+            res.status(200).send("User updated successfully!");
         } catch (error) {
-            res.status(400).send("Failure updating technician: ", error);
+            res.status(400).send("Failure updating user: ", error);
         }
     },
     
@@ -104,32 +104,32 @@ module.exports = {
         // DELETE path: /technicians/962780438
         try {
             await Promise.all([
-                Technician.findByIdAndRemove(req.params.id),
-                Certification.deleteMany({ technician: req.params.id })
+                User.findByIdAndRemove(req.params.id),
+                Certification.deleteMany({ user: req.params.id })
             ]);
-            res.status(200).send("Technician removed successfully!");
+            res.status(200).send("User removed successfully!");
         } catch (error) {}
     },
 
      toggleArchive: async (req, res) => {
         try {
-            const technician = await Technician.findById(req.params.id)
+            const user = await User.findById(req.params.id)
 
-            if (!technician) {
-                return res.status(404).send('Technician not found.');
+            if (!user) {
+                return res.status(404).send('User not found.');
             }
 
-            const newArchiveStatus = !technician.archived;
-            technician.archived = newArchiveStatus;
+            const newArchiveStatus = !user.archived;
+            user.archived = newArchiveStatus;
             await Promise.all([
-                technician.save(),
-                Certification.updateMany({ technician: technician._id }, { $set: { archived: newArchiveStatus } })
+                user.save(),
+                Certification.updateMany({ user: user._id }, { $set: { archived: newArchiveStatus } })
             ]);
 
-            res.status(200).json(technician);
+            res.status(200).json(user);
 
         } catch (error) {
-            console.error(`Error toggling archive for technician ${req.params.id}:`, error);
+            console.error(`Error toggling archive for user ${req.params.id}:`, error);
             res.status(500).send('A server error occurred.');
         }
     }, 

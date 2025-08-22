@@ -7,9 +7,9 @@ const certificationSchema = new Schema({
         ref: "Item",
         required: true,
     },
-    technician: {
+    user: {
         type: Schema.Types.ObjectId,
-        ref: "Technician",
+        ref: "User",
         required: true,
     },
     certificationDocumentLink: {
@@ -38,6 +38,6 @@ const certificationSchema = new Schema({
     }
 });
 
-certificationSchema.index({ item: 1, technician: 1}, { unique: true });
+certificationSchema.index({ item: 1, user: 1}, { unique: true });
 
 module.exports = mongoose.model("Certification", certificationSchema);
