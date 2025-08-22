@@ -3,7 +3,8 @@ import { init as initDb, close as closeDb } from './mongo';
 import { data as itemsData } from './data/items.js';
 import mockServer from 'mockserver-client';
 import jwt from 'jsonwebtoken';
-import { generateKeyPair } from 'jose/util/generate_key_pair';
+//import { generateKeyPair } from 'jose/util/generate_key_pair';
+import * as jose from 'jose'
 
 
 let token;
@@ -45,7 +46,7 @@ describe('hanaref-backend API', () => {
   })
 
   async function generateToken() {
-      const { privateKey, publicKey } = await generateKeyPair('RS256');
+      const { privateKey, publicKey } = await jose.generateKeyPair('RS256');
       console.log(privateKey.export({ format: 'pem', type: 'pkcs1' }));
       console.log(publicKey.export({ format: 'pem', type: 'spki' }));
     // const privateKey = `
