@@ -47,8 +47,10 @@ describe('hanaref-backend API', () => {
 
   async function generateToken() {
       const { privateKey, publicKey } = await jose.generateKeyPair('RS256');
-      console.log(privateKey.export({ format: 'pem', type: 'pkcs1' }));
-      console.log(publicKey.export({ format: 'pem', type: 'spki' }));
+
+
+      // console.log(privateKey.export({ format: 'pem', type: 'pkcs1' }));
+      // console.log(publicKey.export({ format: 'pem', type: 'spki' }));
     // const privateKey = `
     // -----BEGIN RSA PRIVATE KEY-----
     // MIIBOgIBAAJBALwQbQKXwQwK9vZkQwQbQKXwQwK9vZkQwQbQKXwQwK9vZkQwQbQK
@@ -61,23 +63,16 @@ describe('hanaref-backend API', () => {
     // -----END RSA PRIVATE KEY-----
     // `;
 
-      const token = jwt.sign(
-        {
-          // your claims
-          'www.hanaref-test.com/roles': ['admin'],
-          'www.hanaref-test.com/user_id': 'abcd'
-        },
-        privateKey,
-        {
-          algorithm: 'RS256',
-          keyid: 'test-key-id', // must match JWKS
-          issuer: 'https://mockServer:1090/',
-          audience: 'http://localhost:5000',
-          expiresIn: '1h'
-        }
-      );
+    token = new jose.SignJWT({
+      'www.hanaref-test.com/roles': ['admin'],
+      'www.hanaref-test.com/user_id': 'abcd'
+    })
+    .setProtectedHeader({ alg: 'HS256', kid: 'test-key-id' })
+    .setAudience('http://localhost:5000')
+    .setExpirationTime('1h')
+    .setIssuer('https://mockServer:1090/')
 
-      return token;
+    return token.sign(privateKey);
   }
 
   function compareWithExpectedItems(items, expectedItems, expectedLength) {
