@@ -2,9 +2,7 @@ import axios from 'axios';
 import { init as initDb, close as closeDb } from './mongo';
 import { data as itemsData } from './data/items.js';
 import mockServer from 'mockserver-client';
-import jwt from 'jsonwebtoken';
-//import { generateKeyPair } from 'jose/util/generate_key_pair';
-import { SignJWT, generateSecret } from 'jose';
+import { SignJWT, exportJWK, generateKeyPair } from 'jose';
 
 
 let token;
@@ -13,30 +11,23 @@ describe('hanaref-backend API', () => {
   beforeAll(async () => {
     await initDb();
 
-    token = await generateToken();
+    const { jwk, token: generatedToken } = await generateToken();
+    token = generatedToken;
 
-    mockServer.mockServerClient('localhost', 1090)
+    await mockServer.mockServerClient('localhost', 1080)
+      .clear({ path: '/.well-known/jwks.json' });
+    await mockServer.mockServerClient('localhost', 1080)
       .mockAnyResponse({
         httpRequest: {
           method: 'GET',
-          path: '/.well-known/jwks.json'
+          path: '/.well-known/jwks.json',
         },
         httpResponse: {
           statusCode: 200,
           headers: [
             { name: 'Content-Type', values: ['application/json'] }
           ],
-          body: JSON.stringify({ keys: [
-            {
-              kty: "RSA",
-              kid: "test-key-id",
-              use: "sig",
-              alg: "RS256",
-              n: "your-modulus",
-              e: "AQAB"
-            }
-          ] })
-        }
+          body: JSON.stringify({ keys: [jwk]})}
       })
       .then(response => console.log(response));    
   });
@@ -46,34 +37,23 @@ describe('hanaref-backend API', () => {
   })
 
   async function generateToken() {
-    const secret = await generateSecret('HS256');
-    // const { privateKey, publicKey } = await generateKeyPair('RS256');
-
-
-      // console.log(privateKey.export({ format: 'pem', type: 'pkcs1' }));
-      // console.log(publicKey.export({ format: 'pem', type: 'spki' }));
-    // const privateKey = `
-    // -----BEGIN RSA PRIVATE KEY-----
-    // MIIBOgIBAAJBALwQbQKXwQwK9vZkQwQbQKXwQwK9vZkQwQbQKXwQwK9vZkQwQbQK
-    // XwQwK9vZkQwQbQKXwQwK9vZkQwQbQKXwQwK9vZkQwQbQKXwIDAQABAkA1QwQbQK
-    // XwQwK9vZkQwQbQKXwQwK9vZkQwQbQKXwQwK9vZkQwQbQKXwQwK9vZkQwQbQKXwQ
-    // wK9vZkQwQbQKXwQwK9vZkQwQbQKXwAiEA8wQbQKXwQwK9vZkQwQbQKXwQwK9vZk
-    // QwQbQKXwQwK9vZkCIQDLQwQbQKXwQwK9vZkQwQbQKXwQwK9vZkQwQbQKXwQwK9v
-    // ZkIhAPwQbQKXwQwK9vZkQwQbQKXwQwK9vZkQwQbQKXwQwK9vZkAiEA8wQbQKXw
-    // QwK9vZkQwQbQKXwQwK9vZkQwQbQKXwQwK9vZk=
-    // -----END RSA PRIVATE KEY-----
-    // `;
+    //const secret = await generateSecret('RS256');
+    const { publicKey, privateKey } = await generateKeyPair('RS256');
+    const jwk = await exportJWK(publicKey);
+    jwk.kid = "test-key-id";
+    jwk.alg = 'RS256';
 
     const signJwt = new SignJWT({
       'www.hanaref-test.com/roles': ['admin'],
       'www.hanaref-test.com/user_id': 'abcd'
     })
-    .setProtectedHeader({ alg: 'HS256', kid: 'test-key-id' })
+    .setProtectedHeader({ alg: jwk.alg, kid: jwk.kid })
     .setAudience('http://localhost:5000')
     .setExpirationTime('1h')
-    .setIssuer('https://mockServer:1090/')
+    .setIssuer('https://localhost:1080/')
 
-    return signJwt.sign(secret);
+    //return signJwt.sign(secret);
+    return { jwk, token: await signJwt.sign(privateKey)};
   }
 
   function compareWithExpectedItems(items, expectedItems, expectedLength) {

@@ -22,6 +22,8 @@ const whoIsTheUser = (req, res, next) => {
 
     console.log(`jwks url: https://${authConfig.domain}/.well-known/jwks.json`);
 
+
+
     const client = jwksClient({
         jwksUri: `https://${authConfig.domain}/.well-known/jwks.json`
     });
@@ -41,14 +43,10 @@ const whoIsTheUser = (req, res, next) => {
         algorithms: ['RS256']
     }, (error, userInfo) => { // userInfo: { _id: ..., privilege: "admin"/"hanar" }
         if (error) {
+            console.log(`invalid token: ${error}`);
             res.status(400).send("Invalid token!");
         } else {
-            console.log(`token verification succeeded: ${JSON.stringify(userInfo)}`);
-            console.log(`role: ${userInfo[`${process.env.AUTH0_NAMESPACE}/roles`]?.[0]}`);
-            console.log(`hello!`);
-            console.log(`req user id path is 1: ${process.env.AUTH0_NAMESPACE}/user_id`);
             req.userId = userInfo[`${process.env.AUTH0_NAMESPACE}/user_id`];
-            console.log(`req user id is 2: ${req.userId}`);
             req.userPrivilege = userInfo[`${process.env.AUTH0_NAMESPACE}/roles`]?.[0];
             next();
         }
@@ -69,7 +67,6 @@ const adminAccessOnly = (req, res, next) => {
     if (req.userPrivilege === "admin") {
         next();
     } else {
-        console.log(`hii`);
         res.status(401).send("You are unauthorized to access this endpoint.");
     }
 };
@@ -80,7 +77,6 @@ const hanarAndAboveAccess = (req, res, next) => {
     if (["admin", "hanar"].includes(req.userPrivilege)) {
         next();
     } else {
-        console.log(`hii2`);
         res.status(401).send("You are unauthorized to access this endpoint.");
     }
 };

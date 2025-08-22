@@ -87,7 +87,7 @@ module.exports = {
                 {
                     $project:
                         [ 'name', 'cat', '_id', 'imageLink', 'archived', 'certificationPeriodMonths' ]
-                            .filter(field => !(filteredFieldsForRole[role] ?? {}).includes(field))
+                            .filter(field => !(filteredFieldsForRole[role] ?? []).includes(field))
                             .reduce((obj, field) => ({ ...obj, [field]: 1 }) , {})
                 },
             ])
@@ -96,6 +96,7 @@ module.exports = {
                 .limit(20);
             res.status(200).send(items);
         } catch (error) {
+            console.log(`Error fetching items: ${error}`);
             res.status(400).send(`Error fetching items: ${error}`);
         }
     },
@@ -192,7 +193,8 @@ module.exports = {
                 res.status(404).send("Item could not be found in database");
             }
         } catch (error) {
-            res.status(400).send("Item fetch error: ", error);
+            console.log(`Item fetch error: ${error}`);
+            res.status(400).send(`Item fetch error: ${error}`);
         }
     },
 
