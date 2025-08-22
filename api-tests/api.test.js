@@ -1,12 +1,13 @@
 import axios from 'axios';
 import { init as initDb, close as closeDb } from './mongo';
 import { data as itemsData } from './data/items.js';
+import mockServer from 'mockserver-client';
 
 describe('hanaref-backend API', () => {
   beforeAll(async () => {
     await initDb();
 
-    mockServer('localhost', 1090)
+    mockServer.mockServerClient('localhost', 1090)
       .mockAnyResponse({
         httpRequest: {
           method: 'GET',
