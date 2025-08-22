@@ -22,11 +22,15 @@ const whoIsTheUser = (req, res, next) => {
 
     console.log(`jwks url: https://${authConfig.domain}/.well-known/jwks.json`);
 
-
+    
 
     const client = jwksClient({
         jwksUri: `https://${authConfig.domain}/.well-known/jwks.json`
     });
+
+    const res = fetch(`https://${authConfig.domain}/.well-known/jwks.json`)
+        .then(res => res.json())
+        .then(json => console.log(`retrieved jwks json: ${JSON.stringify(json)}`));
 
     // Function to get the signing key
     function getKey(header, callback) {
