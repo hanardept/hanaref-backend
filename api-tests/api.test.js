@@ -3,6 +3,7 @@ import { init as initDb, close as closeDb } from './mongo';
 import { data as itemsData } from './data/items.js';
 import mockServer from 'mockserver-client';
 import jwt from 'jsonwebtoken';
+import { generateKeyPair } from 'jose/util/generate_key_pair';
 
 describe('hanaref-backend API', () => {
   beforeAll(async () => {
@@ -39,17 +40,22 @@ describe('hanaref-backend API', () => {
   })
 
   function generateToken() {
-    const privateKey = `
-    -----BEGIN RSA PRIVATE KEY-----
-    MIIBOgIBAAJBALwQbQKXwQwK9vZkQwQbQKXwQwK9vZkQwQbQKXwQwK9vZkQwQbQK
-    XwQwK9vZkQwQbQKXwQwK9vZkQwQbQKXwQwK9vZkQwQbQKXwIDAQABAkA1QwQbQK
-    XwQwK9vZkQwQbQKXwQwK9vZkQwQbQKXwQwK9vZkQwQbQKXwQwK9vZkQwQbQKXwQ
-    wK9vZkQwQbQKXwQwK9vZkQwQbQKXwAiEA8wQbQKXwQwK9vZkQwQbQKXwQwK9vZk
-    QwQbQKXwQwK9vZkCIQDLQwQbQKXwQwK9vZkQwQbQKXwQwK9vZkQwQbQKXwQwK9v
-    ZkIhAPwQbQKXwQwK9vZkQwQbQKXwQwK9vZkQwQbQKXwQwK9vZkAiEA8wQbQKXw
-    QwK9vZkQwQbQKXwQwK9vZkQwQbQKXwQwK9vZk=
-    -----END RSA PRIVATE KEY-----
-    `;
+    (async () => {
+      const { privateKey, publicKey } = await generateKeyPair('RS256');
+      console.log(privateKey.export({ format: 'pem', type: 'pkcs1' }));
+      console.log(publicKey.export({ format: 'pem', type: 'spki' }));
+    })();    
+    // const privateKey = `
+    // -----BEGIN RSA PRIVATE KEY-----
+    // MIIBOgIBAAJBALwQbQKXwQwK9vZkQwQbQKXwQwK9vZkQwQbQKXwQwK9vZkQwQbQK
+    // XwQwK9vZkQwQbQKXwQwK9vZkQwQbQKXwQwK9vZkQwQbQKXwIDAQABAkA1QwQbQK
+    // XwQwK9vZkQwQbQKXwQwK9vZkQwQbQKXwQwK9vZkQwQbQKXwQwK9vZkQwQbQKXwQ
+    // wK9vZkQwQbQKXwQwK9vZkQwQbQKXwAiEA8wQbQKXwQwK9vZkQwQbQKXwQwK9vZk
+    // QwQbQKXwQwK9vZkCIQDLQwQbQKXwQwK9vZkQwQbQKXwQwK9vZkQwQbQKXwQwK9v
+    // ZkIhAPwQbQKXwQwK9vZkQwQbQKXwQwK9vZkQwQbQKXwQwK9vZkAiEA8wQbQKXw
+    // QwK9vZkQwQbQKXwQwK9vZkQwQbQKXwQwK9vZk=
+    // -----END RSA PRIVATE KEY-----
+    // `;
 
     const token = jwt.sign(
       {
