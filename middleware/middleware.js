@@ -17,7 +17,7 @@ const whoIsTheUser = (req, res, next) => {
 
     const authConfig = {
         domain: process.env.AUTH0_DOMAIN,
-        audience: 'http://localhost:5000'
+        audience: process.env.BACKEND_URL,
     };
 
     const client = jwksClient({
