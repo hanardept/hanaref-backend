@@ -16,7 +16,7 @@ module.exports = (app) => {
     app.post("/users", [whoIsTheUser, adminAccessOnly], UserController.addUser);
     app.post("/users/self", [whoIsTheUser], UserController.registerUser);
     app.post("/users/:id/confirm", [whoIsTheUser, adminAccessOnly], UserController.confirmUser);
-    // app.put("/users/:id", [whoIsTheUser, adminAccessOnly], UserController.editUser);
+    app.put("/users/:id", [whoIsTheUser, adminAccessOnly], UserController.editUser);
     app.delete("/users/:id", [whoIsTheUser, adminAccessOnly], UserController.deleteUser);
 
     // item-viewing routes:
