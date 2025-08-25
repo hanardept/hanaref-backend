@@ -12,6 +12,7 @@ const whoIsTheUser = (req, res, next) => {
     //console.log(`path: ${req.path}, token: ${req.header("auth-token")}, other: ${req.header("Auth-Token")}`);
     if (!token) {
         res.status(400).send("Invalid token!");
+        return;
     }
 
     const authConfig = {

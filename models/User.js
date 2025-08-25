@@ -10,12 +10,12 @@ const userSchema = new Schema({
     firstName: {
         type: String,
         max: 255,
-        min: 6
+        min: 2
     },
     lastName: {
         type: String,
         max: 255,
-        min: 6
+        min: 2
     },        
     username: {
         type: String,
@@ -38,7 +38,7 @@ const userSchema = new Schema({
     },
     association: {
         type: String,
-        required: true,
+        required: false,
     },
     archived: {
         type: Boolean,

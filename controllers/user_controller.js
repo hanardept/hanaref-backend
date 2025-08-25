@@ -72,7 +72,8 @@ module.exports = {
         const userExistsInDB = await User.findOne({
             $or: [
                 { username: req.body.username },
-                { email: req.body.email }
+                { email: req.body.email },
+                { role: Role.Viewer }
             ]
         });
         if (userExistsInDB) return res.status(400).send("User already registered!");
