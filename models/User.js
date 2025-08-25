@@ -5,7 +5,7 @@ const Role = require('./Role');
 const userSchema = new Schema({
     id: {
         type: String,
-        required: false,
+        required: true,
     },
     firstName: {
         type: String,
@@ -46,7 +46,7 @@ const userSchema = new Schema({
     },
     status: {
         type: String,
-        required: false,
+        required: true,
     }
 });
 
