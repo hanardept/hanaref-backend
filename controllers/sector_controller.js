@@ -4,6 +4,12 @@ module.exports = {
     async getFullSectors(req, res) {
         let sectorsFilter = {};
         if (req.userPrivilege === "public") sectorsFilter = { visibleToPublic: true };
+        const { isMaintenance } = req.query;
+        console.log(`is maintenance: ${isMaintenance}`);
+        if (['true', 'false'].includes(isMaintenance)) {
+            sectorsFilter = { ...sectorsFilter, isMaintenance: isMaintenance === 'true' };
+        }
+        console.log(`type of maintenance: ${typeof sectorsFilter.isMaintenance}`);
 
         try {
             const sectors = await Sector.find(sectorsFilter);
