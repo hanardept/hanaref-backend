@@ -77,6 +77,8 @@ module.exports = {
         });
         if (userExistsInDB) return res.status(400).send("User already registered!");
 
+        const userManagementUser = (await management.users.getAll({ q: `username:"${user.username}"`, fields: [ 'user_id' ], include_fields: true })).data?.[0];;
+
         const user = new User({
             id: '',
             firstName: '',
@@ -88,7 +90,10 @@ module.exports = {
         });
 
         try {
-            await user.save();
+            await Promise.all([
+                user.save(),
+                management.users.update({ id: userManagementUser.user_id }, { user_metadata: { user_id: user._id } })
+            ]);
             res.setHeader('Content-Type', 'application/json');
             res.status(200).send(JSON.stringify({ userId: user._id }));
         } catch (error) {
