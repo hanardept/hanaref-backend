@@ -231,7 +231,7 @@ module.exports = {
             console.error(`Error confirming user for item ${req.params.id}: ${updateError}`);
             res.status(500).send('A server error occurred.');
         }
-    }
+    },
 
     async deleteUser(req, res) {
         // DELETE path: /users/962780438
