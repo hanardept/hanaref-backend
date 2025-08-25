@@ -15,6 +15,7 @@ module.exports = (app) => {
     // user-CUD routes:
     app.post("/users", [whoIsTheUser, adminAccessOnly], UserController.addUser);
     app.post("/users/self", [whoIsTheUser], UserController.registerUser);
+    app.post("/users/confirm", [whoIsTheUser, adminAccessOnly], UserController.confirmUser);
     // app.put("/users/:id", [whoIsTheUser, adminAccessOnly], UserController.editUser);
     app.delete("/users/:id", [whoIsTheUser, adminAccessOnly], UserController.deleteUser);
 
