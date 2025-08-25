@@ -86,7 +86,6 @@ module.exports = {
         if (userExistsInDB) return res.status(400).send("User already registered!");
 
         const management = createManagementClient();
-        const userManagementUser = (await management.users.getAll({ q: `username:"${user.username}"`, fields: [ 'user_id' ], include_fields: true })).data?.[0];;
 
         const user = new User({
             id: '',
@@ -97,6 +96,7 @@ module.exports = {
             role: Role.Viewer,
             status: 'registered',
         });
+        const userManagementUser = (await management.users.getAll({ q: `username:"${user.username}"`, fields: [ 'user_id' ], include_fields: true })).data?.[0];;
 
         try {
             await Promise.all([
