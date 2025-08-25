@@ -179,6 +179,7 @@ module.exports = {
         const { id, firstName, lastName, role, username, email, association } = req.body;
 
         try {
+            const management = createManagementClient();
             const [ originalUser, managementUser ] = await Promise.all([
                 User.findByIdAndUpdate(req.params.id, { id, firstName, lastName, role, username, email, association }),
                 (await management.users.getAll({ q: `user_metadata.user_id:"${originalUser._id}"`, fields: [ 'user_id' ], include_fields: true })).data?.[0]
