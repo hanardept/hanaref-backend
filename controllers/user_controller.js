@@ -10,6 +10,14 @@ var generator = require('generate-password');
 
 const AUTO_LOGOUT_TIME = 8; // in hours
 
+const createManagementClient = () => {
+    return new ManagementClient({
+        domain: process.env.AUTH0_DOMAIN,
+        clientId: process.env.AUTH0_CLIENT_ID,
+        clientSecret: process.env.AUTH0_CLIENT_SECRET
+    });
+};
+
 module.exports = {
     async getUsers(req, res) {
         // GET path: /users?search=jjo&page=0
@@ -77,6 +85,7 @@ module.exports = {
         });
         if (userExistsInDB) return res.status(400).send("User already registered!");
 
+        const management = createManagementClient();
         const userManagementUser = (await management.users.getAll({ q: `username:"${user.username}"`, fields: [ 'user_id' ], include_fields: true })).data?.[0];;
 
         const user = new User({
@@ -135,11 +144,7 @@ module.exports = {
         }        
 
         try {
-            const management = new ManagementClient({
-                domain: process.env.AUTH0_DOMAIN,
-                clientId: process.env.AUTH0_CLIENT_ID,
-                clientSecret: process.env.AUTH0_CLIENT_SECRET
-            });
+            const management = createManagementClient();
 
             const password = generator.generate({
                 length: 10,
@@ -206,11 +211,7 @@ module.exports = {
             const prevStatus = user.status;
             user.status = 'active';
 
-            var management = new ManagementClient({
-                domain: process.env.AUTH0_DOMAIN,
-                clientId: process.env.AUTH0_CLIENT_ID,
-                clientSecret: process.env.AUTH0_CLIENT_SECRET
-            });
+            const management = createManagementClient();
 
             const userManagementUser = (await management.users.getAll({ q: `user_metadata.user_id:"${user._id}"`, fields: [ 'user_id' ], include_fields: true })).data?.[0];;
             const [ dbResult , userManagementResult ] = Promise.allSettled([
@@ -251,11 +252,7 @@ module.exports = {
             ]);
             console.log(`findByIdAndDelete res: ${JSON.stringify(res1)}`);
 
-            var management = new ManagementClient({
-                domain: process.env.AUTH0_DOMAIN,
-                clientId: process.env.AUTH0_CLIENT_ID,
-                clientSecret: process.env.AUTH0_CLIENT_SECRET
-            });
+            const management = createManagementClient();
 
             const createUserRes = await management.users.delete({
                 //id: `auth0|${res1._id}`
