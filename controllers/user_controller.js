@@ -73,7 +73,6 @@ module.exports = {
             $or: [
                 { username: req.body.username },
                 { email: req.body.email },
-                { role: Role.Viewer }
             ]
         });
         if (userExistsInDB) return res.status(400).send("User already registered!");
@@ -81,6 +80,7 @@ module.exports = {
         const user = new User({
             username: req.body.username,
             email: req.body.email,
+            role: Role.Viewer,
             status: 'registered',
         });
 
