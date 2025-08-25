@@ -85,7 +85,8 @@ module.exports = {
 
         try {
             await user.save();
-            res.status(200).send("User created!");
+            res.setHeader('Content-Type', 'application/json');
+            res.status(200).send(JSON.stringify({ userId: user._id }));
         } catch (error) {
             console.log(`error creating user in DB: ${error}`);
             res.status(400).send(error);
@@ -146,6 +147,7 @@ module.exports = {
                 password,
                 connection: 'Username-Password-Authentication',
                 user_metadata: {
+                    user_id,
                     role: req.body.role,
                     status: 'active'
                 },
