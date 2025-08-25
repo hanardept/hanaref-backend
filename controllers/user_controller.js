@@ -63,7 +63,7 @@ module.exports = {
     async getUserInfo(req, res) {
         try {
             const user = await User.findById(req.params.id,
-                { _id: 1, id: 1, firstName: 1, lastName: 1, username: 1, email: 1, role: 1, association: 1 });
+                { _id: 1, id: 1, firstName: 1, lastName: 1, username: 1, email: 1, role: 1, association: 1, status: 1 });
 
             if (user) {
                 res.status(200).send(user);
@@ -173,27 +173,28 @@ module.exports = {
             await User.findByIdAndDelete (user._id);
         }
     },
-    async authenticateUser(req, res) {
+
+    async editUser(req, res) {
+        // PUT path: /users/962780438
+        const { id, firstName, lastName, role, association } = req.body;
+
         try {
-            // check if email registered:
-            //console.log("333333");
-            const user = await User.findOne({ username: req.body.username });
-            //console.log("AAAA");
-            if (!user) return res.status(400).send("username or password wrong!");
+            const [ originalUser, managementUser ] = await Promise.all([
+                User.findByIdAndUpdate(req.params.id, { id, firstName, lastName, role, username, email, association }),
+                (await management.users.getAll({ q: `user_metadata.user_id:"${originalUser._id}"`, fields: [ 'user_id' ], include_fields: true })).data?.[0]
+            ]);
 
-            // check password:
-            const validPassword = await bcrypt.compare(req.body.password, user.password);
-            //console.log("BBBB");
-            if (!validPassword) return res.status(400).send("username or password wrong!");
-
-            // create JWT and send it:
-            const jwtExpiryDate = new Date().getTime() + AUTO_LOGOUT_TIME * 60 * 60 * 1000;
-            const token = jwt.sign({ _id: user._id, privilege: user.privilege }, process.env.JWT_TOKEN_SECRET, { expiresIn: `${AUTO_LOGOUT_TIME}h` });
-
-            res.status(200).send({ authToken: token, frontEndPrivilege: user.privilege, jwtExpiryDate: jwtExpiryDate });
-            // MAKE SURE TO CATCH the auth-token HEADER AND SAVE IN LOCAL STORAGE
+            if (originalUser.role !== role || originalUser.email !== email || originalUser.username !== username) {
+                await management.users.update({ id: managementUser.user_id }, { 
+                    email,
+                    username,
+                    user_metadata: { role }
+                })
+            }
+            
+            res.status(200).send("User updated successfully!");
         } catch (error) {
-            res.status(400).send("MongoDB error - Unable to find user even though password is correct: ", error);
+            res.status(400).send(`Failure updating user: ${error}`);
         }
     },
 
@@ -256,7 +257,6 @@ module.exports = {
             const management = createManagementClient();
 
             const createUserRes = await management.users.delete({
-                //id: `auth0|${res1._id}`
                 id: userManagementRes.user_id,
             });
 
