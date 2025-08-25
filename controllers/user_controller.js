@@ -65,7 +65,32 @@ module.exports = {
         } catch (error) {
             res.status(400).send("User fetch error: ", error);
         }
-    },    
+    },  
+    
+    async registerUser(req, res) {
+        console.log(`registering user with body: ${JSON.stringify(req.body)}, headers: ${JSON.stringify(req.headers)}`);
+        const userExistsInDB = await User.findOne({
+            $or: [
+                { username: req.body.username },
+                { email: req.body.email }
+            ]
+        });
+        if (userExistsInDB) return res.status(400).send("User already registered!");
+
+        const user = new User({
+            username: req.body.username,
+            email: req.body.email,
+            status: 'registered',
+        });
+
+        try {
+            await user.save();
+            res.status(200).send("User created!");
+        } catch (error) {
+            console.log(`error creating user in DB: ${error}`);
+            res.status(400).send(error);
+        }       
+    },
 
     // public routes:
     async addUser(req, res) {
@@ -88,6 +113,7 @@ module.exports = {
             email: req.body.email,
             role: req.body.role ?? Role.Viewer,
             association: req.body.association,
+            status: 'active',
         });
 
         try {

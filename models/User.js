@@ -43,6 +43,10 @@ const userSchema = new Schema({
     archived: {
         type: Boolean,
         required: false,
+    },
+    status: {
+        type: String,
+        required: false,
     }
 });
 
