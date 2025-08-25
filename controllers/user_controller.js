@@ -163,7 +163,8 @@ module.exports = {
                 user_metadata: {
                     user_id,
                     role: req.body.role,
-                    status: 'active'
+                    status: 'active',
+                    api: true,
                 },
                 email_verified: true,
             });
