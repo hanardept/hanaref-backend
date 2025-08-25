@@ -78,6 +78,9 @@ module.exports = {
         if (userExistsInDB) return res.status(400).send("User already registered!");
 
         const user = new User({
+            id: '',
+            firstName: '',
+            lastName: '',
             username: req.body.username,
             email: req.body.email,
             role: Role.Viewer,
