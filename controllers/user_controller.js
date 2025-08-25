@@ -207,7 +207,7 @@ module.exports = {
                 clientSecret: process.env.AUTH0_CLIENT_SECRET
             });
 
-            const userManagementUser = (await management.users.getAll({ q: 'user_metadata.user_id:"1234"', fields: [ 'user_id' ], include_fields: true })).data?.[0];;
+            const userManagementUser = (await management.users.getAll({ q: `user_metadata.user_id:"${user._id}"`, fields: [ 'user_id' ], include_fields: true })).data?.[0];;
             const [ dbResult , userManagementResult ] = Promise.allSettled([
                 await user.save(),
                 await management.users.update({ id: userManagementUser.user_id }, { user_metadata: { status: 'active' } })
@@ -239,7 +239,8 @@ module.exports = {
     async deleteUser(req, res) {
         // DELETE path: /users/962780438
         try {
-            const [res1, res2 ] = await Promise.all([
+            const [userManagementRes, res1, res2 ] = await Promise.all([
+                (await management.users.getAll({ q: `user_metadata.user_id:"${req.params.id}"`, fields: [ 'user_id' ], include_fields: true })).data?.[0],
                 User.findByIdAndDelete(req.params.id),
                 Certification.deleteMany({ user: req.params.id })
             ]);
@@ -252,7 +253,8 @@ module.exports = {
             });
 
             const createUserRes = await management.users.delete({
-                id: `auth0|${res1._id}`
+                //id: `auth0|${res1._id}`
+                id: userManagementRes.user_id,
             });
 
             res.status(200).send("User removed successfully!");
