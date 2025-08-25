@@ -176,7 +176,7 @@ module.exports = {
 
     async editUser(req, res) {
         // PUT path: /users/962780438
-        const { id, firstName, lastName, role, association } = req.body;
+        const { id, firstName, lastName, role, username, email, association } = req.body;
 
         try {
             const [ originalUser, managementUser ] = await Promise.all([
