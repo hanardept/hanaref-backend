@@ -11,8 +11,7 @@ const whoIsTheUser = (req, res, next) => {
     const token = req.header("auth-token");
     //console.log(`path: ${req.path}, token: ${req.header("auth-token")}, other: ${req.header("Auth-Token")}`);
     if (!token) {
-        req.userPrivilege = "public";
-        return next();
+        res.status(400).send("Invalid token!");
     }
 
     const authConfig = {
