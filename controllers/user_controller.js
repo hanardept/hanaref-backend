@@ -158,42 +158,6 @@ module.exports = {
             console.log(`error creating user in Auth0: ${error}`);
             await User.findByIdAndDelete (user._id);
         }
-
-        // const roleId = (await management.roles.getAll({ name_filter: req.body.role })).data?.[0].id;
-        // if (!roleId) {
-        //     res.status(400).send(`Cannot create user with unknown role: ${request.body.role}`);
-        //     return;
-        // }
-
-        // const assignRoleRes = await management.roles.assignUsers({
-        //     id: roleId,
-        // }, { users: [ createUserRes.data.user_id ] });
-
-        // const changePasswordRes = await management.tickets.changePassword({ 
-        //     user_id: createUserRes.data.user_id,
-        //     client_id: process.env.AUTH0_CLIENT_ID,
-        //  });
-
-         //console.log(`change pass res: ${JSON.stringify(changePasswordRes)}`);
-
-        // const user = new User({
-        //     id: req.body.id,
-        //     firstName: req.body.firstName,
-        //     lastName: req.body.lastName,
-        //     username: req.body.username,
-        //     email: req.body.email,
-        //     role: req.body.role ?? Role.Viewer,
-        //     association: req.body.association,
-        // });
-
-        // try {
-        //     await user.save();
-        //     res.status(200).send("User created!");
-        // } catch (error) {
-        //     console.log(`error creating user in DB: ${error}`);
-        //     await management.users.delete({ id: createUserRes.data.user_id });
-        //     res.status(400).send(error);
-        // }
     },
     async authenticateUser(req, res) {
         try {
@@ -218,6 +182,56 @@ module.exports = {
             res.status(400).send("MongoDB error - Unable to find user even though password is correct: ", error);
         }
     },
+
+    async confirmUser(req, res) {
+        console.log(`confirming user with id: ${req.params.id}`);
+
+        let updateError;
+
+        try {
+            const user = await User.findById(req.params.id);
+
+            if (!user) {
+                return res.status(404).send('User not found.');
+            }
+
+            const prevStatus = user.status;
+            user.status = 'active';
+
+            var management = new ManagementClient({
+                domain: process.env.AUTH0_DOMAIN,
+                clientId: process.env.AUTH0_CLIENT_ID,
+                clientSecret: process.env.AUTH0_CLIENT_SECRET
+            });
+
+            const userManagementUser = (await management.users.getAll({ q: 'user_metadata.user_id:"1234"', fields: [ 'user_id' ], include_fields: true })).data?.[0];;
+            const [ dbResult , userManagementResult ] = Promise.allSettled([
+                await user.save(),
+                await management.users.update({ id: userManagementUser.user_id }, { user_metadata: { status: 'active' } })
+            ]);
+            if (dbResult.status === 'rejected') {
+                updateError = dbResult.reason;
+                await management.users.update({ id: userManagementUser.user_id }, { user_metadata: { status: prevStatus } });
+            }
+            if (userManagementResult.status === 'rejected') {
+                updateError = userManagementResult.reason;;
+                user.status = prevStatus;
+                await user.save();
+            }
+
+            if (!updateError) {
+                res.status(200).json(user);
+            }
+
+        } catch (error) {
+            updateError = error;
+        }
+        
+        if (updateError) {
+            console.error(`Error confirming user for item ${req.params.id}: ${updateError}`);
+            res.status(500).send('A server error occurred.');
+        }
+    }
 
     async deleteUser(req, res) {
         // DELETE path: /users/962780438
