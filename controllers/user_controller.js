@@ -186,11 +186,19 @@ module.exports = {
             ]);
 
             if (originalUser.role !== role || originalUser.email !== email || originalUser.username !== username) {
-                await management.users.update({ id: managementUser.user_id }, { 
-                    email,
-                    username,
-                    user_metadata: { role }
-                })
+                // Email and username cannot be updated simultaneously in Auth0, so we do it in two steps
+                if (originalUser.email !== email) {
+                    await management.users.update({ id: managementUser.user_id }, { 
+                        email,
+                        user_metadata: { role }
+                    })
+                }
+                if (originalUser.username !== username) {
+                    await management.users.update({ id: managementUser.user_id }, { 
+                        username,
+                        user_metadata: { role }
+                    })
+                }
             }
             
             res.status(200).send("User updated successfully!");
