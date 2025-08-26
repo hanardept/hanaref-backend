@@ -179,17 +179,42 @@ module.exports = {
         const { id, firstName, lastName, role, username, email, association } = req.body;
 
         try {
+            const management = createManagementClient();
             const [ originalUser, managementUser ] = await Promise.all([
                 User.findByIdAndUpdate(req.params.id, { id, firstName, lastName, role, username, email, association }),
-                (await management.users.getAll({ q: `user_metadata.user_id:"${originalUser._id}"`, fields: [ 'user_id' ], include_fields: true })).data?.[0]
+                (await management.users.getAll({ q: `user_metadata.user_id:"${req.params.id}"`, fields: [ 'user_id' ], include_fields: true })).data?.[0]
             ]);
 
-            if (originalUser.role !== role || originalUser.email !== email || originalUser.username !== username) {
-                await management.users.update({ id: managementUser.user_id }, { 
-                    email,
-                    username,
-                    user_metadata: { role }
-                })
+            const managementFields = [ 'role', 'email', 'username', 'firstName', 'lastName' ];
+            const idFields = [ 'username', 'email'] ;
+            const changedFields = managementFields.filter(field => originalUser[field] !== req.body[field])
+            if (changedFields.length) {
+                const nonIdFields = changedFields.filter(field => !idFields.includes(field));
+                const nonIdChanges = nonIdFields.reduce((obj, field) => {
+                    switch (field) {
+                        case 'firstName':
+                            return { ...obj, given_name: req.body.firstName };
+                        case 'lastName':
+                            return { ...obj, family_name: req.body.lastName };
+                        case 'role':
+                            return { ...obj, user_metadata: { ...obj.user_metadata, role: req.body.role } };
+                        default:
+                            return { ...obj, [field]: req.body[field] };
+                    }
+                }, {});
+                // Email and username cannot be updated simultaneously in Auth0, so we divide the auth0 update to 2 steps
+                let changeObjs = idFields
+                    .filter(field => originalUser[field] !== req.body[field])
+                    .map(field => ({ [field]: req.body[field] }));
+                if (changeObjs.length) {
+                    changeObjs[0] = { ...changeObjs[0], ...nonIdChanges };
+                } else {
+                    changeObjs = [ nonIdChanges ];
+                }
+                console.log(`auth0 change objs: ${JSON.stringify(changeObjs)}`);
+                for (const changeObj of changeObjs) {
+                    await management.users.update({ id: managementUser.user_id }, changeObj)
+                }
             }
             
             res.status(200).send("User updated successfully!");
