@@ -93,7 +93,8 @@ module.exports = {
             ])
                 .sort("name")
                 .skip(page * 20)
-                .limit(20);
+                .limit(20)
+                .populate('supplier', '_id name');
             res.status(200).send(items);
         } catch (error) {
             console.log(`Error fetching items: ${error}`);
