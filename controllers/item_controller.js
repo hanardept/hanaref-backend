@@ -178,7 +178,7 @@ module.exports = {
                         models_image: 0,
                         consumables_image: 0,
                         kitItem_image: 0,
-                        ...(filteredFieldsForRole[role] ?? {}).reduce((obj, field) => ({ ...obj, [field]: 0 }) , {})
+                        ...(filteredFieldsForRole[role] ?? []).reduce((obj, field) => ({ ...obj, [field]: 0 }) , {})
                     }
                 }
             ]))?.[0];
