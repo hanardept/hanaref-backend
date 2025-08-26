@@ -158,6 +158,7 @@ module.exports = {
                 email: req.body.email,
                 given_name: req.body.firstName,
                 family_name: req.body.lastName,
+                name: [req.body.firstName, req.body.lastName].filter(n => n).join(' '),
                 password,
                 connection: 'Username-Password-Authentication',
                 user_metadata: {
@@ -193,9 +194,9 @@ module.exports = {
                 const nonIdChanges = nonIdFields.reduce((obj, field) => {
                     switch (field) {
                         case 'firstName':
-                            return { ...obj, given_name: req.body.firstName };
+                            return { ...obj, given_name: req.body.firstName, name: [req.body.firstName, req.body.lastName ?? originalUser.lastName].filter(n => n).join(' ') };
                         case 'lastName':
-                            return { ...obj, family_name: req.body.lastName };
+                            return { ...obj, family_name: req.body.lastName, name: [req.body.firstName ?? originalUser.firstName, req.body.lastName].filter(n => n).join(' ') };
                         case 'role':
                             return { ...obj, user_metadata: { ...obj.user_metadata, role: req.body.role } };
                         default:
