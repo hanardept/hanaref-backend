@@ -159,7 +159,7 @@ module.exports = {
                 password,
                 connection: 'Username-Password-Authentication',
                 user_metadata: {
-                    user_id,
+                    user_id: user._id,
                     role: req.body.role,
                     status: 'active',
                     api: true,
