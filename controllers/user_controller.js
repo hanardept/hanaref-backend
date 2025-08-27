@@ -242,9 +242,9 @@ module.exports = {
             const management = createManagementClient();
 
             const userManagementUser = (await management.users.getAll({ q: `user_metadata.user_id:"${user._id}"`, fields: [ 'user_id' ], include_fields: true })).data?.[0];;
-            const [ dbResult , userManagementResult ] = Promise.allSettled([
-                await user.save(),
-                await management.users.update({ id: userManagementUser.user_id }, { user_metadata: { status: 'active' } })
+            const [ dbResult , userManagementResult ] = await Promise.allSettled([
+                user.save(),
+                management.users.update({ id: userManagementUser.user_id }, { user_metadata: { status: 'active' } })
             ]);
             if (dbResult.status === 'rejected') {
                 updateError = dbResult.reason;
