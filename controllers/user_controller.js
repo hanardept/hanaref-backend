@@ -273,14 +273,13 @@ module.exports = {
     async deleteUser(req, res) {
         // DELETE path: /users/962780438
         try {
+            const management = createManagementClient();
             const [userManagementRes, res1, res2 ] = await Promise.all([
                 (await management.users.getAll({ q: `user_metadata.user_id:"${req.params.id}"`, fields: [ 'user_id' ], include_fields: true })).data?.[0],
                 User.findByIdAndDelete(req.params.id),
                 Certification.deleteMany({ user: req.params.id })
             ]);
             console.log(`findByIdAndDelete res: ${JSON.stringify(res1)}`);
-
-            const management = createManagementClient();
 
             const createUserRes = await management.users.delete({
                 id: userManagementRes.user_id,
@@ -289,7 +288,7 @@ module.exports = {
             res.status(200).send("User removed successfully!");
         } catch (error) {
             console.log(`Error deleting user: ${error}`);
-            res.status(400).send(`Unable to delete user from the DB: ${error}`);
+            res.status(400).send('Unable to delete user');
         }
     },
 
