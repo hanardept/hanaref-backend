@@ -10,35 +10,19 @@ module.exports = {
         // privilege stored in req.userPrivilege ("public"/"hanar"/"admin")
         console.log(`status: ${status}, search: ${search ? "yes" : "no"}`);
         try {
-
-            const query = { $and: [
-                    (status !== 'all') ? { archived: {$ne: true} } : {},
-                    search
-                    ? {
-                        $or: [
-                            { id: { $regex: decodedSearch, $options: "i" } },
-                            { firstName: { $regex: decodedSearch, $options: "i" } },
-                            { lastName: { $regex: decodedSearch, $options: "i" } },
-                            { association: { $regex: decodedSearch, $options: "i" } },
-                        ]
-                    } : {}
-                    ] };
-            console.log(`query: ${JSON.stringify(query)}`);
-
             const users = await User
                 .find({ $and: [
                     (status !== 'all') ? { archived: {$ne: true} } : {},
                     search
                     ? {
                         $or: [
-                            { id: { $regex: decodedSearch, $options: "i" } },
                             { firstName: { $regex: decodedSearch, $options: "i" } },
                             { lastName: { $regex: decodedSearch, $options: "i" } },
                             { association: { $regex: decodedSearch, $options: "i" } },
                         ]
                     } : {}
                     ] },
-                    { id: 1, firstName: 1, lastName: 1, association: 1, archived: 1, _id: 1 },
+                    { firstName: 1, lastName: 1, association: 1, archived: 1, _id: 1 },
                 )
                 .sort("firstName")
                 .skip(page * 20)
@@ -54,7 +38,7 @@ module.exports = {
         try {
 
             const user = await User.findById(req.params.id,
-                { _id: 1, id: 1, firstName: 1, lastName: 1, association: 1, archived: 1 });
+                { _id: 1, firstName: 1, lastName: 1, association: 1, archived: 1 });
 
             if (user) {
                 res.status(200).send(user);
@@ -70,17 +54,14 @@ module.exports = {
     async addTechnician(req, res) {
         // POST path: /technicians
         const {
-            id, firstName, lastName, association
+            firstName, lastName, association
         } = req.body;
 
         const newUser = new User({
-            id, firstName, lastName, association
+            firstName, lastName, association
         });
 
         try {  
-            const idAlreadyExists = await User.findOne({ id: id });
-            if (idAlreadyExists) return res.status(400).send({ errorMsg: "This id number is already in the database." });
-
             await newUsersave();
             res.status(200).send("User saved successfully!");
         } catch (error) {
@@ -90,10 +71,10 @@ module.exports = {
 
     async editTechnician(req, res) {
         // PUT path: /technicians/962780438
-        const { id, firstName, lastName, association } = req.body;
+        const { firstName, lastName, association } = req.body;
 
         try {
-            await User.findByIdAndUpdate(req.params.id, { id, firstName, lastName, association });
+            await User.findByIdAndUpdate(req.params.id, { firstName, lastName, association });
             res.status(200).send("User updated successfully!");
         } catch (error) {
             res.status(400).send("Failure updating user: ", error);
