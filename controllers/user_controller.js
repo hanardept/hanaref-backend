@@ -288,6 +288,7 @@ module.exports = {
 
             res.status(200).send("User removed successfully!");
         } catch (error) {
+            console.log(`Error deleting user: ${error}`);
             res.status(400).send(`Unable to delete user from the DB: ${error}`);
         }
     },
