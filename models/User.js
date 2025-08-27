@@ -3,10 +3,6 @@ const Schema = mongoose.Schema;
 const Role = require('./Role');
 
 const userSchema = new Schema({
-    id: {
-        type: String,
-        required: false,
-    },
     firstName: {
         type: String,
         max: 255,
