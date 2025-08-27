@@ -48,7 +48,7 @@ module.exports = {
                             { email: { $regex: decodedSearch, $options: "i" } },
                         ]
                     } : {},
-                    { id: 1, firstName: 1, lastName: 1, username: 1, role: 1, _id: 1 },
+                    { firstName: 1, lastName: 1, username: 1, role: 1, _id: 1 },
                 )
                 .sort("firstName")
                 .skip(page * 20)
@@ -63,7 +63,7 @@ module.exports = {
     async getUserInfo(req, res) {
         try {
             const user = await User.findById(req.params.id,
-                { _id: 1, id: 1, firstName: 1, lastName: 1, username: 1, email: 1, role: 1, association: 1, status: 1 });
+                { _id: 1, firstName: 1, lastName: 1, username: 1, email: 1, role: 1, association: 1, status: 1 });
 
             if (user) {
                 res.status(200).send(user);
@@ -88,7 +88,6 @@ module.exports = {
         const management = createManagementClient();
 
         const user = new User({
-            id: '',
             firstName: '',
             lastName: '',
             username: req.body.username,
@@ -117,7 +116,6 @@ module.exports = {
         // check if username already registered:
         const userExistsInDB = await User.findOne({
             $or: [
-                { id: req.body.id },
                 { username: req.body.username },
                 { email: req.body.email }
             ]
@@ -125,7 +123,6 @@ module.exports = {
         if (userExistsInDB) return res.status(400).send("User already registered!");
 
         const user = new User({
-            id: req.body.id,
             firstName: req.body.firstName,
             lastName: req.body.lastName,
             username: req.body.username,
@@ -177,12 +174,12 @@ module.exports = {
 
     async editUser(req, res) {
         // PUT path: /users/962780438
-        const { id, firstName, lastName, role, username, email, association } = req.body;
+        const { firstName, lastName, role, username, email, association } = req.body;
 
         try {
             const management = createManagementClient();
             const [ originalUser, managementUser ] = await Promise.all([
-                User.findByIdAndUpdate(req.params.id, { id, firstName, lastName, role, username, email, association }),
+                User.findByIdAndUpdate(req.params.id, { firstName, lastName, role, username, email, association }),
                 (await management.users.getAll({ q: `user_metadata.user_id:"${req.params.id}"`, fields: [ 'user_id' ], include_fields: true })).data?.[0]
             ]);
 
@@ -289,23 +286,6 @@ module.exports = {
         } catch (error) {
             console.log(`Error deleting user: ${error}`);
             res.status(400).send('Unable to delete user');
-        }
-    },
-
-    // user-only routes:
-
-    // NO NEED FOR LOGOUT ROUTE SINCE WE ONLY CLEAR THE HEADERS FROM LOCAL STORAGE
-
-    async changePassword(req, res) {
-        try {
-            const salty = await bcrypt.genSalt(10);
-            const hashedPassword = await bcrypt.hash(req.body.password, salty);
-
-            await User.findOneAndUpdate({ _id: req.userId }, { password: hashedPassword });
-
-            res.status(200).send("Successfully changed password! Please log in again.");
-        } catch (error) {
-            res.status(400).send("Error changing password: ", error);
         }
     },
 };
