@@ -48,7 +48,7 @@ module.exports = {
                             { email: { $regex: decodedSearch, $options: "i" } },
                         ]
                     } : {},
-                    { id: 1, firstName: 1, lastName: 1, username: 1, role: 1, _id: 1 },
+                    { firstName: 1, lastName: 1, username: 1, role: 1, _id: 1 },
                 )
                 .sort("firstName")
                 .skip(page * 20)
@@ -63,7 +63,7 @@ module.exports = {
     async getUserInfo(req, res) {
         try {
             const user = await User.findById(req.params.id,
-                { _id: 1, id: 1, firstName: 1, lastName: 1, username: 1, email: 1, role: 1, association: 1, status: 1 });
+                { _id: 1, firstName: 1, lastName: 1, username: 1, email: 1, role: 1, association: 1, status: 1 });
 
             if (user) {
                 res.status(200).send(user);
@@ -88,7 +88,6 @@ module.exports = {
         const management = createManagementClient();
 
         const user = new User({
-            id: '',
             firstName: '',
             lastName: '',
             username: req.body.username,
@@ -101,7 +100,7 @@ module.exports = {
         try {
             await Promise.all([
                 user.save(),
-                management.users.update({ id: userManagementUser.user_id }, { user_metadata: { user_id: user._id } })
+                management.users.update({ id: userManagementUser.user_id }, { user_metadata: { user_id: user._id, role: user.role } })
             ]);
             res.setHeader('Content-Type', 'application/json');
             res.status(200).send(JSON.stringify({ userId: user._id }));
@@ -117,7 +116,6 @@ module.exports = {
         // check if username already registered:
         const userExistsInDB = await User.findOne({
             $or: [
-                { id: req.body.id },
                 { username: req.body.username },
                 { email: req.body.email }
             ]
@@ -125,7 +123,6 @@ module.exports = {
         if (userExistsInDB) return res.status(400).send("User already registered!");
 
         const user = new User({
-            id: req.body.id,
             firstName: req.body.firstName,
             lastName: req.body.lastName,
             username: req.body.username,
@@ -158,6 +155,7 @@ module.exports = {
                 email: req.body.email,
                 given_name: req.body.firstName,
                 family_name: req.body.lastName,
+                name: [req.body.firstName, req.body.lastName].filter(n => n).join(' '),
                 password,
                 connection: 'Username-Password-Authentication',
                 user_metadata: {
@@ -176,20 +174,45 @@ module.exports = {
 
     async editUser(req, res) {
         // PUT path: /users/962780438
-        const { id, firstName, lastName, role, association } = req.body;
+        const { firstName, lastName, role, username, email, association } = req.body;
 
         try {
+            const management = createManagementClient();
             const [ originalUser, managementUser ] = await Promise.all([
-                User.findByIdAndUpdate(req.params.id, { id, firstName, lastName, role, username, email, association }),
-                (await management.users.getAll({ q: `user_metadata.user_id:"${originalUser._id}"`, fields: [ 'user_id' ], include_fields: true })).data?.[0]
+                User.findByIdAndUpdate(req.params.id, { firstName, lastName, role, username, email, association }),
+                (await management.users.getAll({ q: `user_metadata.user_id:"${req.params.id}"`, fields: [ 'user_id' ], include_fields: true })).data?.[0]
             ]);
 
-            if (originalUser.role !== role || originalUser.email !== email || originalUser.username !== username) {
-                await management.users.update({ id: managementUser.user_id }, { 
-                    email,
-                    username,
-                    user_metadata: { role }
-                })
+            const managementFields = [ 'role', 'email', 'username', 'firstName', 'lastName' ];
+            const idFields = [ 'username', 'email'] ;
+            const changedFields = managementFields.filter(field => originalUser[field] !== req.body[field])
+            if (changedFields.length) {
+                const nonIdFields = changedFields.filter(field => !idFields.includes(field));
+                const nonIdChanges = nonIdFields.reduce((obj, field) => {
+                    switch (field) {
+                        case 'firstName':
+                            return { ...obj, given_name: req.body.firstName, name: [req.body.firstName, req.body.lastName ?? originalUser.lastName].filter(n => n).join(' ') };
+                        case 'lastName':
+                            return { ...obj, family_name: req.body.lastName, name: [req.body.firstName ?? originalUser.firstName, req.body.lastName].filter(n => n).join(' ') };
+                        case 'role':
+                            return { ...obj, user_metadata: { ...obj.user_metadata, role: req.body.role } };
+                        default:
+                            return { ...obj, [field]: req.body[field] };
+                    }
+                }, {});
+                // Email and username cannot be updated simultaneously in Auth0, so we divide the auth0 update to 2 steps
+                let changeObjs = idFields
+                    .filter(field => originalUser[field] !== req.body[field])
+                    .map(field => ({ [field]: req.body[field] }));
+                if (changeObjs.length) {
+                    changeObjs[0] = { ...changeObjs[0], ...nonIdChanges };
+                } else {
+                    changeObjs = [ nonIdChanges ];
+                }
+                console.log(`auth0 change objs: ${JSON.stringify(changeObjs)}`);
+                for (const changeObj of changeObjs) {
+                    await management.users.update({ id: managementUser.user_id }, changeObj)
+                }
             }
             
             res.status(200).send("User updated successfully!");
@@ -216,9 +239,9 @@ module.exports = {
             const management = createManagementClient();
 
             const userManagementUser = (await management.users.getAll({ q: `user_metadata.user_id:"${user._id}"`, fields: [ 'user_id' ], include_fields: true })).data?.[0];;
-            const [ dbResult , userManagementResult ] = Promise.allSettled([
-                await user.save(),
-                await management.users.update({ id: userManagementUser.user_id }, { user_metadata: { status: 'active' } })
+            const [ dbResult , userManagementResult ] = await Promise.allSettled([
+                user.save(),
+                management.users.update({ id: userManagementUser.user_id }, { user_metadata: { status: 'active' } })
             ]);
             if (dbResult.status === 'rejected') {
                 updateError = dbResult.reason;
@@ -247,6 +270,7 @@ module.exports = {
     async deleteUser(req, res) {
         // DELETE path: /users/962780438
         try {
+            const management = createManagementClient();
             const [userManagementRes, res1, res2 ] = await Promise.all([
                 (await management.users.getAll({ q: `user_metadata.user_id:"${req.params.id}"`, fields: [ 'user_id' ], include_fields: true })).data?.[0],
                 User.findByIdAndDelete(req.params.id),
@@ -254,32 +278,14 @@ module.exports = {
             ]);
             console.log(`findByIdAndDelete res: ${JSON.stringify(res1)}`);
 
-            const management = createManagementClient();
-
             const createUserRes = await management.users.delete({
                 id: userManagementRes.user_id,
             });
 
             res.status(200).send("User removed successfully!");
         } catch (error) {
-            res.status(400).send(`Unable to delete user from the DB: ${error}`);
-        }
-    },
-
-    // user-only routes:
-
-    // NO NEED FOR LOGOUT ROUTE SINCE WE ONLY CLEAR THE HEADERS FROM LOCAL STORAGE
-
-    async changePassword(req, res) {
-        try {
-            const salty = await bcrypt.genSalt(10);
-            const hashedPassword = await bcrypt.hash(req.body.password, salty);
-
-            await User.findOneAndUpdate({ _id: req.userId }, { password: hashedPassword });
-
-            res.status(200).send("Successfully changed password! Please log in again.");
-        } catch (error) {
-            res.status(400).send("Error changing password: ", error);
+            console.log(`Error deleting user: ${error}`);
+            res.status(400).send('Unable to delete user');
         }
     },
 };

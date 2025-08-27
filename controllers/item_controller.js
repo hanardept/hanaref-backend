@@ -54,7 +54,7 @@ module.exports = {
                 sectorsVisibleForPublic = rawSectorObjects.map((s) => s.sectorName);
             }
 
-            const actualSearchFields = searchFields ?? [ 'name', 'cat', 'models.name', 'models.cat' ]
+            const actualSearchFields = searchFields ?? [ 'name', 'cat', 'models.name', 'models.cat', 'kitCats' ]
 
             const items = await Item.aggregate([
                 {
@@ -66,6 +66,7 @@ module.exports = {
                               $or: [
                                   actualSearchFields.includes('name') && { name: { $regex: decodedSearch, $options: "i" } },
                                   actualSearchFields.includes('cat') && { cat: { $regex: decodedSearch } },
+                                  actualSearchFields.includes('kitCats') && { kitCats: { $regex: decodedSearch } },
                                   actualSearchFields.includes('models.name') && { "models.name": { $regex: decodedSearch, $options: "i" } },
                                   actualSearchFields.includes('models.cat') && { "models.cat": { $regex: decodedSearch, $options: "i" } },
                               ].filter(Boolean),
@@ -178,7 +179,7 @@ module.exports = {
                         models_image: 0,
                         consumables_image: 0,
                         kitItem_image: 0,
-                        ...(filteredFieldsForRole[role] ?? {}).reduce((obj, field) => ({ ...obj, [field]: 0 }) , {})
+                        ...(filteredFieldsForRole[role] ?? []).reduce((obj, field) => ({ ...obj, [field]: 0 }) , {})
                     }
                 }
             ]))?.[0];
@@ -203,12 +204,12 @@ module.exports = {
         // POST path: /items
         const {
             name, cat, kitCats, sector, department, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, models, accessories, consumables, spareParts, belongsToDevices, similarItems, kitItem,
-            hebrewManualLink, serviceManualLink, userManualLink, supplier, lifeSpan
+            hebrewManualLink, serviceManualLink, userManualLink, emergency, supplier, lifeSpan
         } = req.body;
 
         const newItem = new Item({
             name, cat, kitCats, sector, department, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, models, accessories, consumables, spareParts, belongsToDevices, similarItems, kitItem,
-            hebrewManualLink, serviceManualLink, userManualLink, supplier, lifeSpan
+            hebrewManualLink, serviceManualLink, userManualLink, emergency, supplier, lifeSpan
         });
 
         try {
@@ -298,7 +299,7 @@ module.exports = {
         // PUT path: /items/962780438
         const {
             name, cat, kitCats, sector, department, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, models, accessories, consumables, spareParts, belongsToDevices, similarItems, kitItem,
-            hebrewManualLink, serviceManualLink, userManualLink, supplier, lifeSpan
+            hebrewManualLink, serviceManualLink, userManualLink, emergency, supplier, lifeSpan
         } = req.body;        
 
         try {
@@ -306,7 +307,7 @@ module.exports = {
                 { cat: req.params.cat },
                 { 
                     name, cat, kitCats, sector, department, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, models, accessories, consumables, spareParts, belongsToDevices, similarItems, kitItem,
-                    hebrewManualLink, serviceManualLink, userManualLink, supplier, lifeSpan
+                    hebrewManualLink, serviceManualLink, userManualLink, emergency, supplier, lifeSpan
                 },
                 { returnOriginal: true }
             ).then(original => {
@@ -575,6 +576,10 @@ module.exports = {
             key: 'userManualLink',
             width: 30
         }, {
+            header: 'חירום',
+            key: 'emergency',
+            width: 10
+        }, {
             header: 'בארכיון',
             key: 'archived',
             width: 10
@@ -594,7 +599,7 @@ module.exports = {
         do {
             items = await Item.find({}, { 
                     name: 1, cat: 1, kitCats: 1, sector: 1, department: 1, models: 1, archived: 1, catType: 1, certificationPeriodMonths: 1, description: 1, imageLink: 1, qaStandardLink: 1, medicalEngineeringManualLink: 1, 
-                    serviceManualLink: 1, userManualLink: 1, hebrewManualLink: 1, supplier: 1, lifeSpan: 1, belongsToDevices: 1, similarItems: 1, kitItem: 1 
+                    serviceManualLink: 1, userManualLink: 1, hebrewManualLink: 1, emergency: 1, supplier: 1, lifeSpan: 1, belongsToDevices: 1, similarItems: 1, kitItem: 1 
                 })
                 .sort('cat')
                 .skip(offset)
@@ -602,11 +607,12 @@ module.exports = {
             if (items?.length) {
                 worksheet.addRows(items.map(({ 
                     name, cat, kitCats, sector, department, models, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, serviceManualLink, userManualLink,
-                    hebrewManualLink, archived, belongsToDevices, similarItems, supplier, lifeSpan,
+                    hebrewManualLink, archived, belongsToDevices, similarItems, emergency, supplier, lifeSpan,
                 }) => (
                     { 
                         name, cat, sector, department, models, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, serviceManualLink, userManualLink, 
                         hebrewManualLink, supplier, lifeSpan,
+                        emergency: emergency ? 'כן' : 'לא',
                         kitCats: kitCats?.join('\r\n'),
                         archived: archived ? 'כן' : 'לא',
                         belongsToDevices: belongsToDevices?.map(b => b.cat).join('\r\n'),

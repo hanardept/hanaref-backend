@@ -49,6 +49,7 @@ const itemSchema = new Schema({
     userManualLink: String,
     serviceManualLink: String,
     hebrewManualLink: String,
+    emergency: Boolean,
     supplier: String,
     lifeSpan: String,
     models: [new Schema({ ...nameAndCatSchema.obj, manufacturer: String })],
