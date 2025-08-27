@@ -101,7 +101,7 @@ module.exports = {
         try {
             await Promise.all([
                 user.save(),
-                management.users.update({ id: userManagementUser.user_id }, { user_metadata: { user_id: user._id } })
+                management.users.update({ id: userManagementUser.user_id }, { user_metadata: { user_id: user._id, role: user.role } })
             ]);
             res.setHeader('Content-Type', 'application/json');
             res.status(200).send(JSON.stringify({ userId: user._id }));
