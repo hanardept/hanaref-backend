@@ -93,8 +93,8 @@ module.exports = {
             ])
                 .sort("name")
                 .skip(page * 20)
-                .limit(20)
-                .populate('supplier', '_id name');
+                .limit(20);
+            
             res.status(200).send(items);
         } catch (error) {
             console.log(`Error fetching items: ${error}`);
@@ -114,7 +114,7 @@ module.exports = {
                 sectorsVisibleForPublic = rawSectorObjects.map((s) => s.sectorName);
             }
 
-            const item = (await Item.aggregate([
+            let item = (await Item.aggregate([
                 { $match: { cat: req.params.cat } },
                 { $unwind: { path: '$accessories', preserveNullAndEmptyArrays: true } },
                 { $lookup: { from: 'items', localField: 'accessories.cat', foreignField: 'cat', as: 'accessories_image', pipeline: [{ $project: { imageLink: 1 } }] } },
@@ -188,6 +188,8 @@ module.exports = {
                 if (req.userPrivilege === "public" && !sectorsVisibleForPublic.includes(item.sector)) {
                     return res.status(401).send("You are not authorized to view this item.");
                 }
+
+                item = await Item.populate(item, { path: 'supplier', select: '_id name' });
 
                 res.status(200).send(item);
             } else {
