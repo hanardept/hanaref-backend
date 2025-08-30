@@ -26,18 +26,6 @@ module.exports = {
         // privilege stored in req.userPrivilege ("public"/"hanar"/"admin")
         console.log(`search: ${search ? "yes" : "no"}`);
         try {
-
-            const query = search
-                    ? {
-                        $or: [
-                            { firstName: { $regex: decodedSearch, $options: "i" } },
-                            { lastName: { $regex: decodedSearch, $options: "i" } },
-                            { username: { $regex: decodedSearch, $options: "i" } },
-                            { email: { $regex: decodedSearch, $options: "i" } },
-                        ]
-                    } : {};
-            console.log(`query: ${JSON.stringify(query)}`);
-
             const users = await User
                 .find(search
                     ? {

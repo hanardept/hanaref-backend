@@ -50,7 +50,10 @@ const itemSchema = new Schema({
     serviceManualLink: String,
     hebrewManualLink: String,
     emergency: Boolean,
-    supplier: String,
+    supplier: {
+        type: Schema.Types.ObjectId,
+        ref: "Supplier",
+    },
     lifeSpan: String,
     models: [new Schema({ ...nameAndCatSchema.obj, manufacturer: String })],
     accessories: [nameAndCatSchema],
