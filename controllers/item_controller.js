@@ -189,7 +189,7 @@ module.exports = {
                     return res.status(401).send("You are not authorized to view this item.");
                 }
 
-                item = await Item.populate(item, { path: 'supplier', select: '_id name' });
+                item = await Item.populate(item, { path: 'supplier', select: '_id id name' });
 
                 res.status(200).send(item);
             } else {
