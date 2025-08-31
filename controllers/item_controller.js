@@ -189,6 +189,10 @@ module.exports = {
                     return res.status(401).send("You are not authorized to view this item.");
                 }
 
+                if (!item.supplier) {
+                    const supplierItems = [ item.belongsToDevices.map(d => d._id) ];
+                }
+                const suppliers = Supplier.find({ _id: { $in: [ ]}})
                 item = await Item.populate(item, { path: 'supplier', select: '_id id name' });
 
                 res.status(200).send(item);
@@ -213,6 +217,8 @@ module.exports = {
             name, cat, kitCats, sector, department, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, models, accessories, consumables, spareParts, belongsToDevices, similarItems, kitItem,
             hebrewManualLink, serviceManualLink, userManualLink, emergency, supplier, lifeSpan
         });
+
+        
 
         try {
             const catAlreadyExists = await Item.findOne({ cat: cat });
