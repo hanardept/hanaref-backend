@@ -7,6 +7,11 @@ const nameAndCatSchema = new Schema({
     cat: String,
 });
 
+const timestampedNamedAnCatSchema = new Schema(
+    nameAndCatSchema.obj,
+     { timestamps: { createdAt: true, updatedAt: false }}
+);
+
 const itemSchema = new Schema({
     name: {
         type: String,
@@ -50,13 +55,16 @@ const itemSchema = new Schema({
     serviceManualLink: String,
     hebrewManualLink: String,
     emergency: Boolean,
-    supplier: String,
+    supplier: {
+        type: Schema.Types.ObjectId,
+        ref: "Supplier",
+    },
     lifeSpan: String,
     models: [new Schema({ ...nameAndCatSchema.obj, manufacturer: String })],
     accessories: [nameAndCatSchema],
     consumables: [nameAndCatSchema],
     spareParts: [nameAndCatSchema],
-    belongsToDevices: [nameAndCatSchema],
+    belongsToDevices: [timestampedNamedAnCatSchema],
     similarItems: [nameAndCatSchema],
     kitItem: [nameAndCatSchema],
 });

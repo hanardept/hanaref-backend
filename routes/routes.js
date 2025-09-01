@@ -5,6 +5,7 @@ const ItemController = require("../controllers/item_controller");
 const SectorController = require("../controllers/sector_controller");
 const TechnicianController = require("../controllers/technician_controller");
 const CertificationController = require("../controllers/certification_controller");
+const SupplierController = require("../controllers/supplier_controller");
 const Role = require('../models/Role');
 
 module.exports = (app) => {
@@ -67,4 +68,14 @@ module.exports = (app) => {
     app.post("/certifications", [whoIsTheUser, rolesAccessOnly([Role.Admin, Role.Technician])], CertificationController.addCertification);
     app.put("/certifications/:id", [whoIsTheUser, adminAccessOnly], CertificationController.editCertification);
     app.delete("/certifications/:id", [whoIsTheUser, adminAccessOnly], CertificationController.deleteCertification);
+
+    // supplier-viewing routes:
+    app.get("/suppliers", [whoIsTheUser, authenticatedAccessOnly], SupplierController.getSuppliers);
+    app.get("/suppliers/download-worksheet", [whoIsTheUser, adminAccessOnly], SupplierController.getSuppliersWorksheet);
+    app.get("/suppliers/:id", [whoIsTheUser, authenticatedAccessOnly], SupplierController.getSupplierInfo);
+
+    // supplier-CUD routes:
+    app.post("/suppliers", [whoIsTheUser, rolesAccessOnly([Role.Admin, Role.Technician])], SupplierController.addSupplier);
+    app.put("/suppliers/:id", [whoIsTheUser, adminAccessOnly], SupplierController.editSupplier);
+    app.delete("/suppliers/:id", [whoIsTheUser, adminAccessOnly], SupplierController.deleteSupplier);
 };
