@@ -87,7 +87,7 @@ module.exports = {
                 },
                 {
                     $project:
-                        [ 'name', 'cat', '_id', 'imageLink', 'archived', 'certificationPeriodMonths' ]
+                        [ 'name', 'cat', 'kitCats', '_id', 'imageLink', 'archived', 'certificationPeriodMonths' ]
                             .filter(field => !(filteredFieldsForRole[role] ?? []).includes(field))
                             .reduce((obj, field) => ({ ...obj, [field]: 1 }) , {})
                 },
