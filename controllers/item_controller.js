@@ -190,7 +190,25 @@ module.exports = {
                     return res.status(401).send("You are not authorized to view this item.");
                 }
 
-                item = await Item.populate(item, { path: 'supplier', select: '_id id name' });
+                if (item.supplier) {
+                    item = await Item.populate(item, { path: 'supplier', select: '_id id name' });
+                }
+
+                console.log(`belongsToDevices: ${JSON.stringify(item.belongsToDevices)}`);
+                const parentDevices = item.belongsToDevices;
+                if (parentDevices?.length) {
+                    const parentDevicesWithSupplier = await Item
+                        .find({ 
+                            cat: { $in: parentDevices.map(d => d.cat) },
+                            supplier: { $ne : null }
+                        }, { cat: 1, supplier: 1 })
+                        .populate('supplier', '_id id name');
+
+                    console.log(`parentDevicesWithSupplier: ${JSON.stringify(parentDevicesWithSupplier)}`);
+                    for (const parentDevice of parentDevices) {
+                        parentDevice.supplier = parentDevicesWithSupplier.find(pd => pd.cat === parentDevice.cat)?.supplier
+                    }
+                }
 
                 res.status(200).send(item);
             } else {
@@ -214,6 +232,8 @@ module.exports = {
             name, cat, kitCats, sector, department, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, models, accessories, consumables, spareParts, belongsToDevices, similarItems, kitItem,
             hebrewManualLink, serviceManualLink, userManualLink, emergency, supplier, lifeSpan
         });
+
+        
 
         try {
             const catAlreadyExists = await Item.findOne({ cat: cat });
@@ -306,12 +326,21 @@ module.exports = {
         } = req.body;        
 
         try {
+
+            const cmds = Object.keys({ 
+                name, cat, kitCats, sector, department, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, models, accessories, consumables, spareParts, belongsToDevices, similarItems, kitItem,
+                hebrewManualLink, serviceManualLink, userManualLink, emergency, lifeSpan
+            }).reduce((obj, key) => ({ ...obj, $set: { ...obj.$set, [key]: req.body[key] }}), { $set: {} });
+            if (supplier === undefined) {
+                cmds.$unset = { supplier: "" };
+            }
+            else {
+                cmds.$set.supplier = supplier;
+            }
+
             const updateOwnItem = Item.findOneAndUpdate(
                 { cat: req.params.cat },
-                { 
-                    name, cat, kitCats, sector, department, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, models, accessories, consumables, spareParts, belongsToDevices, similarItems, kitItem,
-                    hebrewManualLink, serviceManualLink, userManualLink, emergency, supplier, lifeSpan
-                },
+                cmds,
                 { returnOriginal: true }
             ).then(original => {
                 const linkFields = [ 'imageLink', 'qaStandardLink', 'medicalEngineeringManualLink', 'hebrewManualLink', 'serviceManualLink', 'userManualLink' ];
