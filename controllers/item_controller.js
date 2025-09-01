@@ -325,12 +325,21 @@ module.exports = {
         } = req.body;        
 
         try {
+
+            const cmds = Object.keys({ 
+                name, cat, kitCats, sector, department, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, models, accessories, consumables, spareParts, belongsToDevices, similarItems, kitItem,
+                hebrewManualLink, serviceManualLink, userManualLink, emergency, lifeSpan
+            }).reduce((obj, key) => ({ ...obj, $set: { ...obj.$set, [key]: req.body[key] }}), { $set: {} });
+            if (supplier === undefined) {
+                cmds.$unset = { supplier: "" };
+            }
+            else {
+                cmds.$set.supplier = supplier;
+            }
+
             const updateOwnItem = Item.findOneAndUpdate(
                 { cat: req.params.cat },
-                { 
-                    name, cat, kitCats, sector, department, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, models, accessories, consumables, spareParts, belongsToDevices, similarItems, kitItem,
-                    hebrewManualLink, serviceManualLink, userManualLink, emergency, supplier, lifeSpan
-                },
+                cmds,
                 { returnOriginal: true }
             ).then(original => {
                 const linkFields = [ 'imageLink', 'qaStandardLink', 'medicalEngineeringManualLink', 'hebrewManualLink', 'serviceManualLink', 'userManualLink' ];
