@@ -189,11 +189,25 @@ module.exports = {
                     return res.status(401).send("You are not authorized to view this item.");
                 }
 
-                if (!item.supplier) {
-                    const supplierItems = [ item.belongsToDevices.map(d => d._id) ];
+                if (item.supplier) {
+                    item = await Item.populate(item, { path: 'supplier', select: '_id id name' });
                 }
-                const suppliers = Supplier.find({ _id: { $in: [ ]}})
-                item = await Item.populate(item, { path: 'supplier', select: '_id id name' });
+
+                console.log(`belongsToDevices: ${JSON.stringify(item.belongsToDevices)}`);
+                const parentDevices = item.belongsToDevices;
+                if (parentDevices?.length) {
+                    const parentDevicesWithSupplier = await Item
+                        .find({ 
+                            cat: { $in: parentDevices.map(d => d.cat) },
+                            supplier: { $ne : null }
+                        }, { cat: 1, supplier: 1 })
+                        .populate('supplier', '_id id name');
+
+                    console.log(`parentDevicesWithSupplier: ${JSON.stringify(parentDevicesWithSupplier)}`);
+                    for (const parentDevice of parentDevices) {
+                        parentDevice.supplier = parentDevicesWithSupplier.find(pd => pd.cat === parentDevice.cat)?.supplier
+                    }
+                }
 
                 res.status(200).send(item);
             } else {
