@@ -84,7 +84,13 @@ module.exports = {
             role: Role.Viewer,
             status: 'registered',
         });
-        const userManagementUser = (await management.users.getAll({ q: `username:"${user.username}"`, fields: [ 'user_id' ], include_fields: true })).data?.[0];;
+
+        //DEBUG:
+            const allUsers = (await management.users.getAll({ fields: [ 'user_id' ], include_fields: true })).data;
+            console.log(`all auth0 users: ${JSON.stringify(allUsers)}`);
+            console.log(`query: ${`username:"${user.username}"`}`);
+        //
+        const userManagementUser = (await management.users.getAll({ q: `username:"${user.username}"`, fields: [ 'user_id' ], include_fields: true })).data?.[0];
 
         try {
             await Promise.all([
