@@ -66,8 +66,10 @@ module.exports = (app) => {
 
     // certification-CUD routes:
     app.post("/certifications", [whoIsTheUser, rolesAccessOnly([Role.Admin, Role.Technician])], CertificationController.addCertification);
-    app.put("/certifications/:id", [whoIsTheUser, adminAccessOnly], CertificationController.editCertification);
+    app.put("/certifications/:id", [whoIsTheUser, rolesAccessOnly([Role.Admin, Role.Technician])], CertificationController.editCertification);
     app.delete("/certifications/:id", [whoIsTheUser, adminAccessOnly], CertificationController.deleteCertification);
+
+    app.post("/certifications/:id/url", [ whoIsTheUser, rolesAccessOnly([Role.Admin, Role.Technician])], CertificationController.createFileUploadUrl);
 
     // supplier-viewing routes:
     app.get("/suppliers", [whoIsTheUser, authenticatedAccessOnly], SupplierController.getSuppliers);
