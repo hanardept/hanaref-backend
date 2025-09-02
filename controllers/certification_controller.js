@@ -109,10 +109,12 @@ module.exports = {
             const certificationAlreadyExists = await Certification.findOne({ item, user });
             if (certificationAlreadyExists) return res.status(400).send({ errorMsg: "A certification for thie cat and user id number is already in the database." });
 
-            await newCertification.save();
-            res.status(200).send("Certification saved successfully!");
+            const saveRes = await newCertification.save();
+            console.log(`save res: ${JSON.stringify(saveRes)}`);
+            res.status(200).send(JSON.stringify({ id: saveRes._id }));
         } catch (error) {
-            res.status(400).send(`Failure saving certification: ${error}`);
+            console.error(`Failure saving certification: ${error}`);
+            res.status(400).send(`Failure saving certification.`);
         }
     },
 
@@ -147,27 +149,35 @@ module.exports = {
     async deleteCertification(req, res) {
         // DELETE path: /certification/962780438
         try {
-            const removed = await Certification.findOneById(req.params.id);
-            const objects = [ removed.certificationDocumentLink ]
-                .filter(link => link?.length)
-                .map(link => prepareS3KeyFromLink(link));
-            console.log(`deleting links: ${JSON.stringify(objects)}`);
+            const removed = await Certification.findById(req.params.id);
 
-            if (objects.length) {
-                const client = new S3Client({ apiVersion: '2006-03-01' });
+            try {
+                const objects = [ removed.certificationDocumentLink ]
+                    .filter(link => link?.length)
+                    .map(link => prepareS3KeyFromLink(link));
+                console.log(`deleting links: ${JSON.stringify(objects)}`);
 
-                const prefix = objects[0].substring(0, objects[0].lastIndexOf('/') + 1);
-                console.log(`fetching objects with prefix: ${prefix}`)
-                const verionsParams = {
-                    Bucket: process.env.BUCKET_NAME,
-                    Prefix: prefix
-                };
-                const versionsCommand = new ListObjectVersionsCommand(verionsParams);
-                const versionsRes = await client.send(versionsCommand);
-                console.log(`versions objects result: ${JSON.stringify(versionsRes)}`);
+                if (objects.length) {
+                    const client = new S3Client({ apiVersion: '2006-03-01' });
 
-                await deleteS3Objects(objects, client);   
-            }         
+                    const prefix = objects[0].substring(0, objects[0].lastIndexOf('/') + 1);
+                    console.log(`fetching objects with prefix: ${prefix}`)
+                    const verionsParams = {
+                        Bucket: process.env.BUCKET_NAME,
+                        Prefix: prefix
+                    };
+                    const versionsCommand = new ListObjectVersionsCommand(verionsParams);
+                    const versionsRes = await client.send(versionsCommand);
+                    console.log(`versions objects result: ${JSON.stringify(versionsRes)}`);
+
+                    await deleteS3Objects(objects, client);   
+                }
+            } catch(error) {
+                console.log(`Error deleting s3 objects for certification id ${req.params.id}: ${error}`);
+                throw error;
+            }
+
+            await Certification.findOneAndRemove({ cat: req.params.id });            
 
             res.status(200).send("Certification removed successfully!");
         } catch (error) {

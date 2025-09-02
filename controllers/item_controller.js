@@ -462,7 +462,7 @@ module.exports = {
                 throw error;
             }
 
-             try {
+            try {
                 await Certification.deleteMany({ item: new ObjectId(removed._id)})
             } catch (error) {
                 console.log(`Error deleting certifications for item cat ${req.params.cat}: ${error}`);
