@@ -462,7 +462,7 @@ module.exports = {
                 throw error;
             }
 
-             try {
+            try {
                 await Certification.deleteMany({ item: new ObjectId(removed._id)})
             } catch (error) {
                 console.log(`Error deleting certifications for item cat ${req.params.cat}: ${error}`);
@@ -523,8 +523,8 @@ module.exports = {
             const url = await getSignedUrl(client, command, { expiresIn: 3600 });
             res.status(200).json({ url });
         } catch (error) {
-            console.error(`Error toggling archive for item ${req.params.cat}:`, error);
-            res.status(500).send('A server error occurred.');
+            console.error(`Error creating upload url for item cat ${req.params.cat}: ${error}`);
+            res.status(500).send(`A server error occurred while creating upload url for item cat ${req.params.cat}.`);
         }
     },
     
