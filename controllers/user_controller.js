@@ -6,6 +6,7 @@ const jwt = require("jsonwebtoken");
 const { decodeItems } = require("../functions/helpers");
 const { ManagementClient } = require('auth0');
 var generator = require('generate-password');
+const { notifyRole } = require("../functions/helpers");
 
 
 const AUTO_LOGOUT_TIME = 8; // in hours
@@ -92,6 +93,8 @@ module.exports = {
             ]);
             res.setHeader('Content-Type', 'application/json');
             res.status(200).send(JSON.stringify({ userId: user._id }));
+
+            notifyRole(Role.Admin, "משתמש חדש ממתין לאישור", `המשתמש ${req.body.email} ממתין לאישור מנהל`);
         } catch (error) {
             console.log(`error creating user in DB: ${error}`);
             res.status(400).send(error);

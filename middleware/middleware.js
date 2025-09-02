@@ -11,7 +11,8 @@ const whoIsTheUser = (req, res, next) => {
     const token = req.header("auth-token");
     //console.log(`path: ${req.path}, token: ${req.header("auth-token")}, other: ${req.header("Auth-Token")}`);
     if (!token) {
-        res.status(400).send("Invalid token!");
+        console.error('no token sent');
+        res.status(400).send("Invalid token 0!");
         return;
     }
 
@@ -47,7 +48,7 @@ const whoIsTheUser = (req, res, next) => {
     }, (error, userInfo) => { // userInfo: { _id: ..., privilege: "admin"/"hanar" }
         if (error) {
             console.log(`invalid token: ${error}`);
-            res.status(400).send("Invalid token!");
+            res.status(400).send("Invalid token 1!");
         } else {
             req.userId = userInfo[`${process.env.AUTH0_NAMESPACE}/user_id`];
             req.userPrivilege = userInfo[`${process.env.AUTH0_NAMESPACE}/roles`]?.[0];
