@@ -28,24 +28,40 @@ async function notifyUser({ userId, type, subject, message, data = undefined, de
     }
 }
 
-async function notifyRole({ role, type, subject, message, exceptedUserId, data, deletedNotifications }) {
-    const users = await User.find({ role, _id: exceptedUserId ? { $ne: exceptedUserId } : undefined });
-    const notifications = users.map(user => new Notification({
+async function notifyRole({ role, type, subject, message, exceptedUser, data, deletedNotifications }) {
+    const notifiedUsers = { role, _id: exceptedUser ? { $ne: exceptedUser.user._id } : undefined };
+    console.log(`notified users condition: ${JSON.stringify(notifiedUsers)}`);
+    const users = await User.find({ role, _id: exceptedUser ? { $ne: exceptedUser.user._id } : undefined });
+    console.log(`find users for notifications: ${JSON.stringify(users)}`);
+    const notifications = [ ...users.map(user => new Notification({
         user,
         type,
         subject,
         message,
         data,
-    }));
+    })),
+    exceptedUser && new Notification({
+        user: exceptedUser.user,
+        type,
+        subject,
+        message: exceptedUser.message,
+        data,
+    })
+    ].filter(Boolean);
 
     try {
         await Notification.create(notifications);
+        console.log(`deleted notifications: ${JSON.stringify(deletedNotifications)}`);
         if (deletedNotifications) {
-            await Notification.deleteMany({ 
-                role,
+            console.log(`deleting notifications with filter: ${JSON.stringify({ 
                 type: deletedNotifications.type,
-                user: exceptedUser ? { _id: { $ne: exceptedUser._id }} : undefined,
+                // user: exceptedUserId ? { _id: { $ne: exceptedUserId }} : undefined,
                 data: { user: { email: data?.user?.email } }
+            })}`)
+            await Notification.deleteMany({ 
+                type: deletedNotifications.type,
+                // user: exceptedUserId ? { _id: { $ne: exceptedUserId }} : undefined,
+                "data.user.email": data?.user?.email
             });
         }
     } catch(error) {
