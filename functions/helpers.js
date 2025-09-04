@@ -5,11 +5,13 @@ function decodeItems(...arguments) {
     return arguments.map((item) => decodeURI(item));
 }
 
-async function notifyUser(user, subject, message) {
+async function notifyUser({ user, type, subject, message, data = undefined }) {
     const notification = new Notification({
         user,
+        type,
         subject,
-        message
+        message,
+        data
     });
 
     try {
@@ -19,12 +21,14 @@ async function notifyUser(user, subject, message) {
     }
 }
 
-async function notifyRole(role, subject, message) {
+async function notifyRole({ role, type, subject, message, data = undefined }) {
     const users = await User.find({ role });
     const notifications = users.map(user => new Notification({
         user,
+        type,
         subject,
-        message
+        message,
+        data
     }));
 
     try {

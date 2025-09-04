@@ -1,5 +1,6 @@
 const User = require("../models/User");
 const Role = require("../models/Role");
+const NotificationType = require("../models/NotificationType");
 const Certification = require("../models/Certification");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
@@ -100,7 +101,18 @@ module.exports = {
             res.setHeader('Content-Type', 'application/json');
             res.status(200).send(JSON.stringify({ userId: user._id }));
 
-            notifyRole(Role.Admin, "משתמש חדש ממתין לאישור", `המשתמש ${req.body.email} ממתין לאישור מנהל`);
+            notifyRole({ 
+                role: Role.Admin,
+                subject: "משתמש חדש ממתין לאישור",
+                message: `המשתמש {user.email} ממתין לאישור מנהל`,
+                type: NotificationType.NewUserWaitingForConfirmation,
+                data: {
+                    user: {
+                        _id: user._id,
+                        email: req.body.email
+                    }
+                }
+            });
         } catch (error) {
             console.log(`error creating user in DB: ${error}`);
             res.status(400).send(error);
