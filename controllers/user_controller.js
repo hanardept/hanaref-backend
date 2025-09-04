@@ -4,7 +4,7 @@ const NotificationType = require("../models/NotificationType");
 const Certification = require("../models/Certification");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { decodeItems } = require("../functions/helpers");
+const { decodeItems, getUserDisplayName } = require("../functions/helpers");
 const { ManagementClient } = require('auth0');
 var generator = require('generate-password');
 const { notifyRole } = require("../functions/helpers");
@@ -280,7 +280,7 @@ module.exports = {
         // DELETE path: /users/962780438
         try {
             const management = createManagementClient();
-            const [userManagementRes, res1, res2 ] = await Promise.all([
+            const [userManagementRes, user, res2 ] = await Promise.all([
                 (await management.users.getAll({ q: `user_metadata.user_id:"${req.params.id}"`, fields: [ 'user_id' ], include_fields: true })).data?.[0],
                 User.findByIdAndDelete(req.params.id),
                 Certification.deleteMany({ user: req.params.id })
@@ -290,6 +290,26 @@ module.exports = {
             const createUserRes = await management.users.delete({
                 id: userManagementRes.user_id,
             });
+
+            if (user.status === 'registered') {
+                const admin = User.findById(req.userId, { email: 1, firstName: 1, lastName: 1 })
+                .then(admin => 
+                    notifyRole({
+                        role: Role.Admin,
+                        exceptedUser: {
+                            user: admin,
+                            message: `המשתמש {user.email} שנרשם, נמחק על-ידך`,
+                        },
+                        type:  NotificationType.NewUserDeleted,
+                        subject: 'משתמש שנרשם נמחק',
+                        message: `המשתמש {user.email} שנרשם, נמחק ע"י המנהל ${getUserDisplayName(admin)}`,
+                        data: ({ user: req.params.id }),
+                        deletedNotifications: {
+                            type: NotificationType.NewUserWaitingForConfirmation,
+                        }
+                    })
+                );
+            }
 
             res.status(200).send("User removed successfully!");
         } catch (error) {
