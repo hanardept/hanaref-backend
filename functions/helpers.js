@@ -35,7 +35,9 @@ async function notifyRole({ role, type, subject, message, exceptedUser, data, de
         notifiedUsersFilter._id = { $ne: exceptedUser.user._id };
     }
     console.log(`notified users condition: ${JSON.stringify(notifiedUsersFilter)}`);
+    const allUsers = await User.find();
     const users = await User.find(notifiedUsersFilter);
+    console.log(`find all users: ${JSON.stringify(allUsers)}`);
     console.log(`find users for notifications: ${JSON.stringify(users)}`);
     const notifications = [
         ...users.map(user => new Notification({
