@@ -33,23 +33,25 @@ async function notifyRole({ role, type, subject, message, exceptedUser, data, de
     console.log(`notified users condition: ${JSON.stringify(notifiedUsers)}`);
     const users = await User.find({ role, _id: exceptedUser ? { $ne: exceptedUser.user._id } : undefined });
     console.log(`find users for notifications: ${JSON.stringify(users)}`);
-    const notifications = [ ...users.map(user => new Notification({
-        user,
-        type,
-        subject,
-        message,
-        data,
-    })),
-    exceptedUser && new Notification({
-        user: exceptedUser.user,
-        type,
-        subject,
-        message: exceptedUser.message,
-        data,
-    })
+    const notifications = [
+        ...users.map(user => new Notification({
+            user,
+            type,
+            subject,
+            message,
+            data,
+        })),
+        exceptedUser && new Notification({
+            user: exceptedUser.user,
+            type,
+            subject,
+            message: exceptedUser.message,
+            data,
+        })
     ].filter(Boolean);
 
     try {
+        console.log(`creating notifications: ${JSON.stringify(notifications)}`);
         await Notification.create(notifications);
         console.log(`deleted notifications: ${JSON.stringify(deletedNotifications)}`);
         if (deletedNotifications) {
