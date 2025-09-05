@@ -29,6 +29,7 @@ async function notifyUser({ userId, type, subject, message, data = undefined, de
 }
 
 async function notifyRole({ role, type, subject, message, exceptedUser, data, deletedNotifications }) {
+    console.log(`notifying role with params: ${JSON.stringify({ role, type, subject, message, exceptedUser, data, deletedNotifications })}`);
     const notifiedUsers = { role, _id: exceptedUser ? { $ne: exceptedUser.user._id } : undefined };
     console.log(`notified users condition: ${JSON.stringify(notifiedUsers)}`);
     const users = await User.find({ role, _id: exceptedUser ? { $ne: exceptedUser.user._id } : undefined });
