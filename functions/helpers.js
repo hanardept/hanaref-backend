@@ -29,34 +29,34 @@ async function notifyUser({ userId, type, subject, message, data = undefined, de
 }
 
 async function notifyRole({ role, type, subject, message, exceptedUser, data, deletedNotifications }) {
-    console.log(`notifying role with params: ${JSON.stringify({ role, type, subject, message, exceptedUser, data, deletedNotifications })}`);
-    const notifiedUsersFilter = { role };
-    if (exceptedUser) {
-        notifiedUsersFilter._id = { $ne: exceptedUser.user._id };
-    }
-    console.log(`notified users condition: ${JSON.stringify(notifiedUsersFilter)}`);
-    const allUsers = await User.find();
-    const users = await User.find(notifiedUsersFilter);
-    console.log(`find all users: ${JSON.stringify(allUsers)}`);
-    console.log(`find users for notifications: ${JSON.stringify(users)}`);
-    const notifications = [
-        ...users.map(user => new Notification({
-            user,
-            type,
-            subject,
-            message,
-            data,
-        })),
-        exceptedUser && new Notification({
-            user: exceptedUser.user,
-            type,
-            subject,
-            message: exceptedUser.message,
-            data,
-        })
-    ].filter(Boolean);
-
     try {
+        console.log(`notifying role with params: ${JSON.stringify({ role, type, subject, message, exceptedUser, data, deletedNotifications })}`);
+        const notifiedUsersFilter = { role };
+        if (exceptedUser) {
+            notifiedUsersFilter._id = { $ne: exceptedUser.user._id };
+        }
+        console.log(`notified users condition: ${JSON.stringify(notifiedUsersFilter)}`);
+        const allUsers = await User.find();
+        const users = await User.find(notifiedUsersFilter);
+        console.log(`find all users: ${JSON.stringify(allUsers)}`);
+        console.log(`find users for notifications: ${JSON.stringify(users)}`);
+        const notifications = [
+            ...users.map(user => new Notification({
+                user,
+                type,
+                subject,
+                message,
+                data,
+            })),
+            exceptedUser && new Notification({
+                user: exceptedUser.user,
+                type,
+                subject,
+                message: exceptedUser.message,
+                data,
+            })
+        ].filter(Boolean);
+
         console.log(`creating notifications: ${JSON.stringify(notifications)}`);
         await Notification.create(notifications);
         console.log(`deleted notifications: ${JSON.stringify(deletedNotifications)}`);
