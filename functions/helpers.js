@@ -36,7 +36,7 @@ async function notifyRole({ role, type, subject, message, exceptedUser, data, de
         if (exceptedUser) {
             exceptedUserIds.push(exceptedUser.user._id);
         }
-        if (data.user?._id) {
+        if (data?.user?._id) {
             exceptedUserIds.push(data.user._id);
         }
         if (exceptedUserIds.length ) {
