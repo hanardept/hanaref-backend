@@ -284,6 +284,10 @@ module.exports = {
                 return res.status(404).send('User not found.');
             }
 
+            if (user.status === 'active') {
+                return res.status(200).send('User is already active');
+            }
+
             const prevStatus = user.status;
             user.status = 'active';
 
@@ -305,6 +309,23 @@ module.exports = {
             }
 
             if (!updateError) {
+                User.findById(req.userId, { email: 1, firstName: 1, lastName: 1 })
+                .then(admin => 
+                    notifyRole({
+                        role: Role.Admin,
+                        exceptedUser: {
+                            user: admin,
+                            message: `המשתמש {userDisplayName} שנרשם, אושר על-ידך`,
+                        },
+                        type:  NotificationType.NewUserConfirmed,
+                        subject: 'משתמש שנרשם אושר',
+                        message: `המשתמש {userDisplayName} שנרשם, אושר ע"י המנהל ${getUserDisplayName(admin)}`,
+                        data: ({ user: { _id: user._id, displayName: getUserDisplayName(user) } }),
+                        deletedNotifications: {
+                            type: NotificationType.NewUserWaitingForConfirmation,
+                        }
+                    })
+                );
                 res.status(200).json(user);
             }
 
