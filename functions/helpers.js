@@ -40,7 +40,7 @@ async function notifyRole({ role, type, subject, message, exceptedUser, data, de
             exceptedUserIds.push(data.user._id);
         }
         if (exceptedUserIds.length ) {
-            notifiedUsersFilter._id = { $and: exceptedUserIds.map(id => ({ $ne: id })) };
+            notifiedUsersFilter = { ...notifiedUsersFilter, _id: { $nin: exceptedUserIds } };
         }
         
         console.log(`notified users condition: ${JSON.stringify(notifiedUsersFilter)}`);
