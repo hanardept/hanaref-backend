@@ -25,7 +25,8 @@ async function deleteUserImpl(req, res) {
     const [userManagementRes, user, res2 ] = await Promise.all([
         (await management.users.getAll({ q: `user_metadata.user_id:"${req.params.id}"`, fields: [ 'user_id' ], include_fields: true })).data?.[0],
         User.findByIdAndDelete(req.params.id),
-        Certification.deleteMany({ user: req.params.id })
+        Certification.deleteMany({ user: req.params.id }),
+        Notification.deleteMany({ user: req.params.id }),
     ]);
     console.log(`findByIdAndDelete res: ${JSON.stringify(user)}`);
 
