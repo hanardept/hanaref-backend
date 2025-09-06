@@ -31,7 +31,7 @@ async function notifyUser({ userId, type, subject, message, data = undefined, de
 async function notifyRole({ role, type, subject, message, exceptedUser, data, deletedNotifications }) {
     try {
         console.log(`notifying role with params: ${JSON.stringify({ role, type, subject, message, exceptedUser, data, deletedNotifications })}`);
-        const notifiedUsersFilter = { role };
+        let notifiedUsersFilter = { role };
         const exceptedUserIds = [];
         if (exceptedUser) {
             exceptedUserIds.push(exceptedUser.user._id);
