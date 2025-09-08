@@ -1,11 +1,14 @@
 const User = require("../models/User");
 const Role = require("../models/Role");
+const NotificationType = require("../models/NotificationType");
 const Certification = require("../models/Certification");
+const Notification = require("../models/Notification");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { decodeItems } = require("../functions/helpers");
+const { decodeItems, getUserDisplayName } = require("../functions/helpers");
 const { ManagementClient } = require('auth0');
 var generator = require('generate-password');
+const { notifyRole } = require("../functions/helpers");
 
 
 const AUTO_LOGOUT_TIME = 8; // in hours
@@ -17,6 +20,49 @@ const createManagementClient = () => {
         clientSecret: process.env.AUTH0_CLIENT_SECRET
     });
 };
+
+async function deleteUserImpl(req, res) {
+    const management = createManagementClient();
+    const [userManagementRes, user, res2 ] = await Promise.all([
+        (await management.users.getAll({ q: `user_metadata.user_id:"${req.params.id}"`, fields: [ 'user_id' ], include_fields: true })).data?.[0],
+        User.findByIdAndDelete(req.params.id),
+        Certification.deleteMany({ user: req.params.id }),
+        Notification.deleteMany({ user: req.params.id }),
+    ]);
+    console.log(`findByIdAndDelete res: ${JSON.stringify(user)}`);
+
+    if (userManagementRes) {
+        await management.users.delete({
+            id: userManagementRes.user_id,
+        });
+    }
+
+    if (!user) {
+        console.error(`User with id: ${req.params.id} was not found`);
+        res.status(404).send(`User not found`);
+        return;
+    }
+
+    if (user.status === 'registered') {
+        User.findById(req.userId, { email: 1, firstName: 1, lastName: 1 })
+        .then(admin => 
+            notifyRole({
+                role: Role.Admin,
+                exceptedUser: {
+                    user: admin,
+                    message: `המשתמש {userDisplayName} שנרשם, נמחק על-ידך`,
+                },
+                type:  NotificationType.NewUserDeleted,
+                subject: 'משתמש שנרשם נמחק',
+                message: `המשתמש {userDisplayName} שנרשם, נמחק ע"י המנהל ${getUserDisplayName(admin)}`,
+                data: ({ user: { _id: user._id, displayName: getUserDisplayName(user) } }),
+                deletedNotifications: {
+                    type: NotificationType.NewUserWaitingForConfirmation,
+                }
+            })
+        );
+    }
+}  
 
 module.exports = {
     async getUsers(req, res) {
@@ -83,7 +129,13 @@ module.exports = {
             role: Role.Viewer,
             status: 'registered',
         });
-        const userManagementUser = (await management.users.getAll({ q: `username:"${user.username}"`, fields: [ 'user_id' ], include_fields: true })).data?.[0];;
+
+        //DEBUG:
+            const allUsers = (await management.users.getAll({ fields: [ 'user_id' ], include_fields: true })).data;
+            console.log(`all auth0 users: ${JSON.stringify(allUsers)}`);
+            console.log(`query: ${`username:"${user.username}"`}`);
+        //
+        const userManagementUser = (await management.users.getAll({ q: `username:"${user.username}"`, fields: [ 'user_id' ], include_fields: true })).data?.[0];
 
         try {
             await Promise.all([
@@ -92,6 +144,19 @@ module.exports = {
             ]);
             res.setHeader('Content-Type', 'application/json');
             res.status(200).send(JSON.stringify({ userId: user._id }));
+
+            notifyRole({ 
+                role: Role.Admin,
+                subject: "משתמש חדש ממתין לאישור",
+                message: `המשתמש {userDisplayName} ממתין לאישור מנהל`,
+                type: NotificationType.NewUserWaitingForConfirmation,
+                data: {
+                    user: {
+                        _id: user._id,
+                        displayName: getUserDisplayName(user)
+                    }
+                }
+            });
         } catch (error) {
             console.log(`error creating user in DB: ${error}`);
             res.status(400).send(error);
@@ -221,6 +286,10 @@ module.exports = {
                 return res.status(404).send('User not found.');
             }
 
+            if (user.status === 'active') {
+                return res.status(200).send('User is already active');
+            }
+
             const prevStatus = user.status;
             user.status = 'active';
 
@@ -242,6 +311,23 @@ module.exports = {
             }
 
             if (!updateError) {
+                User.findById(req.userId, { email: 1, firstName: 1, lastName: 1 })
+                .then(admin => 
+                    notifyRole({
+                        role: Role.Admin,
+                        exceptedUser: {
+                            user: admin,
+                            message: `המשתמש {userDisplayName} שנרשם, אושר על-ידך`,
+                        },
+                        type:  NotificationType.NewUserConfirmed,
+                        subject: 'משתמש שנרשם אושר',
+                        message: `המשתמש {userDisplayName} שנרשם, אושר ע"י המנהל ${getUserDisplayName(admin)}`,
+                        data: ({ user: { _id: user._id, displayName: getUserDisplayName(user) } }),
+                        deletedNotifications: {
+                            type: NotificationType.NewUserWaitingForConfirmation,
+                        }
+                    })
+                );
                 res.status(200).json(user);
             }
 
@@ -255,21 +341,21 @@ module.exports = {
         }
     },
 
+    async rejectUser(req, res) {
+        // POST path: /users/962780438/reject
+        try {
+            await deleteUserImpl(req, res);
+            res.status(200).send("User rejected successfully!");
+        } catch (error) {
+            console.log(`Error rejecting user: ${error}`);
+            res.status(400).send('Unable to reject user');
+        }
+    },
+
     async deleteUser(req, res) {
         // DELETE path: /users/962780438
         try {
-            const management = createManagementClient();
-            const [userManagementRes, res1, res2 ] = await Promise.all([
-                (await management.users.getAll({ q: `user_metadata.user_id:"${req.params.id}"`, fields: [ 'user_id' ], include_fields: true })).data?.[0],
-                User.findByIdAndDelete(req.params.id),
-                Certification.deleteMany({ user: req.params.id })
-            ]);
-            console.log(`findByIdAndDelete res: ${JSON.stringify(res1)}`);
-
-            const createUserRes = await management.users.delete({
-                id: userManagementRes.user_id,
-            });
-
+            await deleteUserImpl(req, res);
             res.status(200).send("User removed successfully!");
         } catch (error) {
             console.log(`Error deleting user: ${error}`);

@@ -6,6 +6,7 @@ const SectorController = require("../controllers/sector_controller");
 const TechnicianController = require("../controllers/technician_controller");
 const CertificationController = require("../controllers/certification_controller");
 const SupplierController = require("../controllers/supplier_controller");
+const NotificationController = require("../controllers/notification_controller");
 const Role = require('../models/Role');
 
 module.exports = (app) => {
@@ -17,6 +18,7 @@ module.exports = (app) => {
     app.post("/users", [whoIsTheUser, adminAccessOnly], UserController.addUser);
     app.post("/users/self", [whoIsTheUser], UserController.registerUser);
     app.post("/users/:id/confirm", [whoIsTheUser, adminAccessOnly], UserController.confirmUser);
+    app.post("/users/:id/reject", [whoIsTheUser, adminAccessOnly], UserController.rejectUser);
     app.put("/users/:id", [whoIsTheUser, adminAccessOnly], UserController.editUser);
     app.delete("/users/:id", [whoIsTheUser, adminAccessOnly], UserController.deleteUser);
 
@@ -80,4 +82,12 @@ module.exports = (app) => {
     app.post("/suppliers", [whoIsTheUser, rolesAccessOnly([Role.Admin, Role.Technician])], SupplierController.addSupplier);
     app.put("/suppliers/:id", [whoIsTheUser, adminAccessOnly], SupplierController.editSupplier);
     app.delete("/suppliers/:id", [whoIsTheUser, adminAccessOnly], SupplierController.deleteSupplier);
+
+    // notification-viewing routes:
+    app.get("/notifications", [whoIsTheUser, authenticatedAccessOnly], NotificationController.getNotifications);
+
+    // notification-CUD routes:
+    app.delete("/notifications/:id", [whoIsTheUser, authenticatedAccessOnly], NotificationController.deleteNotification);
+
+    app.put("/notifications/:id/read", [whoIsTheUser, authenticatedAccessOnly], NotificationController.markAsRead);
 };
