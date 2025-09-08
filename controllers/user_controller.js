@@ -2,6 +2,7 @@ const User = require("../models/User");
 const Role = require("../models/Role");
 const NotificationType = require("../models/NotificationType");
 const Certification = require("../models/Certification");
+const Notification = require("../models/Notification");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { decodeItems, getUserDisplayName } = require("../functions/helpers");
