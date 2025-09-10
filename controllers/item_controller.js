@@ -527,6 +527,89 @@ module.exports = {
             res.status(500).send(`A server error occurred while creating upload url for item cat ${req.params.cat}.`);
         }
     },
+
+    async importItems(req, res) {
+        // Check if a file was uploaded
+        if (!req.file) {
+            return res.status(400).send('No file uploaded.');
+        }
+
+        const requiredFields = Object.keys(Item.schema.obj).filter(key => Item.schema.obj[key].required);
+        //  [
+        //     'name', 'cat', 'kitCats', 'sector', 'department', 'catType', 'certificationPeriodMonths', 'description', 'imageLink', 'qaStandardLink', 'medicalEngineeringManualLink',
+        //     'serviceManualLink', 'userManualLink', 'hebrewManualLink', 'emergency', 'supplier', 'lifeSpan', 'belongsToDevices', 'similarItems', 'manufacturerCat', 'models', 'archived'
+        // ];
+
+        try {
+            const workbook = new ExcelJS.Workbook();
+            await workbook.xlsx.load(req.file.buffer);
+            const worksheet = workbook.worksheets[0];
+
+            // Validate columns
+            const headerRow = worksheet.getRow(1);
+            const columnNames = headerRow.values.slice(1); // skip first empty cell
+            for (const field of requiredFields) {
+                if (!columnNames.includes(field)) {
+                    return res.status(400).send(`Missing required column: ${field}`);
+                }
+            }
+
+            // Parse rows
+            const itemsToInsert = [];
+            const errors = [];
+            worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
+                if (rowNumber === 1) return; // skip header
+
+                const item = {};
+                columnNames.forEach((col, idx) => {
+                    item[col] = row.getCell(idx + 1).value;
+                });
+
+                // Validate required fields (except optional ones if any)
+                for (const field of requiredFields) {
+                    if (item[field] === undefined || item[field] === null || item[field] === '') {
+                        errors.push(`Row ${rowNumber}: Missing value for required field "${field}"`);
+                    }
+                }
+
+                // Parse fields that are arrays (kitCats, belongsToDevices, similarItems, manufacturerCat, models)
+                if (item.kitCats) item.kitCats = String(item.kitCats).split(/\r?\n/).filter(Boolean);
+                if (item.belongsToDevices) item.belongsToDevices = String(item.belongsToDevices).split(/\r?\n/).filter(Boolean).map(cat => ({ cat }));
+                if (item.similarItems) item.similarItems = String(item.similarItems).split(/\r?\n/).filter(Boolean).map(cat => ({ cat }));
+                if (item.manufacturerCat) item.manufacturerCat = String(item.manufacturerCat).split(/\r?\n/).filter(Boolean);
+                if (item.models) item.models = String(item.models).split(/\r?\n/).filter(Boolean).map((name, i) => ({
+                    name,
+                    cat: item.manufacturerCat && item.manufacturerCat[i] ? item.manufacturerCat[i] : undefined
+                }));
+
+                // Parse booleans
+                item.archived = item.archived === 'כן';
+                item.emergency = item.emergency === 'כן';
+
+                itemsToInsert.push(item);
+            });
+
+            if (errors.length) {
+                return res.status(400).json({ error: 'Validation failed', details: errors });
+            }
+
+            // Insert all items in a transaction
+            const session = await mongoose.startSession();
+            session.startTransaction();
+            try {
+                await Item.insertMany(itemsToInsert, { session });
+                await session.commitTransaction();
+                session.endSession();
+                return res.status(200).send('Items imported successfully!');
+            } catch (err) {
+                await session.abortTransaction();
+                session.endSession();
+                return res.status(400).send(`Database insert error: ${err}`);
+            }
+        } catch (error) {
+            return res.status(400).send(`Failed to process Excel file: ${error}`);
+        }
+    },
     
     async getItemsWorksheet(req, res) {
         const workbook = new ExcelJS.Workbook();
