@@ -17,6 +17,97 @@ const filteredFieldsForRole = {
     [Role.Viewer]: [ 'certificationPeriodMonths', 'qaStandardLink', 'serviceManualLink' ],
 }
 
+const worksheetColumns = [{
+    header: 'שם',
+    key: 'name',
+    width: 30
+}, {
+    header: 'מק"ט',
+    key: 'cat',
+    width: 15
+}, {
+    header: 'מק"טי ערכה',
+    key: 'kitCats',
+    width: 15
+}, {
+    header: 'מדור',
+    key: 'sector',
+    width: 20
+}, {
+    header: 'תחום',
+    key: 'department',
+    width: 10
+}, {
+    header: 'סוג מק"ט',
+    key: 'catType',
+    width: 10
+}, {
+    header: 'תקופת הסמכה בחודשים',
+    certificationPeriodMonths: 'certificationPeriodMonths',
+    width: 10,
+}, {
+    header: 'יצרן',
+    key: 'supplier',
+    width: 25,
+}, {
+    header: 'אורך חיים',
+    key: 'lifeSpan',
+}, {
+    header: 'מק"ט יצרן',
+    key: 'manufacturerCat',
+    width: 30,
+    style: { alignment: { wrapText: true, horizontal: 'right', readingOrder: 'rtl' } }
+}, {
+    header: 'דגם',
+    key: 'models',
+    width: 30,
+    style: { alignment: { wrapText: true, horizontal: 'right', readingOrder: 'rtl' } }
+}, {
+    header: 'תיאור',
+    key: 'description',
+    width: 40
+}, {
+    header: 'קישור לתמונה',
+    key: 'imageLink',
+    width: 30
+}, {
+    header: 'קישור לתקן בחינה',
+    key: 'qaStandardLink',
+    width: 30
+}, {
+    header: 'הוראות הנר',
+    key: 'medicalEngineeringManualLink',
+    width: 30
+},{
+    header: 'הוראות הפעלה בעברית',
+    key: 'hebrewManualLink',
+    width: 30
+}, {
+    header: 'Service Manual',
+    key: 'serviceManualLink',
+    width: 30
+}, {
+    header: 'מדריך למשתמש',
+    key: 'userManualLink',
+    width: 30
+}, {
+    header: 'חירום',
+    key: 'emergency',
+    width: 10
+}, {
+    header: 'בארכיון',
+    key: 'archived',
+    width: 10
+}, {
+    header: 'שייך למכשירים',
+    key: 'belongsToDevices',
+    width: 30
+}, {
+    header: 'פריטים דומים',
+    key: 'similarItems',
+    width: 30
+}];
+
 function prepareS3KeyFromLink(link) {
     console.log(`preparing link: ${link}`);
     const s3DomainEnding = '.amazonaws.com/';
@@ -528,13 +619,17 @@ module.exports = {
         }
     },
 
+
+
     async importItems(req, res) {
         // Check if a file was uploaded
         if (!req.file) {
             return res.status(400).send('No file uploaded.');
         }
 
-        const requiredFields = Object.keys(Item.schema.obj).filter(key => Item.schema.obj[key].required);
+        const requiredFields = Object.keys(Item.schema.obj)
+            .filter(key => Item.schema.obj[key].required)
+            .map(key => worksheetColumns.find(col => col.key === key).header);
         //  [
         //     'name', 'cat', 'kitCats', 'sector', 'department', 'catType', 'certificationPeriodMonths', 'description', 'imageLink', 'qaStandardLink', 'medicalEngineeringManualLink',
         //     'serviceManualLink', 'userManualLink', 'hebrewManualLink', 'emergency', 'supplier', 'lifeSpan', 'belongsToDevices', 'similarItems', 'manufacturerCat', 'models', 'archived'
@@ -617,96 +712,7 @@ module.exports = {
 
         console.log(`Generating Excel worksheet for items...`);
 
-        worksheet.columns = [{
-            header: 'שם',
-            key: 'name',
-            width: 30
-        }, {
-            header: 'מק"ט',
-            key: 'cat',
-            width: 15
-        }, {
-            header: 'מק"טי ערכה',
-            key: 'kitCats',
-            width: 15
-        }, {
-            header: 'מדור',
-            key: 'sector',
-            width: 20
-        }, {
-            header: 'תחום',
-            key: 'department',
-            width: 10
-        }, {
-            header: 'סוג מק"ט',
-            key: 'catType',
-            width: 10
-        }, {
-            header: 'תקופת הסמכה בחודשים',
-            certificationPeriodMonths: 'certificationPeriodMonths',
-            width: 10,
-        }, {
-            header: 'יצרן',
-            key: 'supplier',
-            width: 25,
-        }, {
-            header: 'אורך חיים',
-            key: 'lifeSpan',
-        }, {
-            header: 'מק"ט יצרן',
-            key: 'manufacturerCat',
-            width: 30,
-            style: { alignment: { wrapText: true, horizontal: 'right', readingOrder: 'rtl' } }
-        }, {
-            header: 'דגם',
-            key: 'models',
-            width: 30,
-            style: { alignment: { wrapText: true, horizontal: 'right', readingOrder: 'rtl' } }
-        }, {
-            header: 'תיאור',
-            key: 'description',
-            width: 40
-        }, {
-            header: 'קישור לתמונה',
-            key: 'imageLink',
-            width: 30
-        }, {
-            header: 'קישור לתקן בחינה',
-            key: 'qaStandardLink',
-            width: 30
-        }, {
-            header: 'הוראות הנר',
-            key: 'medicalEngineeringManualLink',
-            width: 30
-        },{
-            header: 'הוראות הפעלה בעברית',
-            key: 'hebrewManualLink',
-            width: 30
-        }, {
-            header: 'Service Manual',
-            key: 'serviceManualLink',
-            width: 30
-        }, {
-            header: 'מדריך למשתמש',
-            key: 'userManualLink',
-            width: 30
-        }, {
-            header: 'חירום',
-            key: 'emergency',
-            width: 10
-        }, {
-            header: 'בארכיון',
-            key: 'archived',
-            width: 10
-        }, {
-            header: 'שייך למכשירים',
-            key: 'belongsToDevices',
-            width: 30
-        }, {
-            header: 'פריטים דומים',
-            key: 'similarItems',
-            width: 30
-        }];
+        worksheet.columns = worksheetColumns;
 
         let items;
         let offset = 0;
