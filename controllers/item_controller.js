@@ -1,4 +1,5 @@
 const Item = require("../models/Item");
+const Supplier = require("../models/Supplier");
 const { decodeItems } = require("../functions/helpers");
 const Sector = require("../models/Sector");
 const Role = require("../models/Role");
@@ -46,12 +47,21 @@ const worksheetColumns = [{
     certificationPeriodMonths: 'certificationPeriodMonths',
     width: 10,
 }, {
-    header: 'יצרן',
+    header: 'ספק',
     key: 'supplier',
+    width: 25,
+}, {
+    header: 'מספר ספק במשרד הביטחון',
+    key: 'supplierId',
     width: 25,
 }, {
     header: 'אורך חיים',
     key: 'lifeSpan',
+}, {
+    header: 'יצרן',
+    key: 'manufacturer',
+    width: 30,
+    style: { alignment: { wrapText: true, horizontal: 'right', readingOrder: 'rtl' } }
 }, {
     header: 'מק"ט יצרן',
     key: 'manufacturerCat',
@@ -281,25 +291,30 @@ module.exports = {
                     return res.status(401).send("You are not authorized to view this item.");
                 }
 
+                const promises = [];
                 if (item.supplier) {
-                    item = await Item.populate(item, { path: 'supplier', select: '_id id name' });
+                    promises.push(Item.populate(item, { path: 'supplier', select: '_id id name' }));
                 }
 
-                console.log(`belongsToDevices: ${JSON.stringify(item.belongsToDevices)}`);
                 const parentDevices = item.belongsToDevices;
                 if (parentDevices?.length) {
-                    const parentDevicesWithSupplier = await Item
+                    promises.push(Item
                         .find({ 
                             cat: { $in: parentDevices.map(d => d.cat) },
-                            supplier: { $ne : null }
-                        }, { cat: 1, supplier: 1 })
-                        .populate('supplier', '_id id name');
-
-                    console.log(`parentDevicesWithSupplier: ${JSON.stringify(parentDevicesWithSupplier)}`);
-                    for (const parentDevice of parentDevices) {
-                        parentDevice.supplier = parentDevicesWithSupplier.find(pd => pd.cat === parentDevice.cat)?.supplier
-                    }
+                        }, { cat: 1, supplier: 1, name: 1 })
+                        .populate('supplier', '_id id name')
+                        .then(parentDevicesWithSupplier => {
+                            for (const parentDevice of parentDevices) {
+                                const parentDeviceDetails = parentDevicesWithSupplier.find(pd => pd.cat === parentDevice.cat);
+                                if (parentDeviceDetails) {
+                                    parentDevice.name = parentDeviceDetails.name;
+                                    parentDevice.supplier = parentDeviceDetails.supplier
+                                }
+                            }
+                        }));
                 }
+
+                await Promise.all(promises);
 
                 res.status(200).send(item);
             } else {
@@ -630,6 +645,11 @@ module.exports = {
         const requiredFields = Object.keys(Item.schema.obj)
             .filter(key => Item.schema.obj[key].required)
             .map(key => worksheetColumns.find(col => col.key === key).header);
+
+        const columnsToFields = worksheetColumns.reduce((obj, wc) => ({
+            ...obj,
+            [wc.header]: wc.key
+        }), {});
         //  [
         //     'name', 'cat', 'kitCats', 'sector', 'department', 'catType', 'certificationPeriodMonths', 'description', 'imageLink', 'qaStandardLink', 'medicalEngineeringManualLink',
         //     'serviceManualLink', 'userManualLink', 'hebrewManualLink', 'emergency', 'supplier', 'lifeSpan', 'belongsToDevices', 'similarItems', 'manufacturerCat', 'models', 'archived'
@@ -649,6 +669,9 @@ module.exports = {
                 }
             }
 
+            const suppliers = (await Supplier.find({}, { _id: 1, name: 1 })).reduce((obj, sup) => ({ ...obj, [sup.name]: sup._id }), {});
+            const suppliersToAdd = [];
+
             // Parse rows
             const itemsToInsert = [];
             const errors = [];
@@ -657,34 +680,58 @@ module.exports = {
 
                 const item = {};
                 columnNames.forEach((col, idx) => {
-                    item[col] = row.getCell(idx + 1).value;
+                    if (columnsToFields[col]) {
+                        item[columnsToFields[col]] = row.getCell(idx + 1).text;
+                    }
                 });
 
                 // Validate required fields (except optional ones if any)
                 for (const field of requiredFields) {
-                    if (item[field] === undefined || item[field] === null || item[field] === '') {
+                    const fieldValue = item[columnsToFields[field]];
+                    if (fieldValue === undefined || fieldValue === null || fieldValue === '') {
                         errors.push(`Row ${rowNumber}: Missing value for required field "${field}"`);
                     }
                 }
 
                 // Parse fields that are arrays (kitCats, belongsToDevices, similarItems, manufacturerCat, models)
-                if (item.kitCats) item.kitCats = String(item.kitCats).split(/\r?\n/).filter(Boolean);
-                if (item.belongsToDevices) item.belongsToDevices = String(item.belongsToDevices).split(/\r?\n/).filter(Boolean).map(cat => ({ cat }));
-                if (item.similarItems) item.similarItems = String(item.similarItems).split(/\r?\n/).filter(Boolean).map(cat => ({ cat }));
-                if (item.manufacturerCat) item.manufacturerCat = String(item.manufacturerCat).split(/\r?\n/).filter(Boolean);
-                if (item.models) item.models = String(item.models).split(/\r?\n/).filter(Boolean).map((name, i) => ({
-                    name,
-                    cat: item.manufacturerCat && item.manufacturerCat[i] ? item.manufacturerCat[i] : undefined
-                }));
+                item.kitCats = item.kitCats ? String(item.kitCats).split(/\r?\n/).filter(Boolean) : undefined;
+                item.belongsToDevices = item.belongsToDevices ? String(item.belongsToDevices).split(/\r?\n/).filter(Boolean).map(cat => ({ cat })) : undefined;
+                item.similarItems = item.similarItems ? String(item.similarItems).split(/\r?\n/).filter(Boolean).map(cat => ({ cat })) : undefined;
+
+                if (item.models || item.manufacturerCats) {
+                    const manufacturers = String(item.manufacturer).split(/\r?\n/);
+                    const manufacturerCats = String(item.manufacturerCat).split(/\r?\n/);
+                    const modelNames = String(item.models).split(/\r?\n/);           
+                    item.models = Array.from(Array(Math.max(modelNames.length ?? 0, manufacturerCats.length ?? 0, manufacturers. length ?? 0)), 
+                    (_, i) => ({ manufacturer: manufacturers[i], cat: manufacturerCats[i], name: modelNames[i] }));
+                } else {
+                    item.models = undefined;
+                }
+                item.manufacturerCats = undefined;
+                if ([ item.supplier, item.supplierId ].filter(Boolean).length === 1) {
+                    errors.push(`Row ${rowNumber}: Supplier name and supplier id should both exist or not exist`);
+                } else if (item.supplier) {
+                    if (suppliers[item.supplier]) {
+                        item.supplier = suppliers[item.supplier];
+                    } else {
+                        console.log(`new supplier: ${item.supplier}`);
+                        const newId = ObjectId();
+                        suppliersToAdd.push({ _id: newId, id: item.supplierId, name: item.supplier});
+                        item.supplier = newId;
+                    }
+                }
+                item.supplierId = undefined;
 
                 // Parse booleans
                 item.archived = item.archived === 'כן';
                 item.emergency = item.emergency === 'כן';
 
+                console.log(`adding imported item: ${JSON.stringify(item)}`);
                 itemsToInsert.push(item);
             });
 
             if (errors.length) {
+                console.error(`errors importing items: ${JSON.stringify(errors)}`);
                 return res.status(400).json({ error: 'Validation failed', details: errors });
             }
 
@@ -692,6 +739,19 @@ module.exports = {
             const session = await mongoose.startSession();
             session.startTransaction();
             try {
+                console.log(`added suppliers: ${JSON.stringify(suppliersToAdd)}`);
+                if (suppliersToAdd.length) {
+                    await Supplier.insertMany(suppliersToAdd, { session });
+                    // const addedSuppliers = await Supplier.insertMany(Object.keys(suppliersToAdd).map(s => suppliersToAdd[s].supplier), { session });
+                    // for (const addedSupplier of addedSuppliers) {
+                    //     console.log(`setting items for added supplier: ${JSON.stringify(addedSupplier)}`);
+                    //     for (const supplierItem of suppliersToAdd[addedSupplier.id].items) {
+                    //         supplierItem.supplier = addedSupplier._id;
+                    //         console.log(`item after setting supplier: ${JSON.stringify(supplierItem)}`)
+                    //     }
+                    // }
+                }
+
                 await Item.insertMany(itemsToInsert, { session });
                 await session.commitTransaction();
                 session.endSession();
@@ -699,9 +759,11 @@ module.exports = {
             } catch (err) {
                 await session.abortTransaction();
                 session.endSession();
+                console.error(`Database insert error: ${err}`);
                 return res.status(400).send(`Database insert error: ${err}`);
             }
         } catch (error) {
+            console.error(`Excel import erorr: ${error}`);
             return res.status(400).send(`Failed to process Excel file: ${error}`);
         }
     },
@@ -724,7 +786,8 @@ module.exports = {
                 })
                 .sort('cat')
                 .skip(offset)
-                .limit(batchSize);
+                .limit(batchSize)
+                .populate('supplier', 'name');
             if (items?.length) {
                 worksheet.addRows(items.map(({ 
                     name, cat, kitCats, sector, department, models, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, serviceManualLink, userManualLink,
@@ -732,12 +795,15 @@ module.exports = {
                 }) => (
                     { 
                         name, cat, sector, department, models, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, serviceManualLink, userManualLink, 
-                        hebrewManualLink, supplier, lifeSpan,
+                        hebrewManualLink, lifeSpan,
+                        supplier: supplier?.name ?? '',
+                        supplierId: supplier?.id ?? '',
                         emergency: emergency ? 'כן' : 'לא',
                         kitCats: kitCats?.join('\r\n'),
                         archived: archived ? 'כן' : 'לא',
                         belongsToDevices: belongsToDevices?.map(b => b.cat).join('\r\n'),
                         similarItems: similarItems?.map(b => b.cat).join('\r\n'),
+                        manufacturer: models?.map(m => m.manufacturer).join('\r\n'),
                         manufacturerCat: models?.map(m => m.cat).join('\r\n'),
                         models: models?.map(m => m.name).join('\r\n'),
                     }

@@ -8,9 +8,7 @@ services:
     restart: always
     ports:
       - "27017:27017"
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: hanardept
-      MONGO_INITDB_ROOT_PASSWORD: example
+    command: mongod --replSet dbrs --bind_ip_all
     volumes:
       - ./mongo-init:/docker-entrypoint-initdb.d
 
@@ -46,12 +44,12 @@ services:
         context: ./api-tests
       container_name: hanaref-api-tests
       depends_on:
-        #- hanaref-backend
+        # - hanaref-backend
         hanaref-backend:
           condition: service_healthy
         mockServer:
           condition: service_started
       environment:
         API_BASE_URL: http://hanaref-backend:5000
-        MONGO_URL: mongodb://hanardept:example@hanaref-mongodb:27017/
-      command: ["npm", "test"]
+        MONGO_URL: mongodb://hanaref-mongodb:27017/
+      command: ["npm", "test", "--", "--silent=false"]
