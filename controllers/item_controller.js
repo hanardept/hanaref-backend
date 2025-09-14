@@ -31,6 +31,19 @@ function catTypeToChildrenArray(catType) {
     }
 }
 
+function catTypeToChildrenArrayField(catType) {
+    switch (catType) {
+        case "אביזר":
+            return "accessories";
+        case "מתכלה":
+            return "consumables";
+        case "חלק חילוף":
+            return "spareParts";
+        default:
+            return null;
+    }
+}
+
 const worksheetColumns = [{
     header: 'שם',
     key: 'name',
@@ -232,9 +245,10 @@ module.exports = {
             let item = (await Item.aggregate([
                 { $match: { cat: req.params.cat } },
                 { $unwind: { path: '$accessories', preserveNullAndEmptyArrays: true } },
-                { $lookup: { from: 'items', localField: 'accessories.cat', foreignField: 'cat', as: 'accessories_image', pipeline: [{ $project: { imageLink: 1 } }] } },
-                { $unwind: { path: '$accessories_image', preserveNullAndEmptyArrays: true } },
-                { $set: { "accessories.imageLink": { $cond: { if: { $ne: [{ $type: "$accessories_image" }, "missing"] }, then: "$accessories_image.imageLink", else: "$$REMOVE" } } } },
+                { $lookup: { from: 'items', localField: 'accessories.cat', foreignField: 'cat', as: 'accessories_details', pipeline: [{ $project: { name: 1, imageLink: 1 } }] } },
+                { $unwind: { path: '$accessories_details', preserveNullAndEmptyArrays: true } },
+                { $set: { "accessories.imageLink": { $cond: { if: { $ne: [{ $type: "$accessories_details" }, "missing"] }, then: "$accessories_details.imageLink", else: "$$REMOVE" } } } },
+                { $set: { "accessories.name": { $cond: { if: { $ne: [{ $type: "$accessories_details" }, "missing"] }, then: "$accessories_details.name", else: "$$REMOVE" } } } },
                 {
                     $group: {
                         _id: '$_id',
@@ -256,9 +270,10 @@ module.exports = {
                 },
                 { $replaceRoot: { newRoot: { $mergeObjects: ["$root", { models: "$models" }] } } },
                 { $unwind: { path: '$consumables', preserveNullAndEmptyArrays: true } },
-                { $lookup: { from: 'items', localField: 'consumables.cat', foreignField: 'cat', as: 'consumables_image', pipeline: [{ $project: { imageLink: 1 } }] } },
-                { $unwind: { path: '$consumables_image', preserveNullAndEmptyArrays: true } },
-                { $set: { "consumables.imageLink": { $cond: { if: { $ne: [{ $type: "$consumables_image" }, "missing"] }, then: "$consumables_image.imageLink", else: "$$REMOVE" } } } },
+                { $lookup: { from: 'items', localField: 'consumables.cat', foreignField: 'cat', as: 'consumables_details', pipeline: [{ $project: { name: 1, imageLink: 1 } }] } },
+                { $unwind: { path: '$consumables_details', preserveNullAndEmptyArrays: true } },
+                { $set: { "consumables.imageLink": { $cond: { if: { $ne: [{ $type: "$consumables_details" }, "missing"] }, then: "$consumables_details.imageLink", else: "$$REMOVE" } } } },
+                { $set: { "consumables.name": { $cond: { if: { $ne: [{ $type: "$consumables_details" }, "missing"] }, then: "$consumables_details.name", else: "$$REMOVE" } } } },
                 {
                     $group: {
                         _id: '$_id',
@@ -283,16 +298,16 @@ module.exports = {
                     $set: {
                         accessories: { $filter: { input: "$accessories", as: "item", cond: { $and: [ { $ne: ["$$item.name", null] }, { $ne: [{ $type: "$$item.name" }, "missing"] } ] } } },
                         models: { $filter: { input: "$models", as: "item", cond: { $and: [ { $ne: ["$$item.name", null] }, { $ne: [{ $type: "$$item.name" }, "missing"] } ] } } },
-                        consumables: { $filter: { input: "$consumables", as: "item", cond: { $and: [ { $ne: ["$$item.name", null] }, { $ne: [{ $type: "$$item.name" }, "missing"] } ] } } },
+                        consumables: { $filter: { input: "$consumables", as: "item", cond: { $and: [ { $ne: ["$$item.cat", null] }, { $ne: [{ $type: "$$item.cat" }, "missing"] } ] } } },
                         kitItem: { $filter: { input: "$kitItem", as: "item", cond: { $and: [ { $ne: ["$$item.name", null] }, { $ne: [{ $type: "$$item.name" }, "missing"] } ] } } }
                     }
                 },
                 {
                     $project: {
                         root: 0,
-                        accessories_image: 0,
+                        accessories_details: 0,
                         models_image: 0,
-                        consumables_image: 0,
+                        consumables_details: 0,
                         kitItem_image: 0,
                         ...(filteredFieldsForRole[role] ?? []).reduce((obj, field) => ({ ...obj, [field]: 0 }) , {})
                     }
@@ -402,6 +417,7 @@ module.exports = {
                             break;
                         case "חלק חילוף":
                             listType = "spareParts";
+                            break;
                         default:
                             listType = "kitItem";
                             break;
@@ -514,6 +530,9 @@ module.exports = {
                             break;
                         case "מתכלה":
                             listType = "consumables";
+                            break;
+                        case "חלק חילוף":
+                            listType = "spareParts";
                             break;
                         default:
                             listType = "kitItem";
@@ -688,6 +707,7 @@ module.exports = {
 
             // Parse rows
             const itemsToInsert = [];
+            const itemsToUpdate = [];
             const errors = [];
             worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
                 if (rowNumber === 1) return; // skip header
@@ -709,8 +729,12 @@ module.exports = {
 
                 // Parse fields that are arrays (kitCats, belongsToDevices, similarItems, manufacturerCat, models)
                 item.kitCats = item.kitCats ? String(item.kitCats).split(/\r?\n/).filter(Boolean) : undefined;
-                item.belongsToDevices = item.belongsToDevices ? String(item.belongsToDevices).split(/\r?\n/).filter(Boolean).map(cat => ({ cat })) : undefined;
-                item.belongsToDevices?.forEach(({ cat }) => parentDevicesToRows[cat] = [ ...(parentDevicesToRows[cat] ?? []), { rowNumber, item }]);
+                if (item.belongsToDevices?.length && item.catType === 'מכשיר') {
+                    errors.push(`Row ${rowNumber}: Device cannot belong to other items`);
+                } else {
+                    item.belongsToDevices = item.belongsToDevices ? String(item.belongsToDevices).split(/\r?\n/).filter(Boolean).map(cat => ({ cat })) : undefined;
+                    item.belongsToDevices?.forEach(({ cat }) => parentDevicesToRows[cat] = [ ...(parentDevicesToRows[cat] ?? []), { rowNumber, item }]);
+                }
                 item.similarItems = item.similarItems ? String(item.similarItems).split(/\r?\n/).filter(Boolean).map(cat => ({ cat })) : undefined;
 
                 if (item.models || item.manufacturerCats) {
@@ -755,18 +779,28 @@ module.exports = {
                     }
                 }
                 if (Object.keys(parentDevicesToRows).length) {
-                    const dbParentCats = await Item.find({ cat: { $in: Object.keys(parentDevicesToRows) }}, { cat: 1 });
-                    for (const dbParentCat of dbParentCats) {
-                        if (parentDevicesToRows[dbParentCat]) {
-                            console.log(`deleting cat ${itemToInsert.cat} - part of db`);
-                            delete parentDevicesToRows[dbParentCat];
+                    const dbParents = await Item.find({ cat: { $in: Object.keys(parentDevicesToRows) }}, { cat: 1, catType: 1 });
+                    for (const dbParent of dbParents) {
+                        if (parentDevicesToRows[dbParent.cat]) {
+                            if (dbParent.catType !== 'מכשיר') {
+                                errors.push(`Row ${parentDevicesToRows[dbParent.cat].rowNumber}: Cannot belong to device of cat type ${dbParent.catType}`);
+                            } else {
+                                console.log(`deleting cat ${dbParent.cat} - part of db`);
+                                const children = parentDevicesToRows[dbParent.cat].map(parent => parent.item);
+                                itemsToUpdate.push(...children.map(child => {
+                                    const listType = catTypeToChildrenArrayField(child.catType);
+                                    return { updateOne: { filter: { cat: dbParent.cat }, update: { $addToSet: { [listType]: { cat: child.cat } }}}};
+                                }));
+                            }
+
+                            delete parentDevicesToRows[dbParent.cat];
                         }
                     }
                     if (Object.keys(parentDevicesToRows).length) {
                         console.log(`adding parent errors!`);
                         const errorMessages = Object.keys(parentDevicesToRows)
                             .flatMap(cat => parentDevicesToRows[cat]
-                                .map(rowNumber => `Row ${rowNumber}: Belongs to unknown device cat ${cat}`));
+                                .map(({ rowNumber }) => `Row ${rowNumber}: Belongs to unknown device cat ${cat}`));
                         errors.push(errorMessages);
                         console.log(`current errors: ${JSON.stringify(errors)}`);
                     }
@@ -794,8 +828,15 @@ module.exports = {
                     //     }
                     // }
                 }
-
-                await Item.insertMany(itemsToInsert, { session });
+                console.log(`bulk write operations: ${JSON.stringify([
+                    ...itemsToInsert.map(item => ({ insertOne: { document: item } })),
+                    ...itemsToUpdate,
+                ])}`);
+                await Item.bulkWrite([
+                    ...itemsToInsert.map(item => ({ insertOne: { document: item } })),
+                    ...itemsToUpdate,
+                ], { session });
+                //await Item.insertMany(itemsToInsert, { session });
                 await session.commitTransaction();
                 session.endSession();
                 return res.status(200).send('Items imported successfully!');
