@@ -18,6 +18,19 @@ const filteredFieldsForRole = {
     [Role.Viewer]: [ 'certificationPeriodMonths', 'qaStandardLink', 'serviceManualLink' ],
 }
 
+function catTypeToChildrenArray(catType) {
+    switch(catType) {
+        case 'אביזר':
+            return device => device.accessories;
+        case 'מתכלה':
+            return device => device.consumables;
+        case 'חלק חילוף':
+            return device => device.spareParts;
+        default:
+            return null;
+    }
+}
+
 const worksheetColumns = [{
     header: 'שם',
     key: 'name',
@@ -671,6 +684,7 @@ module.exports = {
 
             const suppliers = (await Supplier.find({}, { _id: 1, name: 1 })).reduce((obj, sup) => ({ ...obj, [sup.name]: sup._id }), {});
             const suppliersToAdd = [];
+            const parentDevicesToRows = {};
 
             // Parse rows
             const itemsToInsert = [];
@@ -696,6 +710,7 @@ module.exports = {
                 // Parse fields that are arrays (kitCats, belongsToDevices, similarItems, manufacturerCat, models)
                 item.kitCats = item.kitCats ? String(item.kitCats).split(/\r?\n/).filter(Boolean) : undefined;
                 item.belongsToDevices = item.belongsToDevices ? String(item.belongsToDevices).split(/\r?\n/).filter(Boolean).map(cat => ({ cat })) : undefined;
+                item.belongsToDevices?.forEach(({ cat }) => parentDevicesToRows[cat] = [ ...(parentDevicesToRows[cat] ?? []), { rowNumber, item }]);
                 item.similarItems = item.similarItems ? String(item.similarItems).split(/\r?\n/).filter(Boolean).map(cat => ({ cat })) : undefined;
 
                 if (item.models || item.manufacturerCats) {
@@ -729,6 +744,34 @@ module.exports = {
                 console.log(`adding imported item: ${JSON.stringify(item)}`);
                 itemsToInsert.push(item);
             });
+
+            console.log(`parentDevicesToRows: ${JSON.stringify(parentDevicesToRows)}`);
+            if (Object.keys(parentDevicesToRows).length) {
+                for (const itemToInsert of itemsToInsert) {
+                    if (parentDevicesToRows[itemToInsert.cat]) {
+                        parentDevicesToRows[itemToInsert.cat].forEach(childDevice => catTypeToChildrenArray(childDevice.catType)?.(itemToInsert).push(childDevice));
+                        console.log(`deleting cat ${itemToInsert.cat} - part of excel`);
+                        delete parentDevicesToRows[itemToInsert.cat];
+                    }
+                }
+                if (Object.keys(parentDevicesToRows).length) {
+                    const dbParentCats = await Item.find({ cat: { $in: Object.keys(parentDevicesToRows) }}, { cat: 1 });
+                    for (const dbParentCat of dbParentCats) {
+                        if (parentDevicesToRows[dbParentCat]) {
+                            console.log(`deleting cat ${itemToInsert.cat} - part of db`);
+                            delete parentDevicesToRows[dbParentCat];
+                        }
+                    }
+                    if (Object.keys(parentDevicesToRows).length) {
+                        console.log(`adding parent errors!`);
+                        const errorMessages = Object.keys(parentDevicesToRows)
+                            .flatMap(cat => parentDevicesToRows[cat]
+                                .map(rowNumber => `Row ${rowNumber}: Belongs to unknown device cat ${cat}`));
+                        errors.push(errorMessages);
+                        console.log(`current errors: ${JSON.stringify(errors)}`);
+                    }
+                }
+            }
 
             if (errors.length) {
                 console.error(`errors importing items: ${JSON.stringify(errors)}`);
