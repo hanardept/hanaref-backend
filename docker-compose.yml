@@ -4,6 +4,8 @@ version: '3.8'
 services:
   mongodb:
     image: mongo:6.0
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
     container_name: hanaref-mongodb
     restart: always
     ports:
