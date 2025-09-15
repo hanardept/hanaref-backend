@@ -778,7 +778,11 @@ module.exports = {
             if (Object.keys(parentDevicesToRows).length) {
                 for (const itemToInsert of itemsToInsert) {
                     if (parentDevicesToRows[itemToInsert.cat]) {
-                        parentDevicesToRows[itemToInsert.cat].forEach(childDevice => catTypeToChildrenArray(childDevice.catType)?.(itemToInsert).push(childDevice));
+                        if (itemToInsert.catType !== 'מכשיר') {
+                            errors.push(...parentDevicesToRows[itemToInsert.cat].map(({ rowNumber }) => `Row ${rowNumber}: Cannot belong to device of cat type ${itemToInsert.catType}`));
+                        } else {
+                            parentDevicesToRows[itemToInsert.cat].forEach(childDevice => catTypeToChildrenArray(childDevice.catType)?.(itemToInsert).push(childDevice));
+                        }
                         console.log(`deleting cat ${itemToInsert.cat} - part of excel`);
                         delete parentDevicesToRows[itemToInsert.cat];
                     }
@@ -824,14 +828,6 @@ module.exports = {
                 console.log(`added suppliers: ${JSON.stringify(suppliersToAdd)}`);
                 if (suppliersToAdd.length) {
                     await Supplier.insertMany(suppliersToAdd, { session });
-                    // const addedSuppliers = await Supplier.insertMany(Object.keys(suppliersToAdd).map(s => suppliersToAdd[s].supplier), { session });
-                    // for (const addedSupplier of addedSuppliers) {
-                    //     console.log(`setting items for added supplier: ${JSON.stringify(addedSupplier)}`);
-                    //     for (const supplierItem of suppliersToAdd[addedSupplier.id].items) {
-                    //         supplierItem.supplier = addedSupplier._id;
-                    //         console.log(`item after setting supplier: ${JSON.stringify(supplierItem)}`)
-                    //     }
-                    // }
                 }
                 console.log(`bulk write operations: ${JSON.stringify([
                     ...itemsToInsert.map(item => ({ insertOne: { document: item } })),
