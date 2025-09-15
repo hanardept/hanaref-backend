@@ -27,7 +27,8 @@ services:
     container_name: hanaref-backend
     restart: always
     depends_on:
-      - mongodb
+      mongodb:
+        condition: service_healthy
     environment:
       MONGO_URL: mongodb://hanaref-mongodb:27017/
       AUTH0_DOMAIN: mockServer:1090
