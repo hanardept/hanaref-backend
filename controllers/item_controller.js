@@ -707,6 +707,7 @@ module.exports = {
 
             // Parse rows
             const itemsToInsert = [];
+            const catToItems = {};
             const itemsToUpdate = [];
             const errors = [];
             worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
@@ -767,7 +768,11 @@ module.exports = {
 
                 console.log(`adding imported item: ${JSON.stringify(item)}`);
                 itemsToInsert.push(item);
+                catToItems[item.cat] = { item, rowNumber };
             });
+
+            const existingItems = await Item.find({ cat: { $in: Object.keys(catToItems) }}, { cat: 1 });
+            errors.push(...existingItems.map(({ cat }) => `Row ${catToItems[cat].rowNumber}: Cat ${cat} already exists`));
 
             console.log(`parentDevicesToRows: ${JSON.stringify(parentDevicesToRows)}`);
             if (Object.keys(parentDevicesToRows).length) {
