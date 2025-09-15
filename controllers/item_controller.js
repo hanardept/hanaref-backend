@@ -724,14 +724,14 @@ module.exports = {
                 for (const field of requiredFields) {
                     const fieldValue = item[columnsToFields[field]];
                     if (fieldValue === undefined || fieldValue === null || fieldValue === '') {
-                        errors.push(`Row ${rowNumber}: Missing value for required field "${field}"`);
+                        errors.push(`שורה מספר ${rowNumber}: חסר ערך בשדה החובה "${field}"`);
                     }
                 }
 
                 // Parse fields that are arrays (kitCats, belongsToDevices, similarItems, manufacturerCat, models)
                 item.kitCats = item.kitCats ? String(item.kitCats).split(/\r?\n/).filter(Boolean) : undefined;
                 if (item.belongsToDevices?.length && item.catType === 'מכשיר') {
-                    errors.push(`Row ${rowNumber}: Device cannot belong to other items`);
+                    errors.push(`שורה מספר ${rowNumber}: מכשיר אינו יכול להיות שייך לפריטים אחרים`);
                 } else {
                     item.belongsToDevices = item.belongsToDevices ? String(item.belongsToDevices).split(/\r?\n/).filter(Boolean).map(cat => ({ cat })) : undefined;
                     item.belongsToDevices?.forEach(({ cat }) => parentDevicesToRows[cat] = [ ...(parentDevicesToRows[cat] ?? []), { rowNumber, item }]);
@@ -749,7 +749,7 @@ module.exports = {
                 }
                 item.manufacturerCats = undefined;
                 if ([ item.supplier, item.supplierId ].filter(Boolean).length === 1) {
-                    errors.push(`Row ${rowNumber}: Supplier name and supplier id should both exist or not exist`);
+                    errors.push(`שורה מספר ${rowNumber}: ספק ומספר ספק במשרד הביטחון חייבים שניהם להופיע בשורה או לא להופיע כלל`);
                 } else if (item.supplier) {
                     if (suppliers[item.supplier]) {
                         item.supplier = suppliers[item.supplier];
@@ -768,18 +768,22 @@ module.exports = {
 
                 console.log(`adding imported item: ${JSON.stringify(item)}`);
                 itemsToInsert.push(item);
-                catToItems[item.cat] = { item, rowNumber };
+                if (catToItems[item.cat]) {
+                    errors.push(`שורה מספר ${rowNumber}: פריט מספר ${item.cat} כבר הופיע בקובץ`);
+                } else {
+                    catToItems[item.cat] = { item, rowNumber };
+                }
             });
 
             const existingItems = await Item.find({ cat: { $in: Object.keys(catToItems) }}, { cat: 1 });
-            errors.push(...existingItems.map(({ cat }) => `Row ${catToItems[cat].rowNumber}: Cat ${cat} already exists`));
+            errors.push(...existingItems.map(({ cat }) => `שורה מספר ${catToItems[cat].rowNumber}: מק"ט ${cat} כבר קיים במערכת`));
 
             console.log(`parentDevicesToRows: ${JSON.stringify(parentDevicesToRows)}`);
             if (Object.keys(parentDevicesToRows).length) {
                 for (const itemToInsert of itemsToInsert) {
                     if (parentDevicesToRows[itemToInsert.cat]) {
                         if (itemToInsert.catType !== 'מכשיר') {
-                            errors.push(...parentDevicesToRows[itemToInsert.cat].map(({ rowNumber }) => `Row ${rowNumber}: Cannot belong to device of cat type ${itemToInsert.catType}`));
+                            errors.push(...parentDevicesToRows[itemToInsert.cat].map(({ rowNumber }) => `שורה מספר ${rowNumber}: פריט אינו יכול להיות שייך למכשיר שסוג המק"ט שלו הוא ${itemToInsert.catType}`));
                         } else {
                             parentDevicesToRows[itemToInsert.cat].forEach(childDevice => catTypeToChildrenArray(childDevice.catType)?.(itemToInsert).push(childDevice));
                         }
@@ -792,7 +796,7 @@ module.exports = {
                     for (const dbParent of dbParents) {
                         if (parentDevicesToRows[dbParent.cat]) {
                             if (dbParent.catType !== 'מכשיר') {
-                                errors.push(`Row ${parentDevicesToRows[dbParent.cat].rowNumber}: Cannot belong to device of cat type ${dbParent.catType}`);
+                                errors.push(`שורה מספר ${parentDevicesToRows[dbParent.cat].rowNumber}: פריט אינו יכול להיות שייך למכשיר שסוג המק"ט שלו הוא ${dpParent.catType}`);
                             } else {
                                 console.log(`deleting cat ${dbParent.cat} - part of db`);
                                 const children = parentDevicesToRows[dbParent.cat].map(parent => parent.item);
@@ -809,7 +813,7 @@ module.exports = {
                         console.log(`adding parent errors!`);
                         const errorMessages = Object.keys(parentDevicesToRows)
                             .flatMap(cat => parentDevicesToRows[cat]
-                                .map(({ rowNumber }) => `Row ${rowNumber}: Belongs to unknown device cat ${cat}`));
+                                .map(({ rowNumber }) => `שורה מספר ${rowNumber}: הפריט שייך לפריט אינו ידוע בעל מק"ט ${cat}`));
                         errors.push(errorMessages);
                         console.log(`current errors: ${JSON.stringify(errors)}`);
                     }
