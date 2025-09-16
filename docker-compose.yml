@@ -5,8 +5,8 @@ services:
   mongodb:
     image: mongo:6.0
     healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
-    container_name: hanaref-mongodb
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017 --quiet
+    container_name: mongodb
     restart: always
     ports:
       - "27017:27017"
@@ -30,7 +30,7 @@ services:
       mongodb:
         condition: service_healthy
     environment:
-      MONGO_URL: mongodb://hanaref-mongodb:27017/
+      MONGO_URL: mongodb://mongodb:27017/?directConnection=true
       AUTH0_DOMAIN: mockServer:1090
       AUTH0_NAMESPACE: www.hanaref-test.com
       NODE_TLS_REJECT_UNAUTHORIZED: 0
@@ -43,18 +43,18 @@ services:
       retries: 5      
 
   api-tests:
-      build:
-        context: ./api-tests
-      container_name: hanaref-api-tests
-      depends_on:
-        # - hanaref-backend
-        hanaref-backend:
-          condition: service_healthy
-        mockServer:
-          condition: service_started
-        mongodb:
-          condition: service_healthy
-      environment:
-        API_BASE_URL: http://hanaref-backend:5000
-        MONGO_URL: mongodb://hanaref-mongodb:27017/
-      command: ["npm", "test", "--", "--silent=false"]
+    build:
+      context: ./api-tests
+    container_name: hanaref-api-tests
+    depends_on:
+      # - hanaref-backend
+      hanaref-backend:
+        condition: service_healthy
+      mockServer:
+        condition: service_started
+      mongodb:
+        condition: service_healthy
+    environment:
+      API_BASE_URL: http://hanaref-backend:5000
+      MONGO_URL: mongodb://mongodb:27017/?directConnection=true
+    command: ["npm", "test", "--", "--silent=false"]
