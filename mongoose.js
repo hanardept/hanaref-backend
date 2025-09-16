@@ -3,6 +3,8 @@ dotenv.config();
 
 const mongoUrl = process.env.MONGO_URL ?? `mongodb+srv://hanardept:${process.env.MONGO_PWD}@${process.env.MONGO_HOST}/?retryWrites=true&w=majority`
 
+console.log(`mongo url: ${mongoUrl}`);
+
 const connectMongoose = async (mongoose = require("mongoose")) => {
     try {
         await mongoose.disconnect();

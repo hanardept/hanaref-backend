@@ -1,4 +1,5 @@
 const Item = require("../models/Item");
+const Supplier = require("../models/Supplier");
 const { decodeItems } = require("../functions/helpers");
 const Sector = require("../models/Sector");
 const Role = require("../models/Role");
@@ -16,6 +17,132 @@ function preliminaryItem(item, sector, department, catType = "מכשיר", belon
 const filteredFieldsForRole = {
     [Role.Viewer]: [ 'certificationPeriodMonths', 'qaStandardLink', 'serviceManualLink' ],
 }
+
+function catTypeToChildrenArray(catType) {
+    switch(catType) {
+        case 'אביזר':
+            return device => device.accessories;
+        case 'מתכלה':
+            return device => device.consumables;
+        case 'חלק חילוף':
+            return device => device.spareParts;
+        default:
+            return null;
+    }
+}
+
+function catTypeToChildrenArrayField(catType) {
+    switch (catType) {
+        case "אביזר":
+            return "accessories";
+        case "מתכלה":
+            return "consumables";
+        case "חלק חילוף":
+            return "spareParts";
+        default:
+            return null;
+    }
+}
+
+const worksheetColumns = [{
+    header: 'שם',
+    key: 'name',
+    width: 30
+}, {
+    header: 'מק"ט',
+    key: 'cat',
+    width: 15
+}, {
+    header: 'מק"טי ערכה',
+    key: 'kitCats',
+    width: 15
+}, {
+    header: 'מדור',
+    key: 'sector',
+    width: 20
+}, {
+    header: 'תחום',
+    key: 'department',
+    width: 10
+}, {
+    header: 'סוג מק"ט',
+    key: 'catType',
+    width: 10
+}, {
+    header: 'תקופת הסמכה בחודשים',
+    certificationPeriodMonths: 'certificationPeriodMonths',
+    width: 10,
+}, {
+    header: 'ספק',
+    key: 'supplier',
+    width: 25,
+}, {
+    header: 'מספר ספק במשרד הביטחון',
+    key: 'supplierId',
+    width: 25,
+}, {
+    header: 'אורך חיים',
+    key: 'lifeSpan',
+}, {
+    header: 'יצרן',
+    key: 'manufacturer',
+    width: 30,
+    style: { alignment: { wrapText: true, horizontal: 'right', readingOrder: 'rtl' } }
+}, {
+    header: 'מק"ט יצרן',
+    key: 'manufacturerCat',
+    width: 30,
+    style: { alignment: { wrapText: true, horizontal: 'right', readingOrder: 'rtl' } }
+}, {
+    header: 'דגם',
+    key: 'models',
+    width: 30,
+    style: { alignment: { wrapText: true, horizontal: 'right', readingOrder: 'rtl' } }
+}, {
+    header: 'תיאור',
+    key: 'description',
+    width: 40
+}, {
+    header: 'קישור לתמונה',
+    key: 'imageLink',
+    width: 30
+}, {
+    header: 'קישור לתקן בחינה',
+    key: 'qaStandardLink',
+    width: 30
+}, {
+    header: 'הוראות הנר',
+    key: 'medicalEngineeringManualLink',
+    width: 30
+},{
+    header: 'הוראות הפעלה בעברית',
+    key: 'hebrewManualLink',
+    width: 30
+}, {
+    header: 'Service Manual',
+    key: 'serviceManualLink',
+    width: 30
+}, {
+    header: 'מדריך למשתמש',
+    key: 'userManualLink',
+    width: 30
+}, {
+    header: 'חירום',
+    key: 'emergency',
+    width: 10
+}, {
+    header: 'בארכיון',
+    key: 'archived',
+    width: 10
+}, {
+    header: 'שייך למכשירים',
+    key: 'belongsToDevices',
+    width: 30
+}, {
+    header: 'פריטים דומים',
+    key: 'similarItems',
+    width: 30
+}];
 
 function prepareS3KeyFromLink(link) {
     console.log(`preparing link: ${link}`);
@@ -118,9 +245,10 @@ module.exports = {
             let item = (await Item.aggregate([
                 { $match: { cat: req.params.cat } },
                 { $unwind: { path: '$accessories', preserveNullAndEmptyArrays: true } },
-                { $lookup: { from: 'items', localField: 'accessories.cat', foreignField: 'cat', as: 'accessories_image', pipeline: [{ $project: { imageLink: 1 } }] } },
-                { $unwind: { path: '$accessories_image', preserveNullAndEmptyArrays: true } },
-                { $set: { "accessories.imageLink": { $cond: { if: { $ne: [{ $type: "$accessories_image" }, "missing"] }, then: "$accessories_image.imageLink", else: "$$REMOVE" } } } },
+                { $lookup: { from: 'items', localField: 'accessories.cat', foreignField: 'cat', as: 'accessories_details', pipeline: [{ $project: { name: 1, imageLink: 1 } }] } },
+                { $unwind: { path: '$accessories_details', preserveNullAndEmptyArrays: true } },
+                { $set: { "accessories.imageLink": { $cond: { if: { $ne: [{ $type: "$accessories_details" }, "missing"] }, then: "$accessories_details.imageLink", else: "$$REMOVE" } } } },
+                { $set: { "accessories.name": { $cond: { if: { $ne: [{ $type: "$accessories_details" }, "missing"] }, then: "$accessories_details.name", else: "$$REMOVE" } } } },
                 {
                     $group: {
                         _id: '$_id',
@@ -142,9 +270,10 @@ module.exports = {
                 },
                 { $replaceRoot: { newRoot: { $mergeObjects: ["$root", { models: "$models" }] } } },
                 { $unwind: { path: '$consumables', preserveNullAndEmptyArrays: true } },
-                { $lookup: { from: 'items', localField: 'consumables.cat', foreignField: 'cat', as: 'consumables_image', pipeline: [{ $project: { imageLink: 1 } }] } },
-                { $unwind: { path: '$consumables_image', preserveNullAndEmptyArrays: true } },
-                { $set: { "consumables.imageLink": { $cond: { if: { $ne: [{ $type: "$consumables_image" }, "missing"] }, then: "$consumables_image.imageLink", else: "$$REMOVE" } } } },
+                { $lookup: { from: 'items', localField: 'consumables.cat', foreignField: 'cat', as: 'consumables_details', pipeline: [{ $project: { name: 1, imageLink: 1 } }] } },
+                { $unwind: { path: '$consumables_details', preserveNullAndEmptyArrays: true } },
+                { $set: { "consumables.imageLink": { $cond: { if: { $ne: [{ $type: "$consumables_details" }, "missing"] }, then: "$consumables_details.imageLink", else: "$$REMOVE" } } } },
+                { $set: { "consumables.name": { $cond: { if: { $ne: [{ $type: "$consumables_details" }, "missing"] }, then: "$consumables_details.name", else: "$$REMOVE" } } } },
                 {
                     $group: {
                         _id: '$_id',
@@ -169,16 +298,16 @@ module.exports = {
                     $set: {
                         accessories: { $filter: { input: "$accessories", as: "item", cond: { $and: [ { $ne: ["$$item.name", null] }, { $ne: [{ $type: "$$item.name" }, "missing"] } ] } } },
                         models: { $filter: { input: "$models", as: "item", cond: { $and: [ { $ne: ["$$item.name", null] }, { $ne: [{ $type: "$$item.name" }, "missing"] } ] } } },
-                        consumables: { $filter: { input: "$consumables", as: "item", cond: { $and: [ { $ne: ["$$item.name", null] }, { $ne: [{ $type: "$$item.name" }, "missing"] } ] } } },
+                        consumables: { $filter: { input: "$consumables", as: "item", cond: { $and: [ { $ne: ["$$item.cat", null] }, { $ne: [{ $type: "$$item.cat" }, "missing"] } ] } } },
                         kitItem: { $filter: { input: "$kitItem", as: "item", cond: { $and: [ { $ne: ["$$item.name", null] }, { $ne: [{ $type: "$$item.name" }, "missing"] } ] } } }
                     }
                 },
                 {
                     $project: {
                         root: 0,
-                        accessories_image: 0,
+                        accessories_details: 0,
                         models_image: 0,
-                        consumables_image: 0,
+                        consumables_details: 0,
                         kitItem_image: 0,
                         ...(filteredFieldsForRole[role] ?? []).reduce((obj, field) => ({ ...obj, [field]: 0 }) , {})
                     }
@@ -190,25 +319,30 @@ module.exports = {
                     return res.status(401).send("You are not authorized to view this item.");
                 }
 
+                const promises = [];
                 if (item.supplier) {
-                    item = await Item.populate(item, { path: 'supplier', select: '_id id name' });
+                    promises.push(Item.populate(item, { path: 'supplier', select: '_id id name' }));
                 }
 
-                console.log(`belongsToDevices: ${JSON.stringify(item.belongsToDevices)}`);
                 const parentDevices = item.belongsToDevices;
                 if (parentDevices?.length) {
-                    const parentDevicesWithSupplier = await Item
+                    promises.push(Item
                         .find({ 
                             cat: { $in: parentDevices.map(d => d.cat) },
-                            supplier: { $ne : null }
-                        }, { cat: 1, supplier: 1 })
-                        .populate('supplier', '_id id name');
-
-                    console.log(`parentDevicesWithSupplier: ${JSON.stringify(parentDevicesWithSupplier)}`);
-                    for (const parentDevice of parentDevices) {
-                        parentDevice.supplier = parentDevicesWithSupplier.find(pd => pd.cat === parentDevice.cat)?.supplier
-                    }
+                        }, { cat: 1, supplier: 1, name: 1 })
+                        .populate('supplier', '_id id name')
+                        .then(parentDevicesWithSupplier => {
+                            for (const parentDevice of parentDevices) {
+                                const parentDeviceDetails = parentDevicesWithSupplier.find(pd => pd.cat === parentDevice.cat);
+                                if (parentDeviceDetails) {
+                                    parentDevice.name = parentDeviceDetails.name;
+                                    parentDevice.supplier = parentDeviceDetails.supplier
+                                }
+                            }
+                        }));
                 }
+
+                await Promise.all(promises);
 
                 res.status(200).send(item);
             } else {
@@ -283,6 +417,7 @@ module.exports = {
                             break;
                         case "חלק חילוף":
                             listType = "spareParts";
+                            break;
                         default:
                             listType = "kitItem";
                             break;
@@ -395,6 +530,9 @@ module.exports = {
                             break;
                         case "מתכלה":
                             listType = "consumables";
+                            break;
+                        case "חלק חילוף":
+                            listType = "spareParts";
                             break;
                         default:
                             listType = "kitItem";
@@ -527,6 +665,197 @@ module.exports = {
             res.status(500).send(`A server error occurred while creating upload url for item cat ${req.params.cat}.`);
         }
     },
+
+
+
+    async importItems(req, res) {
+        // Check if a file was uploaded
+        if (!req.file) {
+            return res.status(400).send('No file uploaded.');
+        }
+
+        const requiredFields = Object.keys(Item.schema.obj)
+            .filter(key => Item.schema.obj[key].required)
+            .map(key => worksheetColumns.find(col => col.key === key).header);
+
+        const columnsToFields = worksheetColumns.reduce((obj, wc) => ({
+            ...obj,
+            [wc.header]: wc.key
+        }), {});
+        //  [
+        //     'name', 'cat', 'kitCats', 'sector', 'department', 'catType', 'certificationPeriodMonths', 'description', 'imageLink', 'qaStandardLink', 'medicalEngineeringManualLink',
+        //     'serviceManualLink', 'userManualLink', 'hebrewManualLink', 'emergency', 'supplier', 'lifeSpan', 'belongsToDevices', 'similarItems', 'manufacturerCat', 'models', 'archived'
+        // ];
+
+        try {
+            const workbook = new ExcelJS.Workbook();
+            await workbook.xlsx.load(req.file.buffer);
+            const worksheet = workbook.worksheets[0];
+
+            // Validate columns
+            const headerRow = worksheet.getRow(1);
+            const columnNames = headerRow.values.slice(1); // skip first empty cell
+            for (const field of requiredFields) {
+                if (!columnNames.includes(field)) {
+                    return res.status(400).send(`Missing required column: ${field}`);
+                }
+            }
+
+            const suppliers = (await Supplier.find({}, { _id: 1, name: 1 })).reduce((obj, sup) => ({ ...obj, [sup.name]: sup._id }), {});
+            const suppliersToAdd = [];
+            const parentDevicesToRows = {};
+
+            // Parse rows
+            const itemsToInsert = [];
+            const catToItems = {};
+            const itemsToUpdate = [];
+            const errors = [];
+            worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
+                if (rowNumber === 1) return; // skip header
+
+                const item = {};
+                columnNames.forEach((col, idx) => {
+                    if (columnsToFields[col]) {
+                        item[columnsToFields[col]] = row.getCell(idx + 1).text;
+                    }
+                });
+
+                // Validate required fields (except optional ones if any)
+                for (const field of requiredFields) {
+                    const fieldValue = item[columnsToFields[field]];
+                    if (fieldValue === undefined || fieldValue === null || fieldValue === '') {
+                        errors.push(`שורה מספר ${rowNumber}: חסר ערך בשדה החובה "${field}"`);
+                    }
+                }
+
+                // Parse fields that are arrays (kitCats, belongsToDevices, similarItems, manufacturerCat, models)
+                item.kitCats = item.kitCats ? String(item.kitCats).split(/\r?\n/).filter(Boolean) : undefined;
+                if (item.belongsToDevices?.length && item.catType === 'מכשיר') {
+                    errors.push(`שורה מספר ${rowNumber}: מכשיר אינו יכול להיות שייך לפריטים אחרים`);
+                } else {
+                    item.belongsToDevices = item.belongsToDevices ? String(item.belongsToDevices).split(/\r?\n/).filter(Boolean).map(cat => ({ cat })) : undefined;
+                    item.belongsToDevices?.forEach(({ cat }) => parentDevicesToRows[cat] = [ ...(parentDevicesToRows[cat] ?? []), { rowNumber, item }]);
+                }
+                item.similarItems = item.similarItems ? String(item.similarItems).split(/\r?\n/).filter(Boolean).map(cat => ({ cat })) : undefined;
+
+                if (item.models || item.manufacturerCats) {
+                    const manufacturers = String(item.manufacturer).split(/\r?\n/);
+                    const manufacturerCats = String(item.manufacturerCat).split(/\r?\n/);
+                    const modelNames = String(item.models).split(/\r?\n/);           
+                    item.models = Array.from(Array(Math.max(modelNames.length ?? 0, manufacturerCats.length ?? 0, manufacturers. length ?? 0)), 
+                    (_, i) => ({ manufacturer: manufacturers[i], cat: manufacturerCats[i], name: modelNames[i] }));
+                } else {
+                    item.models = undefined;
+                }
+                item.manufacturerCats = undefined;
+                if ([ item.supplier, item.supplierId ].filter(Boolean).length === 1) {
+                    errors.push(`שורה מספר ${rowNumber}: ספק ומספר ספק במשרד הביטחון חייבים שניהם להופיע בשורה או לא להופיע כלל`);
+                } else if (item.supplier) {
+                    if (suppliers[item.supplier]) {
+                        item.supplier = suppliers[item.supplier];
+                    } else {
+                        console.log(`new supplier: ${item.supplier}`);
+                        const newId = ObjectId();
+                        suppliersToAdd.push({ _id: newId, id: item.supplierId, name: item.supplier});
+                        item.supplier = newId;
+                    }
+                }
+                item.supplierId = undefined;
+
+                // Parse booleans
+                item.archived = item.archived === 'כן';
+                item.emergency = item.emergency === 'כן';
+
+                console.log(`adding imported item: ${JSON.stringify(item)}`);
+                itemsToInsert.push(item);
+                if (catToItems[item.cat]) {
+                    errors.push(`שורה מספר ${rowNumber}: פריט מספר ${item.cat} כבר הופיע בקובץ`);
+                } else {
+                    catToItems[item.cat] = { item, rowNumber };
+                }
+            });
+
+            const existingItems = await Item.find({ cat: { $in: Object.keys(catToItems) }}, { cat: 1 });
+            errors.push(...existingItems.map(({ cat }) => `שורה מספר ${catToItems[cat].rowNumber}: מק"ט ${cat} כבר קיים במערכת`));
+
+            console.log(`parentDevicesToRows: ${JSON.stringify(parentDevicesToRows)}`);
+            if (Object.keys(parentDevicesToRows).length) {
+                for (const itemToInsert of itemsToInsert) {
+                    if (parentDevicesToRows[itemToInsert.cat]) {
+                        if (itemToInsert.catType !== 'מכשיר') {
+                            errors.push(...parentDevicesToRows[itemToInsert.cat].map(({ rowNumber }) => `שורה מספר ${rowNumber}: פריט אינו יכול להיות שייך למכשיר שסוג המק"ט שלו הוא ${itemToInsert.catType}`));
+                        } else {
+                            parentDevicesToRows[itemToInsert.cat].forEach(childDevice => catTypeToChildrenArray(childDevice.catType)?.(itemToInsert).push(childDevice));
+                        }
+                        console.log(`deleting cat ${itemToInsert.cat} - part of excel`);
+                        delete parentDevicesToRows[itemToInsert.cat];
+                    }
+                }
+                if (Object.keys(parentDevicesToRows).length) {
+                    const dbParents = await Item.find({ cat: { $in: Object.keys(parentDevicesToRows) }}, { cat: 1, catType: 1 });
+                    for (const dbParent of dbParents) {
+                        if (parentDevicesToRows[dbParent.cat]) {
+                            if (dbParent.catType !== 'מכשיר') {
+                                errors.push(`שורה מספר ${parentDevicesToRows[dbParent.cat].rowNumber}: פריט אינו יכול להיות שייך למכשיר שסוג המק"ט שלו הוא ${dpParent.catType}`);
+                            } else {
+                                console.log(`deleting cat ${dbParent.cat} - part of db`);
+                                const children = parentDevicesToRows[dbParent.cat].map(parent => parent.item);
+                                itemsToUpdate.push(...children.map(child => {
+                                    const listType = catTypeToChildrenArrayField(child.catType);
+                                    return { updateOne: { filter: { cat: dbParent.cat }, update: { $addToSet: { [listType]: { cat: child.cat } }}}};
+                                }));
+                            }
+
+                            delete parentDevicesToRows[dbParent.cat];
+                        }
+                    }
+                    if (Object.keys(parentDevicesToRows).length) {
+                        console.log(`adding parent errors!`);
+                        const errorMessages = Object.keys(parentDevicesToRows)
+                            .flatMap(cat => parentDevicesToRows[cat]
+                                .map(({ rowNumber }) => `שורה מספר ${rowNumber}: הפריט שייך לפריט אינו ידוע בעל מק"ט ${cat}`));
+                        errors.push(errorMessages);
+                        console.log(`current errors: ${JSON.stringify(errors)}`);
+                    }
+                }
+            }
+
+            if (errors.length) {
+                console.error(`errors importing items: ${JSON.stringify(errors)}`);
+                return res.status(400).json({ error: 'Validation failed', details: errors });
+            }
+
+            // Insert all items in a transaction
+            const session = await mongoose.startSession();
+            session.startTransaction();
+            try {
+                console.log(`added suppliers: ${JSON.stringify(suppliersToAdd)}`);
+                if (suppliersToAdd.length) {
+                    await Supplier.insertMany(suppliersToAdd, { session });
+                }
+                console.log(`bulk write operations: ${JSON.stringify([
+                    ...itemsToInsert.map(item => ({ insertOne: { document: item } })),
+                    ...itemsToUpdate,
+                ])}`);
+                await Item.bulkWrite([
+                    ...itemsToInsert.map(item => ({ insertOne: { document: item } })),
+                    ...itemsToUpdate,
+                ], { session });
+                //await Item.insertMany(itemsToInsert, { session });
+                await session.commitTransaction();
+                session.endSession();
+                return res.status(200).send('Items imported successfully!');
+            } catch (err) {
+                await session.abortTransaction();
+                session.endSession();
+                console.error(`Database insert error: ${err}`);
+                return res.status(400).send(`Database insert error: ${err}`);
+            }
+        } catch (error) {
+            console.error(`Excel import erorr: ${error}`);
+            return res.status(400).send(`Failed to process Excel file: ${error}`);
+        }
+    },
     
     async getItemsWorksheet(req, res) {
         const workbook = new ExcelJS.Workbook();
@@ -534,96 +863,7 @@ module.exports = {
 
         console.log(`Generating Excel worksheet for items...`);
 
-        worksheet.columns = [{
-            header: 'שם',
-            key: 'name',
-            width: 30
-        }, {
-            header: 'מק"ט',
-            key: 'cat',
-            width: 15
-        }, {
-            header: 'מק"טי ערכה',
-            key: 'kitCats',
-            width: 15
-        }, {
-            header: 'מדור',
-            key: 'sector',
-            width: 20
-        }, {
-            header: 'תחום',
-            key: 'department',
-            width: 10
-        }, {
-            header: 'סוג מק"ט',
-            key: 'catType',
-            width: 10
-        }, {
-            header: 'תקופת הסמכה בחודשים',
-            certificationPeriodMonths: 'certificationPeriodMonths',
-            width: 10,
-        }, {
-            header: 'יצרן',
-            key: 'supplier',
-            width: 25,
-        }, {
-            header: 'אורך חיים',
-            key: 'lifeSpan',
-        }, {
-            header: 'מק"ט יצרן',
-            key: 'manufacturerCat',
-            width: 30,
-            style: { alignment: { wrapText: true, horizontal: 'right', readingOrder: 'rtl' } }
-        }, {
-            header: 'דגם',
-            key: 'models',
-            width: 30,
-            style: { alignment: { wrapText: true, horizontal: 'right', readingOrder: 'rtl' } }
-        }, {
-            header: 'תיאור',
-            key: 'description',
-            width: 40
-        }, {
-            header: 'קישור לתמונה',
-            key: 'imageLink',
-            width: 30
-        }, {
-            header: 'קישור לתקן בחינה',
-            key: 'qaStandardLink',
-            width: 30
-        }, {
-            header: 'הוראות הנר',
-            key: 'medicalEngineeringManualLink',
-            width: 30
-        },{
-            header: 'הוראות הפעלה בעברית',
-            key: 'hebrewManualLink',
-            width: 30
-        }, {
-            header: 'Service Manual',
-            key: 'serviceManualLink',
-            width: 30
-        }, {
-            header: 'מדריך למשתמש',
-            key: 'userManualLink',
-            width: 30
-        }, {
-            header: 'חירום',
-            key: 'emergency',
-            width: 10
-        }, {
-            header: 'בארכיון',
-            key: 'archived',
-            width: 10
-        }, {
-            header: 'שייך למכשירים',
-            key: 'belongsToDevices',
-            width: 30
-        }, {
-            header: 'פריטים דומים',
-            key: 'similarItems',
-            width: 30
-        }];
+        worksheet.columns = worksheetColumns;
 
         let items;
         let offset = 0;
@@ -635,7 +875,8 @@ module.exports = {
                 })
                 .sort('cat')
                 .skip(offset)
-                .limit(batchSize);
+                .limit(batchSize)
+                .populate('supplier', 'name');
             if (items?.length) {
                 worksheet.addRows(items.map(({ 
                     name, cat, kitCats, sector, department, models, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, serviceManualLink, userManualLink,
@@ -643,12 +884,15 @@ module.exports = {
                 }) => (
                     { 
                         name, cat, sector, department, models, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, serviceManualLink, userManualLink, 
-                        hebrewManualLink, supplier, lifeSpan,
+                        hebrewManualLink, lifeSpan,
+                        supplier: supplier?.name ?? '',
+                        supplierId: supplier?.id ?? '',
                         emergency: emergency ? 'כן' : 'לא',
                         kitCats: kitCats?.join('\r\n'),
                         archived: archived ? 'כן' : 'לא',
                         belongsToDevices: belongsToDevices?.map(b => b.cat).join('\r\n'),
                         similarItems: similarItems?.map(b => b.cat).join('\r\n'),
+                        manufacturer: models?.map(m => m.manufacturer).join('\r\n'),
                         manufacturerCat: models?.map(m => m.cat).join('\r\n'),
                         models: models?.map(m => m.name).join('\r\n'),
                     }
