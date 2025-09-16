@@ -37,7 +37,7 @@ services:
     ports:
       - "5000:5000"
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')", "hanaref-mongodb:27017"]
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')", "mongodb:27017"]
       interval: 10s
       timeout: 5s
       retries: 5      
