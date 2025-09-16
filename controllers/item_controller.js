@@ -257,6 +257,7 @@ module.exports = {
                     }
                 },
                 { $replaceRoot: { newRoot: { $mergeObjects: ["$root", { accessories: "$accessories" }] } } },
+
                 { $unwind: { path: '$models', preserveNullAndEmptyArrays: true } },
                 { $lookup: { from: 'items', localField: 'models.cat', foreignField: 'cat', as: 'models_image', pipeline: [{ $project: { imageLink: 1 } }] } },
                 { $unwind: { path: '$models_image', preserveNullAndEmptyArrays: true } },
@@ -269,6 +270,7 @@ module.exports = {
                     }
                 },
                 { $replaceRoot: { newRoot: { $mergeObjects: ["$root", { models: "$models" }] } } },
+
                 { $unwind: { path: '$consumables', preserveNullAndEmptyArrays: true } },
                 { $lookup: { from: 'items', localField: 'consumables.cat', foreignField: 'cat', as: 'consumables_details', pipeline: [{ $project: { name: 1, imageLink: 1 } }] } },
                 { $unwind: { path: '$consumables_details', preserveNullAndEmptyArrays: true } },
@@ -282,6 +284,21 @@ module.exports = {
                     }
                 },
                 { $replaceRoot: { newRoot: { $mergeObjects: ["$root", { consumables: "$consumables" }] } } },
+
+                { $unwind: { path: '$spareParts', preserveNullAndEmptyArrays: true } },
+                { $lookup: { from: 'items', localField: 'spareParts.cat', foreignField: 'cat', as: 'spareParts_details', pipeline: [{ $project: { name: 1, imageLink: 1 } }] } },
+                { $unwind: { path: '$spareParts_details', preserveNullAndEmptyArrays: true } },
+                { $set: { "spareParts.imageLink": { $cond: { if: { $ne: [{ $type: "$spareParts_details" }, "missing"] }, then: "$spareParts_details.imageLink", else: "$$REMOVE" } } } },
+                { $set: { "spareParts.name": { $cond: { if: { $ne: [{ $type: "$spareParts_details" }, "missing"] }, then: "$spareParts_details.name", else: "$$REMOVE" } } } },
+                {
+                    $group: {
+                        _id: '$_id',
+                        spareParts: { $addToSet: '$spareParts' },
+                        root: { $first: '$$ROOT' }
+                    }
+                },
+                { $replaceRoot: { newRoot: { $mergeObjects: ["$root", { spareParts: "$spareParts" }] } } },
+
                 { $unwind: { path: '$kitItem', preserveNullAndEmptyArrays: true } },
                 { $lookup: { from: 'items', localField: 'kitItem.cat', foreignField: 'cat', as: 'kitItem_image', pipeline: [{ $project: { imageLink: 1 } }] } },
                 { $unwind: { path: '$kitItem_image', preserveNullAndEmptyArrays: true } },
@@ -299,6 +316,7 @@ module.exports = {
                         accessories: { $filter: { input: "$accessories", as: "item", cond: { $and: [ { $ne: ["$$item.name", null] }, { $ne: [{ $type: "$$item.name" }, "missing"] } ] } } },
                         models: { $filter: { input: "$models", as: "item", cond: { $and: [ { $ne: ["$$item.name", null] }, { $ne: [{ $type: "$$item.name" }, "missing"] } ] } } },
                         consumables: { $filter: { input: "$consumables", as: "item", cond: { $and: [ { $ne: ["$$item.cat", null] }, { $ne: [{ $type: "$$item.cat" }, "missing"] } ] } } },
+                        spareParts: { $filter: { input: "$spareParts", as: "item", cond: { $and: [ { $ne: ["$$item.cat", null] }, { $ne: [{ $type: "$$item.cat" }, "missing"] } ] } } },
                         kitItem: { $filter: { input: "$kitItem", as: "item", cond: { $and: [ { $ne: ["$$item.name", null] }, { $ne: [{ $type: "$$item.name" }, "missing"] } ] } } }
                     }
                 },
@@ -308,6 +326,7 @@ module.exports = {
                         accessories_details: 0,
                         models_image: 0,
                         consumables_details: 0,
+                        spareParts_details: 0,
                         kitItem_image: 0,
                         ...(filteredFieldsForRole[role] ?? []).reduce((obj, field) => ({ ...obj, [field]: 0 }) , {})
                     }
