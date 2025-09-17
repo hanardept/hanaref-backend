@@ -138,10 +138,6 @@ const worksheetColumns = [{
     header: 'שייך למכשירים',
     key: 'belongsToDevices',
     width: 30
-}, {
-    header: 'פריטים דומים',
-    key: 'similarItems',
-    width: 30
 }];
 
 function prepareS3KeyFromLink(link) {
@@ -701,10 +697,6 @@ module.exports = {
             ...obj,
             [wc.header]: wc.key
         }), {});
-        //  [
-        //     'name', 'cat', 'kitCats', 'sector', 'department', 'catType', 'certificationPeriodMonths', 'description', 'imageLink', 'qaStandardLink', 'medicalEngineeringManualLink',
-        //     'serviceManualLink', 'userManualLink', 'hebrewManualLink', 'emergency', 'supplier', 'lifeSpan', 'belongsToDevices', 'similarItems', 'manufacturerCat', 'models', 'archived'
-        // ];
 
         try {
             const workbook = new ExcelJS.Workbook();
@@ -747,7 +739,7 @@ module.exports = {
                     }
                 }
 
-                // Parse fields that are arrays (kitCats, belongsToDevices, similarItems, manufacturerCat, models)
+                // Parse fields that are arrays (kitCats, belongsToDevices, manufacturerCat, models)
                 item.kitCats = item.kitCats ? String(item.kitCats).split(/\r?\n/).filter(Boolean) : undefined;
                 if (item.belongsToDevices?.length && item.catType === 'מכשיר') {
                     errors.push(`שורה מספר ${rowNumber}: מכשיר אינו יכול להיות שייך לפריטים אחרים`);
@@ -755,7 +747,6 @@ module.exports = {
                     item.belongsToDevices = item.belongsToDevices ? String(item.belongsToDevices).split(/\r?\n/).filter(Boolean).map(cat => ({ cat })) : undefined;
                     item.belongsToDevices?.forEach(({ cat }) => parentDevicesToRows[cat] = [ ...(parentDevicesToRows[cat] ?? []), { rowNumber, item }]);
                 }
-                item.similarItems = item.similarItems ? String(item.similarItems).split(/\r?\n/).filter(Boolean).map(cat => ({ cat })) : undefined;
 
                 if (item.models || item.manufacturerCats) {
                     const manufacturers = String(item.manufacturer).split(/\r?\n/);
@@ -892,7 +883,7 @@ module.exports = {
         do {
             items = await Item.find({}, { 
                     name: 1, cat: 1, kitCats: 1, sector: 1, department: 1, models: 1, archived: 1, catType: 1, certificationPeriodMonths: 1, description: 1, imageLink: 1, qaStandardLink: 1, medicalEngineeringManualLink: 1, 
-                    serviceManualLink: 1, userManualLink: 1, hebrewManualLink: 1, emergency: 1, supplier: 1, lifeSpan: 1, belongsToDevices: 1, similarItems: 1, kitItem: 1 
+                    serviceManualLink: 1, userManualLink: 1, hebrewManualLink: 1, emergency: 1, supplier: 1, lifeSpan: 1, belongsToDevices: 1, kitItem: 1 
                 })
                 .sort('cat')
                 .skip(offset)
@@ -901,7 +892,7 @@ module.exports = {
             if (items?.length) {
                 worksheet.addRows(items.map(({ 
                     name, cat, kitCats, sector, department, models, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, serviceManualLink, userManualLink,
-                    hebrewManualLink, archived, belongsToDevices, similarItems, emergency, supplier, lifeSpan,
+                    hebrewManualLink, archived, belongsToDevices, emergency, supplier, lifeSpan,
                 }) => (
                     { 
                         name, cat, sector, department, models, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, serviceManualLink, userManualLink, 
@@ -912,7 +903,6 @@ module.exports = {
                         kitCats: kitCats?.join('\r\n'),
                         archived: archived ? 'כן' : 'לא',
                         belongsToDevices: belongsToDevices?.map(b => b.cat).join('\r\n'),
-                        similarItems: similarItems?.map(b => b.cat).join('\r\n'),
                         manufacturer: models?.map(m => m.manufacturer).join('\r\n'),
                         manufacturerCat: models?.map(m => m.cat).join('\r\n'),
                         models: models?.map(m => m.name).join('\r\n'),
