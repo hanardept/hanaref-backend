@@ -767,9 +767,9 @@ module.exports = {
                     item.models = undefined;
                 }
                 item.manufacturerCats = undefined;
-                if ([ item.supplier, item.supplierId ].filter(Boolean).length === 1) {
+                if ([ item.supplier, item.supplierId ].filter(supplierField => (supplierField?.length ?? 0) > 0).length === 1) {
                     errors.push(`שורה מספר ${rowNumber}: ספק ומספר ספק במשרד הביטחון חייבים שניהם להופיע בשורה או לא להופיע כלל`);
-                } else if (item.supplier) {
+                } else if (item.supplier?.length) {
                     if (suppliers[item.supplier]) {
                         item.supplier = suppliers[item.supplier];
                     } else {
@@ -778,6 +778,8 @@ module.exports = {
                         suppliersToAdd.push({ _id: newId, id: item.supplierId, name: item.supplier});
                         item.supplier = newId;
                     }
+                } else {
+                    item.supplier = undefined;
                 }
                 item.supplierId = undefined;
 
@@ -868,11 +870,11 @@ module.exports = {
                 await session.abortTransaction();
                 session.endSession();
                 console.error(`Database insert error: ${err}`);
-                return res.status(400).send(`Database insert error: ${err}`);
+                return res.status(400).send(`Failed to process Excel file`);
             }
         } catch (error) {
             console.error(`Excel import erorr: ${error}`);
-            return res.status(400).send(`Failed to process Excel file: ${error}`);
+            return res.status(400).send(`Failed to process Excel file`);
         }
     },
     
