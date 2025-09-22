@@ -468,12 +468,36 @@ module.exports = {
         }   
     },
 
+    async editItems(req, res) {
+        // PATCH path: /items
+        const {
+            cats, data: { sector, department, belongsToDevices, emergency, supplier }
+        } = req.body;
+
+        const session = await mongoose.startSession();
+        session.startTransaction();
+        try {
+            await Item.updateMany({ cat: { $in: cats}}, [
+                { $set: { sector, department, emergency, supplier, archived }},
+                { $addToSet: { belongsToDevices }}
+            ]);
+            await session.commitTransaction();
+            session.endSession();
+            return res.status(200).send('Items edited successfully!');            
+        } catch (err) {
+            await session.abortTransaction();
+            session.endSession();
+            console.error(`Database update error: ${err}`);
+            return res.status(400).send(`Failed to edit items`);
+        }
+    },
+
     async editItem(req, res) {
         // PUT path: /items/962780438
         const {
             name, cat, kitCats, sector, department, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, models, accessories, consumables, spareParts, belongsToDevices, similarItems, kitItem,
             hebrewManualLink, serviceManualLink, userManualLink, emergency, supplier, lifeSpan
-        } = req.body;        
+        } = req.body;   
 
         try {
 
