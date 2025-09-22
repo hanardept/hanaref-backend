@@ -61,7 +61,7 @@ describe('hanaref-backend API', () => {
       const expectedItem = expectedItems.find(i => i.cat === item.cat);
       expect(expectedItem).toBeDefined();
 
-      const fields = ["cat", "imageLink", "name", "archived"];
+      const fields = ["cat", "catType", "imageLink", "name", "archived"];
       expect(Object.keys(item).length).toEqual([ ...Object.keys(item).filter(key => fields.includes(key)), "_id"].length);
       for (const field of fields) {
         expect(item[field]).toEqual(expectedItem[field]);
