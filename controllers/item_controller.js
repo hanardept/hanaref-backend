@@ -821,7 +821,14 @@ module.exports = {
                         if (itemToInsert.catType !== 'מכשיר') {
                             errors.push(...parentDevicesToRows[itemToInsert.cat].map(({ rowNumber }) => `שורה מספר ${rowNumber}: פריט אינו יכול להיות שייך למכשיר שסוג המק"ט שלו הוא ${itemToInsert.catType}`));
                         } else {
-                            parentDevicesToRows[itemToInsert.cat].forEach(childDevice => catTypeToChildrenArray(childDevice.catType)?.(itemToInsert).push(childDevice));
+                            parentDevicesToRows[itemToInsert.cat].forEach(({ item }) => {
+                                const childrenField = catTypeToChildrenArrayField(item.catType);
+                                if (!itemToInsert[childrenField]) {
+                                    itemToInsert[childrenField] = [item]
+                                } else {
+                                    itemToInsert[childrenField].push(item);
+                                }
+                            });
                         }
                         console.log(`deleting cat ${itemToInsert.cat} - part of excel`);
                         delete parentDevicesToRows[itemToInsert.cat];
