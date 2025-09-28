@@ -31,6 +31,7 @@ module.exports = (app) => {
 
     // item-CUD routes:
     app.post("/items", [whoIsTheUser, rolesAccessOnly([Role.Admin, Role.Technician])], ItemController.addItem);
+    app.put("/items/archive", [whoIsTheUser, adminAccessOnly], ItemController.setArchivedItems);
     app.put("/items/:cat", [whoIsTheUser, rolesAccessOnly([Role.Admin, Role.Technician])], ItemController.editItem);
     app.patch("/items", [whoIsTheUser, rolesAccessOnly([Role.Admin, Role.Technician])], ItemController.editItems);
     app.delete("/items/:cat", [whoIsTheUser, adminAccessOnly], ItemController.deleteItem);
