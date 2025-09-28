@@ -478,9 +478,9 @@ module.exports = {
         session.startTransaction();
         try {
             await Item.updateMany({ cat: { $in: cats}}, [
-                { $set: { sector, department, emergency, supplier, archived }},
-                { $addToSet: { belongsToDevices }}
-            ]);
+                { $set: { sector, department, emergency, supplier }},
+                belongsToDevices?.length && { $addToSet: { belongsToDevices: belongsToDevices ?? [] }}
+            ].filter(Boolean));
             await session.commitTransaction();
             session.endSession();
             return res.status(200).send('Items edited successfully!');            
@@ -680,7 +680,35 @@ module.exports = {
             console.error(`Error toggling archive for item ${req.params.cat}:`, error);
             res.status(500).send('A server error occurred.');
         }
-    }, 
+    },
+
+    async setArchivedItems (req, res) {
+        // PUT path: /items/archive
+        const {
+            cats, archived
+        } = req.body;
+
+        if (archived === undefined || archived === null) {
+            return res.status(400).send('Archived status must be provided.');
+        }
+        if (!cats || !Array.isArray(cats)) {
+            return res.status(400).send('A list of catalog numbers must be provided.');
+        }
+
+        const session = await mongoose.startSession();
+        session.startTransaction();
+        try {
+            await Item.updateMany({ cat: { $in: cats}}, { $set: { archived }});
+            await session.commitTransaction();
+            session.endSession();
+            return res.status(200).send('Items archive status set successfully!');            
+        } catch (err) {
+            await session.abortTransaction();
+            session.endSession();
+            console.error(`Database update error: ${err}`);
+            return res.status(400).send(`Failed to set archive status for items`);
+        }
+    },   
 
     async createFileUploadUrl(req, res) {
         try {
