@@ -92,6 +92,7 @@ module.exports = {
         // DELETE path: /suppliers/962780438
         try {
             const referencing = await Item.exists({ supplier: req.params.id });
+            console.log(`Items referencing supplier to delete: ${JSON.stringify(referencing)}`);
             if (referencing) {
                 return res.status(409).send("Cannot delete supplier - there are items referencing it.");
             }
