@@ -8,6 +8,8 @@ const CertificationController = require("../controllers/certification_controller
 const SupplierController = require("../controllers/supplier_controller");
 const NotificationController = require("../controllers/notification_controller");
 const Role = require('../models/Role');
+const multer = require('multer');
+const upload = multer({ storage: multer.memoryStorage() });
 
 module.exports = (app) => {
     // user-viewing routes:
@@ -29,8 +31,11 @@ module.exports = (app) => {
 
     // item-CUD routes:
     app.post("/items", [whoIsTheUser, rolesAccessOnly([Role.Admin, Role.Technician])], ItemController.addItem);
+    app.put("/items/archive", [whoIsTheUser, adminAccessOnly], ItemController.setArchivedItems);
     app.put("/items/:cat", [whoIsTheUser, rolesAccessOnly([Role.Admin, Role.Technician])], ItemController.editItem);
+    app.patch("/items", [whoIsTheUser, rolesAccessOnly([Role.Admin, Role.Technician])], ItemController.editItems);
     app.delete("/items/:cat", [whoIsTheUser, adminAccessOnly], ItemController.deleteItem);
+    app.post("/items/import-worksheet", [ whoIsTheUser, adminAccessOnly, upload.single('excelFile'), ItemController.importItems ])
 
     app.post("/items/:cat/url", [ whoIsTheUser, rolesAccessOnly([Role.Admin, Role.Technician])], ItemController.createFileUploadUrl);
 
