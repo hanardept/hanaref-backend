@@ -68,6 +68,7 @@ const rolesAccessOnly = (roles) => (req, res, next) => {
 }
 
 const adminAccessOnly = (req, res, next) => {
+    console.log(`body: ${JSON.stringify(req.body)}`)
     if (req.userPrivilege === "admin") {
         next();
     } else {
