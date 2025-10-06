@@ -494,8 +494,8 @@ module.exports = {
 
         const fieldsToCatTypes = [
             { names: ['sector', 'department', 'supplier' ] },
-            { names: ['emergency'], exceptCatTypes: [ CatType.Accessory, CatType.Consumable, CatType.SparePart ] },
-            { names: ['belongsToDevices'], exceptCatTypes: [ CatType.Device ] }
+            { names: ['emergency'], exceptCatTypes: [ "accessory", "consumable", "sparePart" ] },
+            { names: ['belongsToDevices'], exceptCatTypes: [ "device" ] }
         ];
 
         if (selectAll === 'true') {
@@ -548,22 +548,32 @@ module.exports = {
                 for (const catTypeField of catTypeFieldsToUpdate) {
                     let updateDoc;
                     switch (catTypeField) {
-                        case 'belongsToDevices':
-                            updateDocs.push({ $addToSet: { belongsToDevices: { $each: belongsToDevices } } });
+                        case 'belongsToDevices': {
+                            // const existing = updateDocs.find(doc => doc.update.$addToSet);
+                            // updateDocs.push({ 
+                            //     filter: { catType: { $nin: fieldInfo.exceptCatTypes }},
+                            //     update: existing ? {...existing, belongsToDevices: { $each: belongsToDevices }} : { $addToSet: { belongsToDevices: { $each: belongsToDevices } } }
+                            // });
+                            const existing = updateDocs.find(doc => doc.update.$addToSet);
+                            updateDoc = existing ? {...existing, belongsToDevices: { $each: belongsToDevices }} : { $addToSet: { belongsToDevices: { $each: belongsToDevices } } }
                             break;
-                        default:
-                            updateDocs.push({ $set: { [catTypeField]: fieldsToUpdate[catTypeField] } });
+                        }
+                        default: {
+                            const existing = updateDocs.find(doc => doc.update.$set);
+                            updateDoc = existing ? {...existing, [catTypeField]: fieldsToUpdate[catTypeField]} : { $set: { [catTypeField]: fieldsToUpdate[catTypeField] } };
+                            break;
+                        }
                     }
-                    return [ ...arr, updateDoc]
+                    if (updateDoc) {
+                        updateDocs.push({ filter: { $and: [ filter, { catType: { $nin: fieldInfo.exceptCatTypes }} ]}, update: updateDoc });
+                    }
                 }
-                if (catTypeFieldsToUpdate.length > 0) {
-
-                    let updateDoc;
-                    switch ()
-                    return [ ...arr, { $set: }]
+                return [ ...arr, ...updateDocs ];
             }, []);
 
-             console.log(`Updated items count: matched count: ${updated.matchedCount}, modifited count: ${updated.modifiedCount}`);
+            console.log(`updates: ${JSON.stringify(updates)}`);
+            const updated = await Item.bulkWrite(updates.map(({ filter, update }) => ({ updateMany: { filter, update } })), { session });
+            console.log(`Updated items count: matched count: ${updated.matchedCount}, modifited count: ${updated.modifiedCount}`);
             if (updated.matchedCount > 10) {
                 await session.abortTransaction();
                 session.endSession();
