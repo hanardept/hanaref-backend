@@ -571,6 +571,9 @@ module.exports = {
                 return [ ...arr, ...updateDocs ];
             }, []);
 
+            const testFind = await Item.find({ $or: updates.map(u => u.filter) });
+            console.log(`Items matched for update: ${testFind.length}`);
+
             console.log(`updates: ${JSON.stringify(updates)}`);
             const updated = await Item.bulkWrite(updates.map(({ filter, update }) => ({ updateMany: { filter, update } })), { session });
             console.log(`Updated items count: matched count: ${updated.matchedCount}, modifited count: ${updated.modifiedCount}`);
