@@ -164,6 +164,54 @@ async function deleteS3Objects(keys, client) {
     console.log(`delete objects result: ${JSON.stringify(res)}`);
 }
 
+function validateAndCreateFilter(req) {
+    const { selectAll, cats, search, searchFields, sector: filterSector, department: filterDepartment, status, excludedCats } = req.query;
+    const [decodedSearch, decodedSector, decodedDepartment] = decodeItems(search, filterSector, filterDepartment);
+
+    if (selectAll === 'true') {
+        if ([ filterSector, filterDepartment, search ].filter(f => f !== undefined).length === 0 && status !== 'active') {
+            return {
+                status: 400,
+                error: 'No filter provided',
+                details: 'לא סופק מסנן לעדכון'
+            };
+        }
+        
+    } else if (!cats?.length) {
+        //return res.status(400).json({ error: 'No items selected', details: 'לא נבחרו פריטים לעדכון' });
+        return {
+            status: 400,
+            error: 'No items selected',
+            details: 'לא נבחרו פריטים לעדכון'
+        };
+    }
+
+    const actualSearchFields = searchFields ?? [ 'name', 'cat', 'models.name', 'models.cat', 'kitCats' ];
+
+    const filter = (selectAll === 'true') ? {
+        $and: [
+            objectWithoutEmptyFields({
+                sector: decodedSector,
+                department: decodedDepartment,
+                archived: status === 'active' ? { $ne: true } : undefined,
+            }),
+            search?.length ? { 
+                $or: [
+                    actualSearchFields.includes('name') && { name: { $regex: decodedSearch, $options: "i" } },
+                    actualSearchFields.includes('cat') && { cat: { $regex: decodedSearch } },
+                    actualSearchFields.includes('kitCats') && { kitCats: { $regex: decodedSearch } },
+                    actualSearchFields.includes('models.name') && { "models.name": { $regex: decodedSearch, $options: "i" } },
+                    actualSearchFields.includes('models.cat') && { "models.cat": { $regex: decodedSearch, $options: "i" } },
+                ].filter(Boolean)
+            }
+            : undefined,
+            excludedCats?.length ? { cat: { $nin: excludedCats } } : undefined
+        ].filter(Boolean)
+    } : { cat: { $in: cats}};
+
+    return { filter };
+}
+
 // const getItemsFilter = ({ search, searchFields, sector, department, status, catType }) => {
 //     const actualSearchFields = searchFields ?? [ 'name', 'cat', 'models.name', 'models.cat', 'kitCats' ]
 
@@ -484,49 +532,16 @@ module.exports = {
             sector, department, belongsToDevices, emergency, supplier
         } = req.body;
 
-        const { selectAll, cats, search, searchFields, sector: filterSector, department: filterDepartment, status, excludedCats } = req.query;
-        const [decodedSearch, decodedSector, decodedDepartment] = decodeItems(search, filterSector, filterDepartment);
-
-        console.log(`encoded search: ${search}, filterSector: ${filterSector}, filterDepartment: ${filterDepartment}`);
-        console.log(`decoded search: ${decodedSearch}, sector: ${decodedSector}, department: ${decodedDepartment}`);
-
-        const actualSearchFields = searchFields ?? [ 'name', 'cat', 'models.name', 'models.cat', 'kitCats' ];
-
         const fieldsToCatTypes = [
             { names: ['sector', 'department', 'supplier' ] },
             { names: ['emergency'], exceptCatTypes: [ "accessory", "consumable", "sparePart" ] },
             { names: ['belongsToDevices'], exceptCatTypes: [ "device" ] }
         ];
 
-        if (selectAll === 'true') {
-            if ([ filterSector, filterDepartment, search ].filter(f => f !== undefined).length === 0 && status !== 'active') {
-                return res.status(400).json({ error: 'No filter provided', details: 'לא סופק מסנן לעדכון' });
-            }
-            
-        } else if (!cats?.length) {
-            return res.status(400).json({ error: 'No items selected', details: 'לא נבחרו פריטים לעדכון' });
+        const { filter, status, error, details } = validateAndCreateFilter(req);
+        if (!filter) {
+            return res.status(status).json({ error, details });
         }
-
-        const filter = (selectAll === 'true') ? {
-            $and: [
-                objectWithoutEmptyFields({
-                    sector: decodedSector,
-                    department: decodedDepartment,
-                    archived: status === 'active' ? { $ne: true } : undefined,
-                }),
-                search?.length ? { 
-                    $or: [
-                        actualSearchFields.includes('name') && { name: { $regex: decodedSearch, $options: "i" } },
-                        actualSearchFields.includes('cat') && { cat: { $regex: decodedSearch } },
-                        actualSearchFields.includes('kitCats') && { kitCats: { $regex: decodedSearch } },
-                        actualSearchFields.includes('models.name') && { "models.name": { $regex: decodedSearch, $options: "i" } },
-                        actualSearchFields.includes('models.cat') && { "models.cat": { $regex: decodedSearch, $options: "i" } },
-                    ].filter(Boolean)
-                }
-                : undefined,
-                excludedCats?.length ? { cat: { $nin: excludedCats } } : undefined
-            ].filter(Boolean)
-        } : { cat: { $in: cats}};
 
         const session = await mongoose.startSession();
         session.startTransaction();
@@ -535,12 +550,6 @@ module.exports = {
                 { $set: objectWithoutEmptyFields({ sector, department, emergency, supplier })},
                 belongsToDevices?.length && { $addToSet: { belongsToDevices: belongsToDevices ?? [] }}
             ].filter(f => f !== undefined))}`);
-            // const tmpDelete = await Item.find(filter);
-            // console.log(`Items matched for update: ${tmpDelete.length}`);
-            // const updated = await Item.updateMany(filter, [
-            //     { $set: objectWithoutEmptyFields({ sector, department, emergency, supplier })},
-            //     belongsToDevices?.length && { $addToSet: { belongsToDevices: belongsToDevices ?? [] }}
-            // ].filter(f => f !== undefined), { session});
             const fieldsToUpdate = objectWithoutEmptyFields({ sector, department, emergency, supplier, belongsToDevices });
             const updates = fieldsToCatTypes.reduce((arr, fieldInfo) => {
                 const catTypeFieldsToUpdate = fieldInfo.names.filter(name => fieldsToUpdate[name] !== undefined);
@@ -549,11 +558,6 @@ module.exports = {
                     let updateDoc;
                     switch (catTypeField) {
                         case 'belongsToDevices': {
-                            // const existing = updateDocs.find(doc => doc.update.$addToSet);
-                            // updateDocs.push({ 
-                            //     filter: { catType: { $nin: fieldInfo.exceptCatTypes }},
-                            //     update: existing ? {...existing, belongsToDevices: { $each: belongsToDevices }} : { $addToSet: { belongsToDevices: { $each: belongsToDevices } } }
-                            // });
                             const existing = updateDocs.find(doc => doc.update.$addToSet);
                             updateDoc = existing ? {...existing, belongsToDevices: { $each: belongsToDevices }} : { $addToSet: { belongsToDevices: { $each: belongsToDevices } } }
                             break;
@@ -792,14 +796,16 @@ module.exports = {
         if (archived === undefined || archived === null) {
             return res.status(400).send('Archived status must be provided.');
         }
-        if (!cats || !Array.isArray(cats)) {
-            return res.status(400).send('A list of catalog numbers must be provided.');
+
+         const { filter, status, error, details } = validateAndCreateFilter(req);
+        if (!filter) {
+            return res.status(status).json({ error, details });
         }
 
         const session = await mongoose.startSession();
         session.startTransaction();
         try {
-            await Item.updateMany({ cat: { $in: cats}}, { $set: { archived }});
+            await Item.updateMany(filter, { $set: { archived }});
             await session.commitTransaction();
             session.endSession();
             return res.status(200).send('Items archive status set successfully!');            
