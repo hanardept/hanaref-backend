@@ -169,7 +169,8 @@ function validateAndCreateFilter(req) {
     const [decodedSearch, decodedSector, decodedDepartment] = decodeItems(search, filterSector, filterDepartment);
 
     if (selectAll === 'true') {
-        if ([ filterSector, filterDepartment, search ].filter(f => f !== undefined).length === 0 && status !== 'active') {
+        console.log(`filters: ${JSON.stringify({ filterSector, filterDepartment, search })}`)
+        if ([ filterSector, filterDepartment, search ].filter(f => f !== undefined).length === 0) {
             return {
                 status: 400,
                 error: 'No filter provided',
@@ -178,7 +179,6 @@ function validateAndCreateFilter(req) {
         }
         
     } else if (!cats?.length) {
-        //return res.status(400).json({ error: 'No items selected', details: 'לא נבחרו פריטים לעדכון' });
         return {
             status: 400,
             error: 'No items selected',
@@ -211,12 +211,6 @@ function validateAndCreateFilter(req) {
 
     return { filter };
 }
-
-// const getItemsFilter = ({ search, searchFields, sector, department, status, catType }) => {
-//     const actualSearchFields = searchFields ?? [ 'name', 'cat', 'models.name', 'models.cat', 'kitCats' ]
-
-//     const [decodedSearch, decodedSector, decodedDepartment, decodedCatType] = decodeItems(search, sector, department, catType);
-// }
 
 module.exports = {
     async getItems(req, res) {
@@ -789,23 +783,32 @@ module.exports = {
 
     async setArchivedItems (req, res) {
         // PUT path: /items/archive
-        const {
-            cats, archived
-        } = req.body;
+        const { archived } = req.body;
 
         if (archived === undefined || archived === null) {
             return res.status(400).send('Archived status must be provided.');
         }
 
-         const { filter, status, error, details } = validateAndCreateFilter(req);
+        const { filter, status, error, details } = validateAndCreateFilter(req);
         if (!filter) {
+            console.log(`returned error!!`)
             return res.status(status).json({ error, details });
         }
+
+        console.log(`continuing!!! filter: ${JSON.stringify(filter)}`);
 
         const session = await mongoose.startSession();
         session.startTransaction();
         try {
-            await Item.updateMany(filter, { $set: { archived }});
+            const updated = await Item.updateMany(filter, { $set: { archived }}, { session });
+            console.log(`updated.matchCount: ${updated.matchedCount}`);
+             if (updated.matchedCount > 10) {
+                console.log(`match count too high`);
+                await session.abortTransaction();
+                session.endSession();
+                return res.status(400).json({ error: 'Filter too broad', details: 'החיפוש נרחב מדיי, פריטים רבים מדיי יושפעו' });
+            }
+            console.log(`continuing after match count too high`);
             await session.commitTransaction();
             session.endSession();
             return res.status(200).send('Items archive status set successfully!');            
