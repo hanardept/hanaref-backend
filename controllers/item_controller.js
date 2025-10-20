@@ -18,6 +18,10 @@ const filteredFieldsForRole = {
     [Role.Viewer]: [ 'certificationPeriodMonths', 'qaStandardLink', 'serviceManualLink' ],
 }
 
+const objectWithoutEmptyFields = (obj) => {
+    return Object.fromEntries(Object.entries(obj).filter(([_, v]) => v != null && v !== '' && v!= undefined));
+}
+
 function catTypeToChildrenArray(catType) {
     switch(catType) {
         case 'אביזר':
@@ -158,6 +162,54 @@ async function deleteS3Objects(keys, client) {
     client = client ?? new S3Client({ apiVersion: '2006-03-01' });
     const res = await client.send(command);
     console.log(`delete objects result: ${JSON.stringify(res)}`);
+}
+
+function validateAndCreateFilter(req) {
+    const { selectAll, cats, search, searchFields, sector: filterSector, department: filterDepartment, status, excludedCats } = req.query;
+    const [decodedSearch, decodedSector, decodedDepartment] = decodeItems(search, filterSector, filterDepartment);
+
+    if (selectAll === 'true') {
+        console.log(`filters: ${JSON.stringify({ filterSector, filterDepartment, search })}`)
+        if ([ filterSector, filterDepartment, search ].filter(f => f !== undefined).length === 0) {
+            return {
+                status: 400,
+                error: 'No filter provided',
+                details: 'לא סופק מסנן לעדכון'
+            };
+        }
+        
+    } else if (!cats?.length) {
+        return {
+            status: 400,
+            error: 'No items selected',
+            details: 'לא נבחרו פריטים לעדכון'
+        };
+    }
+
+    const actualSearchFields = searchFields ?? [ 'name', 'cat', 'models.name', 'models.cat', 'kitCats' ];
+
+    const filter = (selectAll === 'true') ? {
+        $and: [
+            objectWithoutEmptyFields({
+                sector: decodedSector,
+                department: decodedDepartment,
+                archived: status === 'active' ? { $ne: true } : undefined,
+            }),
+            search?.length ? { 
+                $or: [
+                    actualSearchFields.includes('name') && { name: { $regex: decodedSearch, $options: "i" } },
+                    actualSearchFields.includes('cat') && { cat: { $regex: decodedSearch } },
+                    actualSearchFields.includes('kitCats') && { kitCats: { $regex: decodedSearch } },
+                    actualSearchFields.includes('models.name') && { "models.name": { $regex: decodedSearch, $options: "i" } },
+                    actualSearchFields.includes('models.cat') && { "models.cat": { $regex: decodedSearch, $options: "i" } },
+                ].filter(Boolean)
+            }
+            : undefined,
+            excludedCats?.length ? { cat: { $nin: excludedCats } } : undefined
+        ].filter(Boolean)
+    } : { cat: { $in: cats}};
+
+    return { filter };
 }
 
 module.exports = {
@@ -471,16 +523,63 @@ module.exports = {
     async editItems(req, res) {
         // PATCH path: /items
         const {
-            cats, data: { sector, department, belongsToDevices, emergency, supplier }
+            sector, department, belongsToDevices, emergency, supplier
         } = req.body;
+
+        const fieldsToCatTypes = [
+            { names: ['sector', 'department', 'supplier' ] },
+            { names: ['emergency'], exceptCatTypes: [ "accessory", "consumable", "sparePart" ] },
+            { names: ['belongsToDevices'], exceptCatTypes: [ "device" ] }
+        ];
+
+        const { filter, status, error, details } = validateAndCreateFilter(req);
+        if (!filter) {
+            return res.status(status).json({ error, details });
+        }
 
         const session = await mongoose.startSession();
         session.startTransaction();
         try {
-            await Item.updateMany({ cat: { $in: cats}}, [
-                { $set: { sector, department, emergency, supplier }},
+            console.log(`updating items with filter: ${JSON.stringify(filter)}, changes: ${JSON.stringify([
+                { $set: objectWithoutEmptyFields({ sector, department, emergency, supplier })},
                 belongsToDevices?.length && { $addToSet: { belongsToDevices: belongsToDevices ?? [] }}
-            ].filter(Boolean));
+            ].filter(f => f !== undefined))}`);
+            const fieldsToUpdate = objectWithoutEmptyFields({ sector, department, emergency, supplier, belongsToDevices });
+            const updates = fieldsToCatTypes.reduce((arr, fieldInfo) => {
+                const catTypeFieldsToUpdate = fieldInfo.names.filter(name => fieldsToUpdate[name] !== undefined);
+                const updateDocs = [];
+                for (const catTypeField of catTypeFieldsToUpdate) {
+                    let updateDoc;
+                    switch (catTypeField) {
+                        case 'belongsToDevices': {
+                            const existing = updateDocs.find(doc => doc.update.$addToSet);
+                            updateDoc = existing ? {...existing, belongsToDevices: { $each: belongsToDevices }} : { $addToSet: { belongsToDevices: { $each: belongsToDevices } } }
+                            break;
+                        }
+                        default: {
+                            const existing = updateDocs.find(doc => doc.update.$set);
+                            updateDoc = existing ? {...existing, [catTypeField]: fieldsToUpdate[catTypeField]} : { $set: { [catTypeField]: fieldsToUpdate[catTypeField] } };
+                            break;
+                        }
+                    }
+                    if (updateDoc) {
+                        updateDocs.push({ filter: { $and: [ filter, { catType: { $nin: fieldInfo.exceptCatTypes }} ]}, update: updateDoc });
+                    }
+                }
+                return [ ...arr, ...updateDocs ];
+            }, []);
+
+            const testFind = await Item.find({ $or: updates.map(u => u.filter) });
+            console.log(`Items matched for update: ${testFind.length}`);
+
+            console.log(`updates: ${JSON.stringify(updates)}`);
+            const updated = await Item.bulkWrite(updates.map(({ filter, update }) => ({ updateMany: { filter, update } })), { session });
+            console.log(`Updated items count: matched count: ${updated.matchedCount}, modifited count: ${updated.modifiedCount}`);
+            if (updated.matchedCount > 10) {
+                await session.abortTransaction();
+                session.endSession();
+                return res.status(400).json({ error: 'Filter too broad', details: 'החיפוש נרחב מדיי, פריטים רבים מדיי יושפעו' });
+            }
             await session.commitTransaction();
             session.endSession();
             return res.status(200).send('Items edited successfully!');            
@@ -488,7 +587,7 @@ module.exports = {
             await session.abortTransaction();
             session.endSession();
             console.error(`Database update error: ${err}`);
-            return res.status(400).send(`Failed to edit items`);
+            return res.status(400).json({ error: 'Failed to edit items', details: 'עדכון הפריטים נכשל מסיבה לא צפוייה' });
         }
     },
 
@@ -684,21 +783,32 @@ module.exports = {
 
     async setArchivedItems (req, res) {
         // PUT path: /items/archive
-        const {
-            cats, archived
-        } = req.body;
+        const { archived } = req.body;
 
         if (archived === undefined || archived === null) {
             return res.status(400).send('Archived status must be provided.');
         }
-        if (!cats || !Array.isArray(cats)) {
-            return res.status(400).send('A list of catalog numbers must be provided.');
+
+        const { filter, status, error, details } = validateAndCreateFilter(req);
+        if (!filter) {
+            console.log(`returned error!!`)
+            return res.status(status).json({ error, details });
         }
+
+        console.log(`continuing!!! filter: ${JSON.stringify(filter)}`);
 
         const session = await mongoose.startSession();
         session.startTransaction();
         try {
-            await Item.updateMany({ cat: { $in: cats}}, { $set: { archived }});
+            const updated = await Item.updateMany(filter, { $set: { archived }}, { session });
+            console.log(`updated.matchCount: ${updated.matchedCount}`);
+             if (updated.matchedCount > 10) {
+                console.log(`match count too high`);
+                await session.abortTransaction();
+                session.endSession();
+                return res.status(400).json({ error: 'Filter too broad', details: 'החיפוש נרחב מדיי, פריטים רבים מדיי יושפעו' });
+            }
+            console.log(`continuing after match count too high`);
             await session.commitTransaction();
             session.endSession();
             return res.status(200).send('Items archive status set successfully!');            

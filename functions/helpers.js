@@ -2,7 +2,7 @@ const Notification = require("../models/Notification");
 const User = require("../models/User");
 
 function decodeItems(...arguments) {
-    return arguments.map((item) => decodeURI(item));
+    return arguments.map((item) => item !== undefined ? decodeURI(item) : undefined);
 }
 
 function getUserDisplayName(user) {
