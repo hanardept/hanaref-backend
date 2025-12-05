@@ -88,6 +88,12 @@ const worksheetColumns = [{
     header: 'אורך חיים',
     key: 'lifeSpan',
 }, {
+    header: 'שיטת אחזקה',
+    key: 'maintenanceMethod',
+}, {
+    header: 'תדירות אחזקה בחודשים',
+    key: 'maintenanceIntervalMonths',        
+},{
     header: 'יצרן',
     key: 'manufacturer',
     width: 30,
@@ -426,12 +432,12 @@ module.exports = {
         // POST path: /items
         const {
             name, cat, kitCats, sector, department, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, models, accessories, consumables, spareParts, belongsToDevices, similarItems, kitItem,
-            hebrewManualLink, serviceManualLink, userManualLink, emergency, supplier, lifeSpan
+            hebrewManualLink, serviceManualLink, userManualLink, emergency, maintenanceMethod, maintenanceIntervalMonths, supplier, lifeSpan
         } = req.body;
 
         const newItem = new Item({
             name, cat, kitCats, sector, department, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, models, accessories, consumables, spareParts, belongsToDevices, similarItems, kitItem,
-            hebrewManualLink, serviceManualLink, userManualLink, emergency, supplier, lifeSpan
+            hebrewManualLink, serviceManualLink, userManualLink, emergency, maintenanceMethod, maintenanceIntervalMonths, supplier, lifeSpan
         });
 
         
@@ -528,7 +534,7 @@ module.exports = {
 
         const fieldsToCatTypes = [
             { names: ['sector', 'department', 'supplier' ] },
-            { names: ['emergency'], exceptCatTypes: [ "accessory", "consumable", "sparePart" ] },
+            { names: ['emergency', 'maintenanceMethod', 'maintenanceIntervalMonths' ], exceptCatTypes: [ "accessory", "consumable", "sparePart" ] },
             { names: ['belongsToDevices'], exceptCatTypes: [ "device" ] }
         ];
 
@@ -595,14 +601,14 @@ module.exports = {
         // PUT path: /items/962780438
         const {
             name, cat, kitCats, sector, department, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, models, accessories, consumables, spareParts, belongsToDevices, similarItems, kitItem,
-            hebrewManualLink, serviceManualLink, userManualLink, emergency, supplier, lifeSpan
+            hebrewManualLink, serviceManualLink, userManualLink, emergency, maintenanceMethod, maintenanceIntervalMonths, supplier, lifeSpan
         } = req.body;   
 
         try {
 
             const cmds = Object.keys({ 
                 name, cat, kitCats, sector, department, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, models, accessories, consumables, spareParts, belongsToDevices, similarItems, kitItem,
-                hebrewManualLink, serviceManualLink, userManualLink, emergency, lifeSpan
+                hebrewManualLink, serviceManualLink, userManualLink, emergency, maintenanceMethod, maintenanceIntervalMonths, lifeSpan
             }).reduce((obj, key) => ({ ...obj, $set: { ...obj.$set, [key]: req.body[key] }}), { $set: {} });
             if (supplier === undefined) {
                 cmds.$unset = { supplier: "" };
@@ -1061,11 +1067,11 @@ module.exports = {
             if (items?.length) {
                 worksheet.addRows(items.map(({ 
                     name, cat, kitCats, sector, department, models, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, serviceManualLink, userManualLink,
-                    hebrewManualLink, archived, belongsToDevices, emergency, supplier, lifeSpan,
+                    hebrewManualLink, archived, belongsToDevices, emergency, maintenanceMethod, maintenanceIntervalMonths, supplier, lifeSpan,
                 }) => (
                     { 
                         name, cat, sector, department, models, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, serviceManualLink, userManualLink, 
-                        hebrewManualLink, lifeSpan,
+                        hebrewManualLink, lifeSpan, maintenanceMethod, maintenanceIntervalMonths,
                         supplier: supplier?.name ?? '',
                         supplierId: supplier?.id ?? '',
                         emergency: emergency ? 'כן' : 'לא',
