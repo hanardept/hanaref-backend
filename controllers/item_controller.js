@@ -276,6 +276,8 @@ module.exports = {
                 .sort("name")
                 .skip(page * 20)
                 .limit(20);
+
+            console.log(`items: ${JSON.stringify(items)}`);
             
             res.status(200).send(items);
         } catch (error) {
@@ -1058,7 +1060,7 @@ module.exports = {
         do {
             items = await Item.find({}, { 
                     name: 1, cat: 1, kitCats: 1, sector: 1, department: 1, models: 1, archived: 1, catType: 1, certificationPeriodMonths: 1, description: 1, imageLink: 1, qaStandardLink: 1, medicalEngineeringManualLink: 1, 
-                    serviceManualLink: 1, userManualLink: 1, hebrewManualLink: 1, emergency: 1, supplier: 1, lifeSpan: 1, belongsToDevices: 1, kitItem: 1 
+                    serviceManualLink: 1, userManualLink: 1, hebrewManualLink: 1, emergency: 1, maintenanceMethod: 1, maintenanceIntervalMonths: 1, supplier: 1, lifeSpan: 1, belongsToDevices: 1, kitItem: 1 
                 })
                 .sort('cat')
                 .skip(offset)
