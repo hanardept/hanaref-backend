@@ -55,6 +55,14 @@ const itemSchema = new Schema({
     serviceManualLink: String,
     hebrewManualLink: String,
     emergency: Boolean,
+    maintenanceMethod: {
+        type: String,
+        required: true,
+    },
+    maintenanceIntervalMonths: {
+        type: Number,
+        required: false,
+    },
     supplier: {
         type: Schema.Types.ObjectId,
         ref: "Supplier",

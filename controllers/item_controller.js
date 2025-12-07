@@ -88,6 +88,12 @@ const worksheetColumns = [{
     header: 'אורך חיים',
     key: 'lifeSpan',
 }, {
+    header: 'שיטת אחזקה',
+    key: 'maintenanceMethod',
+}, {
+    header: 'תדירות אחזקה בחודשים',
+    key: 'maintenanceIntervalMonths',        
+},{
     header: 'יצרן',
     key: 'manufacturer',
     width: 30,
@@ -270,6 +276,8 @@ module.exports = {
                 .sort("name")
                 .skip(page * 20)
                 .limit(20);
+
+            console.log(`items: ${JSON.stringify(items)}`);
             
             res.status(200).send(items);
         } catch (error) {
@@ -426,12 +434,12 @@ module.exports = {
         // POST path: /items
         const {
             name, cat, kitCats, sector, department, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, models, accessories, consumables, spareParts, belongsToDevices, similarItems, kitItem,
-            hebrewManualLink, serviceManualLink, userManualLink, emergency, supplier, lifeSpan
+            hebrewManualLink, serviceManualLink, userManualLink, emergency, maintenanceMethod, maintenanceIntervalMonths, supplier, lifeSpan
         } = req.body;
 
         const newItem = new Item({
             name, cat, kitCats, sector, department, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, models, accessories, consumables, spareParts, belongsToDevices, similarItems, kitItem,
-            hebrewManualLink, serviceManualLink, userManualLink, emergency, supplier, lifeSpan
+            hebrewManualLink, serviceManualLink, userManualLink, emergency, maintenanceMethod, maintenanceIntervalMonths, supplier, lifeSpan
         });
 
         
@@ -528,7 +536,7 @@ module.exports = {
 
         const fieldsToCatTypes = [
             { names: ['sector', 'department', 'supplier' ] },
-            { names: ['emergency'], exceptCatTypes: [ "accessory", "consumable", "sparePart" ] },
+            { names: ['emergency', 'maintenanceMethod', 'maintenanceIntervalMonths' ], exceptCatTypes: [ "accessory", "consumable", "sparePart" ] },
             { names: ['belongsToDevices'], exceptCatTypes: [ "device" ] }
         ];
 
@@ -595,14 +603,14 @@ module.exports = {
         // PUT path: /items/962780438
         const {
             name, cat, kitCats, sector, department, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, models, accessories, consumables, spareParts, belongsToDevices, similarItems, kitItem,
-            hebrewManualLink, serviceManualLink, userManualLink, emergency, supplier, lifeSpan
+            hebrewManualLink, serviceManualLink, userManualLink, emergency, maintenanceMethod, maintenanceIntervalMonths, supplier, lifeSpan
         } = req.body;   
 
         try {
 
             const cmds = Object.keys({ 
                 name, cat, kitCats, sector, department, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, models, accessories, consumables, spareParts, belongsToDevices, similarItems, kitItem,
-                hebrewManualLink, serviceManualLink, userManualLink, emergency, lifeSpan
+                hebrewManualLink, serviceManualLink, userManualLink, emergency, maintenanceMethod, maintenanceIntervalMonths, lifeSpan
             }).reduce((obj, key) => ({ ...obj, $set: { ...obj.$set, [key]: req.body[key] }}), { $set: {} });
             if (supplier === undefined) {
                 cmds.$unset = { supplier: "" };
@@ -1052,7 +1060,7 @@ module.exports = {
         do {
             items = await Item.find({}, { 
                     name: 1, cat: 1, kitCats: 1, sector: 1, department: 1, models: 1, archived: 1, catType: 1, certificationPeriodMonths: 1, description: 1, imageLink: 1, qaStandardLink: 1, medicalEngineeringManualLink: 1, 
-                    serviceManualLink: 1, userManualLink: 1, hebrewManualLink: 1, emergency: 1, supplier: 1, lifeSpan: 1, belongsToDevices: 1, kitItem: 1 
+                    serviceManualLink: 1, userManualLink: 1, hebrewManualLink: 1, emergency: 1, maintenanceMethod: 1, maintenanceIntervalMonths: 1, supplier: 1, lifeSpan: 1, belongsToDevices: 1, kitItem: 1 
                 })
                 .sort('cat')
                 .skip(offset)
@@ -1061,11 +1069,11 @@ module.exports = {
             if (items?.length) {
                 worksheet.addRows(items.map(({ 
                     name, cat, kitCats, sector, department, models, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, serviceManualLink, userManualLink,
-                    hebrewManualLink, archived, belongsToDevices, emergency, supplier, lifeSpan,
+                    hebrewManualLink, archived, belongsToDevices, emergency, maintenanceMethod, maintenanceIntervalMonths, supplier, lifeSpan,
                 }) => (
                     { 
                         name, cat, sector, department, models, catType, certificationPeriodMonths, description, imageLink, qaStandardLink, medicalEngineeringManualLink, serviceManualLink, userManualLink, 
-                        hebrewManualLink, lifeSpan,
+                        hebrewManualLink, lifeSpan, maintenanceMethod, maintenanceIntervalMonths,
                         supplier: supplier?.name ?? '',
                         supplierId: supplier?.id ?? '',
                         emergency: emergency ? 'כן' : 'לא',
