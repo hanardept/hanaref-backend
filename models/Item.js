@@ -67,6 +67,10 @@ const itemSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: "Supplier",
     },
+    price: {
+        type: Number,
+        required: false,
+    },
     lifeSpan: String,
     models: [new Schema({ ...nameAndCatSchema.obj, manufacturer: String })],
     accessories: [nameAndCatSchema],
